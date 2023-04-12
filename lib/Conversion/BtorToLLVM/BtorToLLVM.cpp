@@ -93,12 +93,8 @@ using UMulOverflowOpLowering =
 using UExtOpLowering = VectorConvertToLLVMPattern<btor::UExtOp, LLVM::ZExtOp>;
 using SExtOpLowering = VectorConvertToLLVMPattern<btor::SExtOp, LLVM::SExtOp>;
 using IteOpLowering = VectorConvertToLLVMPattern<btor::IteOp, LLVM::SelectOp>;
-using RedOrOpLowering =
-    ConvertReduceOpToLLVMPattern<btor::RedOrOp, LLVM::vector_reduce_or>;
 using RedXorOpLowering =
     ConvertReduceOpToLLVMPattern<btor::RedXorOp, LLVM::vector_reduce_xor>;
-using RedAndOpLowering =
-    ConvertReduceOpToLLVMPattern<btor::RedAndOp, LLVM::vector_reduce_and>;
 using XnorOpLowering = ConvertNotOpToBtorPattern<btor::XnorOp, btor::XOrOp>;
 using NandOpLowering = ConvertNotOpToBtorPattern<btor::NandOp, btor::AndOp>;
 using NorOpLowering = ConvertNotOpToBtorPattern<btor::NorOp, btor::OrOp>;
@@ -266,6 +262,20 @@ struct SRemOpLowering : public ConvertOpToLLVMPattern<btor::SRemOp> {
   using ConvertOpToLLVMPattern<btor::SRemOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(btor::SRemOp op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override;
+};
+
+struct RedOrOpLowering : public ConvertOpToLLVMPattern<btor::RedOrOp> {
+  using ConvertOpToLLVMPattern<btor::RedOrOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(btor::RedOrOp op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override;
+};
+
+struct RedAndOpLowering : public ConvertOpToLLVMPattern<btor::RedAndOp> {
+  using ConvertOpToLLVMPattern<btor::RedAndOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(btor::RedAndOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override;
 };
 } // end anonymous namespace
@@ -792,6 +802,42 @@ URemOpLowering::matchAndRewrite(mlir::btor::URemOp op, OpAdaptor adaptor,
   Value divisorIsZero = rewriter.create<LLVM::ICmpOp>(
       loc, LLVM::ICmpPredicate::eq, rhs, zeroConst);
   rewriter.replaceOpWithNewOp<LLVM::SelectOp>(op, divisorIsZero, lhs, urem);
+  return success();
+}
+
+//===----------------------------------------------------------------------===//
+// RedOrOpLowering
+//===----------------------------------------------------------------------===//
+
+LogicalResult
+RedOrOpLowering::matchAndRewrite(mlir::btor::RedOrOp op, OpAdaptor adaptor,
+                                ConversionPatternRewriter &rewriter) const {
+  // ensure that the operand is not zero 
+  auto loc = op.getLoc();
+  auto operand = adaptor.operand();
+  auto opType = operand.getType();
+
+  Value zeroConst = rewriter.create<LLVM::ConstantOp>(
+      loc, opType, rewriter.getIntegerAttr(opType, 0));  
+  rewriter.replaceOpWithNewOp<LLVM::ICmpOp>(op, LLVM::ICmpPredicate::ne, operand, zeroConst);
+  return success();
+}
+
+//===----------------------------------------------------------------------===//
+// RedAndOpLowering
+//===----------------------------------------------------------------------===//
+
+LogicalResult
+RedAndOpLowering::matchAndRewrite(mlir::btor::RedAndOp op, OpAdaptor adaptor,
+                                ConversionPatternRewriter &rewriter) const {
+  // ensure that the operand is all ones (-1)
+  auto loc = op.getLoc();
+  auto operand = adaptor.operand();
+  auto opType = operand.getType();
+
+  Value zeroConst = rewriter.create<LLVM::ConstantOp>(
+      loc, opType, rewriter.getIntegerAttr(opType, -1));  
+  rewriter.replaceOpWithNewOp<LLVM::ICmpOp>(op, LLVM::ICmpPredicate::eq, operand, zeroConst);
   return success();
 }
 

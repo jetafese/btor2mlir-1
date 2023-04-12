@@ -35,31 +35,11 @@ struct InputOpLowering : public ConvertOpToLLVMPattern<btor::InputOp> {
 template <typename Op>
 std::string createNDFunctionHelper(Op op, std::string suffix, mlir::ConversionPatternRewriter &rewriter) {
   auto opType = op.result().getType();
-  auto functionType = rewriter.getIntegerType(8);
   // Insert the `havoc` declaration if necessary.
   std::string havoc;
   havoc.append("nd_bv");
   auto bvWidth = opType.getIntOrFloatBitWidth();
-  if (bvWidth <= 8) {
-    havoc.append(std::to_string(8));
-  } else if (bvWidth <= 16) {
-    havoc.append(std::to_string(16));
-    functionType = rewriter.getIntegerType(16);
-  } else if (bvWidth <= 32) {
-    havoc.append(std::to_string(32));
-    functionType = rewriter.getIntegerType(32);
-  } else if (bvWidth <= 64) {
-    havoc.append(std::to_string(64));
-    functionType = rewriter.getIntegerType(64);
-  } else if (bvWidth <= 128) {
-    havoc.append(std::to_string(128));
-    functionType = rewriter.getIntegerType(128);
-  } else {
-    havoc.append(std::to_string(bvWidth));
-    functionType = rewriter.getIntegerType(bvWidth);
-  }
-  havoc.append(suffix);
-  havoc.append(std::to_string(op.idAttr().getInt()));
+  havoc.append(std::to_string(bvWidth));
   return havoc;
 }
 
@@ -112,24 +92,6 @@ void createPrintFunctionHelper(
   Value ndValueId = rewriter.create<LLVM::ConstantOp>(
     op.getLoc(), rewriter.getI64Type(), op.idAttr());
   // TODO: We need to handle values with bitwidth > 64
-  auto needsExt = ndValue.getType().getIntOrFloatBitWidth() <= 64;
-  if (needsExt) {
-    Value zextNDValue = rewriter.create<LLVM::ZExtOp>(op.getLoc(), i64Type, ndValue);
-    rewriter.create<LLVM::CallOp>(
-          op.getLoc(), 
-          TypeRange({}),
-          printHelper,
-          ValueRange({ndValueId, zextNDValue, zextNDWidth}));
-    return;
-  }
-  // Value truncNDValue = rewriter.create<LLVM::TruncOp>(op.getLoc(), 
-  //   TypeRange({i64Type}), ndValue);
-  // rewriter.create<LLVM::CallOp>(
-  //       op.getLoc(), 
-  //       TypeRange({}),
-  //       printHelper,
-  //       ValueRange({ndValueId, truncNDValue, zextNDWidth}));
-  // return;
 }
 } // end anonymous namespace
 
