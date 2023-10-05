@@ -32,8 +32,7 @@
 // Btor Dialect Types
 //===----------------------------------------------------------------------===//
 
-#define GET_TYPEDEF_CLASSES
-#include "Dialect/Btor/IR/BtorOpsTypes.h.inc"
+#include "Dialect/Btor/IR/BtorTypes.h"
 
 //===----------------------------------------------------------------------===//
 // Btor Dialect Operations

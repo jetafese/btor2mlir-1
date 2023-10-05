@@ -1,4 +1,4 @@
-//===- BtorDialect.cpp - Btor dialect ---------------*- C++ -*-===//
+//===- BtorTypes.cpp - Btor dialect ---------------*- C++ -*-===//
 //
 // This file is licensed under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -8,20 +8,16 @@
 
 #include "Dialect/Btor/IR/Btor.h"
 #include "mlir/IR/Builders.h"
+#include "Dialect/Btor/IR/BtorTypes.h"
 
 using namespace mlir;
 using namespace mlir::btor;
 
 #include "Dialect/Btor/IR/BtorOpsDialect.cpp.inc"
 
-//===----------------------------------------------------------------------===//
-// Btor dialect.
-//===----------------------------------------------------------------------===//
-
-void BtorDialect::initialize() {
-   registerTypes();
-  addOperations<
-#define GET_OP_LIST
-#include "Dialect/Btor/IR/BtorOps.cpp.inc"
+void BtorDialect::registerTypes() {
+   addTypes<
+#define GET_TYPEDEF_LIST
+#include "Dialect/Btor/IR/BtorOpsTypes.cpp.inc"
       >();
 }
