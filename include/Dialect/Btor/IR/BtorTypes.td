@@ -28,9 +28,9 @@ def Btor_Array : Btor_BaseType<"Array", "array"> {
     Two bit vectors acting as a Btor array
   }];
 
-  let parameters = (ins "BitVecType":$a, "BitVecType":$b);
+  let parameters = (ins "BitVecType":$len, "BitVecType":$elem);
 
-  let assemblyFormat = "`<` $a `,` $b `>`";
+  let assemblyFormat = "`<` $len `,` $elem `>`";
 
   let genVerifyDecl = 0;
 }

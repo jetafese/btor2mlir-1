@@ -962,12 +962,14 @@ def ArrayOp : Btor_Op<"nd_array"> {
     by subsequent read and write operations. 
   }];
 
-  let results = (outs AnyVector:$result);
+  let results = (outs Btor_Array:$result);
   let assemblyFormat = "attr-dict `:` type($result)";
-  let verifier = [{ return verifyArrayOp(*this); }];
+  //let verifier = [{ return verifyArrayOp(*this); }];
+  
+  //get vector type will not work with custom btor array type
   let extraClassDeclaration = [{
     VectorType getArrayType() {
-      return result().getType().cast<VectorType>();
+     return result().getType().cast<VectorType>();
     }
   }];
 }
@@ -989,7 +991,9 @@ def InitArrayOp : Btor_Op<"array"> {
   }];
 
   let arguments = (ins SignlessIntegerLike:$init);
-  let results = (outs AnyVector:$result);
+  let results = (outs Btor_Array:$result);
+
+  //will break due to custom btor array type
   let extraClassDeclaration = [{
     VectorType getArrayType() {
       return result().getType().cast<VectorType>();
@@ -1018,9 +1022,10 @@ def ReadOp : Btor_Op<"read"> {
     ```
   }];
 
-  let arguments = (ins AnyVector:$base, SignlessIntegerLike:$index);
+  let arguments = (ins Btor_Array:$base, SignlessIntegerLike:$index);
   let results = (outs SignlessIntegerLike:$result);
 
+  //will break due to custom btor array type
   let extraClassDeclaration = [{
     VectorType getArrayType() {
       return base().getType().cast<VectorType>();
@@ -1049,9 +1054,10 @@ def WriteOp : Btor_Op<"write"> {
     ```
   }];
 
-  let arguments = (ins SignlessIntegerLike:$value, AnyVector:$base,
+  let arguments = (ins SignlessIntegerLike:$value, Btor_Array:$base,
                        SignlessIntegerLike:$index);
 
+  //will break due to custom btor array type
   let results = (outs AnyVector:$result);
     let extraClassDeclaration = [{
     VectorType getArrayType() {

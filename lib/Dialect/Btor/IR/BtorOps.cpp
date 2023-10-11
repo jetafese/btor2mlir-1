@@ -301,15 +301,15 @@ static ParseResult parseNDStateOpOp(OpAsmParser &parser, OperationState &result)
 
 template <typename Op>
 static LogicalResult verifyArrayOp(Op op) {
-  if (op.getArrayType().getShape().size() != 1) {
-    return op.emitOpError() << "provide only one shape attribute ";
-  }
-  auto shape = op.getArrayType().getShape()[0];
-  auto indicator = shape & (shape - 1);
-  if (indicator != 0) {
-    return op.emitOpError() << "given shape: " <<  shape 
-                         << " has to be a power of two";
-  }
+  // if (op.getArrayType().getShape().size() != 1) {
+  //   return op.emitOpError() << "provide only one shape attribute ";
+  // }
+  // auto shape = op.getArrayType().getShape()[0];
+  // auto indicator = shape & (shape - 1);
+  // if (indicator != 0) {
+  //   return op.emitOpError() << "given shape: " <<  shape 
+  //                        << " has to be a power of two";
+  // }
   return success();
 }
 
@@ -346,7 +346,7 @@ static LogicalResult verifyInitArrayOp(Op op) {
 
 static ParseResult parseInitArrayOp(OpAsmParser &parser, OperationState &result) {
   OpAsmParser::OperandType init;
-  VectorType resultType;
+  btor::ArrayType resultType;
   if (parser.parseOperand(init) ||
       parser.parseOptionalAttrDict(result.attributes) || 
       parser.parseColon() || parser.parseType(resultType))
@@ -354,7 +354,7 @@ static ParseResult parseInitArrayOp(OpAsmParser &parser, OperationState &result)
 
   result.addTypes(resultType);
   return parser.resolveOperands({init}, 
-                                {resultType.getElementType()},
+                                {resultType.getElem()},
                                 parser.getNameLoc(), result.operands);
 }
 
@@ -370,27 +370,27 @@ static void printReadOp(OpAsmPrinter &p, ReadOp &op) {
 
 template <typename Op>
 static LogicalResult verifyReadOp(Op op) {
-  auto type = op.result().getType().getIntOrFloatBitWidth();
-  // The value's type must match the return type.
-  if (op.getArrayType().getElementType().getIntOrFloatBitWidth() != type) {
-    return op.emitOpError() << "element type of the array must match "
-                         << " bitwidth of return type: " << type;
-  }
-  if (op.getArrayType().getShape().size() != 1) {
-    return op.emitOpError() << "provide only one shape attribute ";
-  }
-  auto shape = op.getArrayType().getShape()[0];
-  auto indicator = shape & (shape - 1);
-  if (indicator != 0) {
-    return op.emitOpError() << "given shape: " <<  shape 
-                         << " has to be a power of two";
-  }
+  // auto type = op.result().getType().getIntOrFloatBitWidth();
+  // // The value's type must match the return type.
+  // if (op.getArrayType().getElementType().getIntOrFloatBitWidth() != type) {
+  //   return op.emitOpError() << "element type of the array must match "
+  //                        << " bitwidth of return type: " << type;
+  // }
+  // if (op.getArrayType().getShape().size() != 1) {
+  //   return op.emitOpError() << "provide only one shape attribute ";
+  // }
+  // auto shape = op.getArrayType().getShape()[0];
+  // auto indicator = shape & (shape - 1);
+  // if (indicator != 0) {
+  //   return op.emitOpError() << "given shape: " <<  shape 
+  //                        << " has to be a power of two";
+  // }
   return success();
 }
 
 static ParseResult parseReadOp(OpAsmParser &parser, OperationState &result) {
   OpAsmParser::OperandType base, index;
-  VectorType baseType; IntegerType indexType;
+  btor::ArrayType baseType; //IntegerType indexType;
   Type resultType;
   if (parser.parseOperand(base) || parser.parseLSquare() || 
       parser.parseOperand(index) || parser.parseRSquare() ||
@@ -400,8 +400,9 @@ static ParseResult parseReadOp(OpAsmParser &parser, OperationState &result) {
     return failure();
 
   result.addTypes(resultType);
-  indexType = parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]));
-  return parser.resolveOperands({base, index}, {baseType, indexType},
+  // indexType = parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]));
+  // return parser.resolveOperands({base, index}, {baseType, indexType},
+  return parser.resolveOperands({base, index}, {baseType, baseType.getLen()},
                                 parser.getNameLoc(), result.operands);
 }
 
@@ -417,18 +418,18 @@ void printWriteOp(OpAsmPrinter &p, WriteOp &op) {
 
 template <typename Op>
 LogicalResult verifyWriteOp(Op op) {
-  auto type = op.value().getType().getIntOrFloatBitWidth();
-  // The value's type must match the array's element type.
-  if (op.getArrayType().getElementType().getIntOrFloatBitWidth() != type) {
-    return op.emitOpError() << "element type of the array must match "
-                         << " bitwidth of given value: " << type;
-  }
+  // auto type = op.value().getType().getIntOrFloatBitWidth();
+  // // The value's type must match the array's element type.
+  // if (op.getArrayType().getElementType().getIntOrFloatBitWidth() != type) {
+  //   return op.emitOpError() << "element type of the array must match "
+  //                        << " bitwidth of given value: " << type;
+  // }
   return success();
 }
 
 static ParseResult parseWriteOp(OpAsmParser &parser, OperationState &result) {
   OpAsmParser::OperandType value, base, index;
-  VectorType resultType; IntegerType indexType;
+  btor::ArrayType resultType; //IntegerType indexType;
   if (parser.parseOperand(value) || parser.parseComma() ||
       parser.parseOperand(base) || parser.parseLSquare() || 
       parser.parseOperand(index) || parser.parseRSquare() ||
@@ -437,9 +438,9 @@ static ParseResult parseWriteOp(OpAsmParser &parser, OperationState &result) {
     return failure();
 
   result.addTypes(resultType);
-  indexType = parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]));
+  //indexType = parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]));
   return parser.resolveOperands({value, base, index}, 
-                                {resultType.getElementType(), resultType, indexType},
+                                {resultType.getElem(), resultType, resultType.getLen()},
                                 parser.getNameLoc(), result.operands);
 }
 
