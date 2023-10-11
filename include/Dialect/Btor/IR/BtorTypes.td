@@ -19,8 +19,7 @@ def Btor_BitVec : Btor_BaseType<"BitVec", "bv"> {
 
   let assemblyFormat = "`<` $length `>`";
 
-  /// Indicate that our type will add additional verification to the parameters.
-  let genVerifyDecl = 1;
+  let genVerifyDecl = 0;
 }
 
 def Btor_Array : Btor_BaseType<"Array", "array"> {
@@ -33,8 +32,7 @@ def Btor_Array : Btor_BaseType<"Array", "array"> {
 
   let assemblyFormat = "`<` $a `,` $b `>`";
 
-  /// Indicate that our type will add additional verification to the parameters.
-  let genVerifyDecl = 1;
+  let genVerifyDecl = 0;
 }
 
 #endif // BTOR_TYPES

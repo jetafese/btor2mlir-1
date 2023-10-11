@@ -8,12 +8,17 @@
 
 #include "Dialect/Btor/IR/Btor.h"
 #include "mlir/IR/Builders.h"
+#include "mlir/IR/DialectImplementation.h"
 #include "Dialect/Btor/IR/BtorTypes.h"
+#include "llvm/ADT/TypeSwitch.h"
+
+
 
 using namespace mlir;
 using namespace mlir::btor;
 
-#include "Dialect/Btor/IR/BtorOpsDialect.cpp.inc"
+#define GET_TYPEDEF_CLASSES
+#include "Dialect/Btor/IR/BtorOpsTypes.cpp.inc"
 
 void BtorDialect::registerTypes() {
    addTypes<

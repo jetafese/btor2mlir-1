@@ -25,6 +25,5 @@
 
 using namespace mlir;
 using namespace mlir::btor;
-void registerTypes();
 
 #endif // BTOR_IR_BTOR_TYPES_H
