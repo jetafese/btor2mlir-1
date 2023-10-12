@@ -56,7 +56,8 @@ static ParseResult parseUnaryDifferentResultOp(OpAsmParser &parser,
 
 // Return the type of the same shape (scalar, vector or tensor) containing i1.
 static Type getI1SameShape(Type type) {
-  auto i1Type = IntegerType::get(type.getContext(), 1);
+  //auto i1Type = IntegerType::get(type.getContext(), 1);
+  auto i1Type = btor::BitVecType::get(type.getContext(), 1);
   return i1Type;
 }
 

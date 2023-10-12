@@ -152,7 +152,8 @@ class Deserialize {
 
       return btor::ArrayType::get(m_context, lengthbv, elementbv);
     }
-    return m_builder.getIntegerType(line->sort.bitvec.width);
+    //return m_builder.getIntegerType(line->sort.bitvec.width);
+    return btor::BitVecType::get(m_context, line->sort.bitvec.width);
   }
 
   // Binary Operations
@@ -195,7 +196,8 @@ class Deserialize {
                             const std::string &str,
                             const unsigned radix,
                             const unsigned  lineId) {
-    Type type = m_builder.getIntegerType(width);
+    Type intAttrType = m_builder.getIntegerType(width);
+    Type type = btor::BitVecType::get(m_context, width);
     mlir::APInt value(width, 0, radix);
     if (str.compare("ones") == 0) {
       value.setAllBits();
@@ -206,7 +208,7 @@ class Deserialize {
     }
     auto res = m_builder.create<btor::ConstantOp>(
                         FileLineColLoc::get(m_sourceFile, lineId, 0),
-                        type, m_builder.getIntegerAttr(type, value));
+                        type, m_builder.getIntegerAttr(intAttrType, value));
     return res;
   }
 
