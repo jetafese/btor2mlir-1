@@ -7,6 +7,7 @@
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/IR/TypeRange.h"
 #include "mlir/IR/TypeUtilities.h"
+#include "mlir/Conversion/StandardToLLVM/ConvertStandardToLLVM.h"
 
 #include <string>
 
@@ -15,6 +16,22 @@ using namespace mlir;
 #define PASS_NAME "convert-btor-to-llvm"
 
 namespace {
+
+// Base class for LLVM IR lowering terminator operations with successors.
+template <typename SourceOp, typename TargetOp>
+struct OneToOneLLVMTerminatorLowering
+    : public ConvertOpToLLVMPattern<SourceOp> {
+  using ConvertOpToLLVMPattern<SourceOp>::ConvertOpToLLVMPattern;
+  using Super = OneToOneLLVMTerminatorLowering<SourceOp, TargetOp>;
+
+  LogicalResult
+  matchAndRewrite(SourceOp op, typename SourceOp::Adaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<TargetOp>(op, adaptor.getOperands(),
+                                          op->getSuccessors(), op->getAttrs());
+    return success();
+  }
+};
 
 template <typename SourceOp, typename BaseOp>
 class ConvertNotOpToBtorPattern : public ConvertOpToLLVMPattern<SourceOp> {
@@ -606,7 +623,8 @@ SModOpLowering::matchAndRewrite(mlir::btor::SModOp smodOp, OpAdaptor adaptor,
 LogicalResult
 NDStateOpLowering::matchAndRewrite(btor::NDStateOp op, OpAdaptor adaptor,
                                  ConversionPatternRewriter &rewriter) const {
-  auto opType = op.result().getType();
+  auto bvType = op.result().getType().dyn_cast<btor::BitVecType>();
+  auto opType = IntegerType::get(bvType.getContext(), bvType.getLength());
   // Insert the `havoc` declaration if necessary.
   auto module = op->getParentOfType<ModuleOp>();
   std::string havoc;
@@ -817,9 +835,10 @@ struct BtorToLLVMLoweringPass
 void BtorToLLVMLoweringPass::runOnOperation() {
   LLVMConversionTarget target(getContext());
   RewritePatternSet patterns(&getContext());
-  LLVMTypeConverter converter(&getContext());
+  BtorToLLVMTypeConverter converter(&getContext());
 
   mlir::btor::populateBtorToLLVMConversionPatterns(converter, patterns);
+  mlir::populateStdToLLVMConversionPatterns(converter, patterns);
 
   /// Configure conversion to lower out btor; Anything else is fine.
   // indexed operators

@@ -138,7 +138,8 @@ void createPrintFunctionHelper(
 LogicalResult
 NDStateOpLowering::matchAndRewrite(btor::NDStateOp op, OpAdaptor adaptor,
                                  ConversionPatternRewriter &rewriter) const {
-  auto opType = op.result().getType();
+  auto bvType = op.result().getType().dyn_cast<btor::BitVecType>();
+  auto opType = IntegerType::get(bvType.getContext(), bvType.getLength());
   auto module = op->getParentOfType<ModuleOp>();
   // op.result().getType().getIntOrFloatBitWidth
   // create the nd function of name: nd_bvX_stateY
