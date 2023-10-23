@@ -17,6 +17,7 @@ include "mlir/Interfaces/CastInterfaces.td"
 include "mlir/Interfaces/VectorInterfaces.td"
 include "mlir/IR/BuiltinAttributes.td"
 include "Dialect/Btor/IR/BtorTypes.td"
+include "Dialect/Btor/IR/BtorAttributes.td"
 
 
 //===----------------------------------------------------------------------===//
@@ -548,6 +549,8 @@ def CmpOp : Btor_Op<"cmp", [NoSideEffect, SameTypeOperands,
     }
   }];
 
+  let verifier = [{ return verifyCmpOp(*this); }];
+
   let assemblyFormat = "$predicate `,` $lhs `,` $rhs attr-dict `:` type($lhs)";
 } 
 
@@ -841,10 +844,12 @@ def AssertNotOp : Btor_Op<"assert_not"> {
 
     let arguments = (ins Btor_BitVec:$arg);
 
+    let verifier = [{ return verifyAssertNotOp(*this); }];
+
     let assemblyFormat = "`(` $arg `)` attr-dict `:` type($arg)";
 }
-//,AllTypesMatch<["value", "result"]>
-def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect]> {
+
+def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect,AllTypesMatch<["value", "result"]>]> {
   let summary = "integer constant";
   let description = [{
     The `constant` operation produces an SSA value equal to some constant
@@ -861,10 +866,9 @@ def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect]> {
   let arguments = (ins Builtin_IntegerAttr:$value);
   let results = (outs Btor_BitVec:$result);
 
-  //let assemblyFormat = "attr-dict $value";
-  let assemblyFormat = "attr-dict `:` type($result)";
+  let assemblyFormat = "attr-dict $value";
+  
   let hasFolder = 1;
-  // let verifier = [{ return verifyConstantOp(*this); }];
 }
 
 def ConstraintOp : Btor_Op<"constraint"> {

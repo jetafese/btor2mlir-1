@@ -2,7 +2,6 @@
 #define BTOR_TYPES
 
 include "BtorBase.td"
-//include "mlir/IR/AttrTypeBase.td"
 
 class Btor_BaseType<string name, string typeMnemonic, list<Trait> traits = []>
     : TypeDef<Btor_Dialect, name, traits> {

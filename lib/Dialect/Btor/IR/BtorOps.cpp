@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Dialect/Btor/IR/Btor.h"
+#include "Dialect/Btor/IR/BtorTypes.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/TypeUtilities.h"
@@ -444,6 +445,37 @@ static ParseResult parseWriteOp(OpAsmParser &parser, OperationState &result) {
                                 {resultType.getElem(), resultType, resultType.getLen()},
                                 parser.getNameLoc(), result.operands);
 }
+
+//===----------------------------------------------------------------------===//
+// Compare Operations
+//===----------------------------------------------------------------------===//
+
+template <typename Op>
+LogicalResult verifyCmpOp(Op op) {
+  Type resultType = op.result().getType();
+  unsigned resultLength = resultType.dyn_cast<btor::BitVecType>().getLength();
+  if(resultLength != 1){
+    return op.emitOpError() << "result must be bit vector of length 1 instead got length of "
+                         << resultLength;
+  }
+  return success();
+}
+
+//===----------------------------------------------------------------------===//
+// AssertNot Operations
+//===----------------------------------------------------------------------===//
+
+template <typename Op>
+LogicalResult verifyAssertNotOp(Op op) {
+  Type resultType = op.arg().getType();
+  unsigned resultLength = resultType.dyn_cast<btor::BitVecType>().getLength();
+  if(resultLength != 1){
+    return op.emitOpError() << "result must be bit vector of length 1 instead got length of "
+                         << resultLength;
+  }
+  return success();
+}
+
 
 //===----------------------------------------------------------------------===//
 // TableGen'd op method definitions
