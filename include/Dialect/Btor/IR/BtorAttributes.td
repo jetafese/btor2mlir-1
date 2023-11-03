@@ -32,13 +32,14 @@ class Btor_Attr<string name, string attrMnemonic, list<Trait> traits = [], strin
   let mnemonic = attrMnemonic;
 }
 
-def BitVecAttribute : Btor_Attr<"BitVecAttr", "bvAttr"> {
+def BitVecAttribute : Btor_Attr<"BitVec", "bv"> {
   let summary = "bit vector attribute";
   let description = [{
     Bit vector attribute
   }];
-  let parameters = (ins "BitVecType":$value);
-  let assemblyFormat = "`<` $value `>`";
+  let parameters = (ins "BitVecType":$type, "APInt":$value);
+  let assemblyFormat = "`<` $type `=` $value `>`";
+
 }
 
 #endif // BTOR_ATTRS

@@ -22,7 +22,7 @@ using namespace mlir::btor;
 #include "Dialect/Btor/IR/BtorAttributes.cpp.inc"
 
 void BtorDialect::registerAttrs() {
-   addTypes<
+   addAttributes<
 #define GET_ATTRDEF_LIST
 #include "Dialect/Btor/IR/BtorAttributes.cpp.inc"
       >();

@@ -863,7 +863,7 @@ def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect,AllTypesMatch<[
     ```
   }];
 
-  let arguments = (ins Builtin_IntegerAttr:$value);
+  let arguments = (ins BitVecAttribute:$value);
   let results = (outs Btor_BitVec:$result);
 
   let assemblyFormat = "attr-dict $value";
