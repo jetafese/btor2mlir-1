@@ -32,7 +32,7 @@ class Btor_Attr<string name, string attrMnemonic, list<Trait> traits = [], strin
   let mnemonic = attrMnemonic;
 }
 
-def BitVecAttribute : Btor_Attr<"BitVec", "bv"> {
+def BitVecAttribute : Btor_Attr<"BitVec", "bvattr"> {
   let summary = "bit vector attribute";
   let description = [{
     Bit vector attribute

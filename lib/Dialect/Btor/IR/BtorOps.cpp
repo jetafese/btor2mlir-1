@@ -431,9 +431,12 @@ LogicalResult verifyWriteOp(Op op) {
 
 template <typename Op>
 LogicalResult verifyConstantOp(Op op) {
-  auto resultType = op.result().getType();
-  auto attributeType = op.valueAttr().getType();
-  if (attributeType == resultType) return success();
+  Type resType = op.result().getType();
+  btor::BitVecType resultType = resType.dyn_cast<btor::BitVecType>();
+  Type attrType = op.valueAttr().getType();
+  btor::BitVecType attributeType = attrType.dyn_cast<btor::BitVecType>();
+  if (resultType && attributeType && attributeType == resultType &&
+     resultType.getLength() == attributeType.getLength()) return success();
   else return failure();
 }
 

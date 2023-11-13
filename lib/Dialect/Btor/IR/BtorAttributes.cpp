@@ -20,7 +20,7 @@ using namespace mlir::btor;
 
 void BitVecAttr::print(::mlir::AsmPrinter &printer) const {
   printer << "<";
-  printer.printStrippedAttrOrType(this->getType());
+  printer << this->getType();
   printer << ' ' << "=";
   printer << ' ';
   printer.printStrippedAttrOrType(this->getValue());

@@ -304,11 +304,7 @@ ConstantOpLowering::matchAndRewrite(btor::ConstantOp op, OpAdaptor adaptor,
       rewriter.getIntegerAttr(intType, val));
 
   return success();
-
-  //   Value oneConst = rewriter.create<LLVM::ConstantOp>(
-  //     decOp.getLoc(), opType, rewriter.getIntegerAttr(opType, 1));
-  // rewriter.replaceOpWithNewOp<LLVM::SubOp>(decOp, operand, oneConst);
-
+  
   // return LLVM::detail::oneToOneRewrite(op, LLVM::ConstantOp::getOperationName(),
   //                                      adaptor.getOperands(),
   //                                      *getTypeConverter(), rewriter);

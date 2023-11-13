@@ -197,7 +197,7 @@ class BtorBinaryOp<string mnemonic, list<Trait> traits = []> :
     BtorArithmeticOp<mnemonic, !listconcat(traits, [SameOperandsAndResultType])>,
     Arguments<(ins Btor_BitVec:$lhs, Btor_BitVec:$rhs)>,
     Results<(outs Btor_BitVec:$result)> {
-        let assemblyFormat = "$lhs `,` $rhs attr-dict `:` type($result)";
+        let assemblyFormat = "$lhs `,` $rhs attr-dict `:` qualified(type($result))";
     }
 
 // This operation takes two operands or the same type
@@ -551,7 +551,7 @@ def CmpOp : Btor_Op<"cmp", [NoSideEffect, SameTypeOperands,
 
   let verifier = [{ return verifyCmpOp(*this); }];
 
-  let assemblyFormat = "$predicate `,` $lhs `,` $rhs attr-dict `:` type($lhs)";
+  let assemblyFormat = "$predicate `,` $lhs `,` $rhs attr-dict `:` qualified(type($lhs))";
 } 
 
 def IffOp : BtorBinaryOp<"iff"> {
@@ -846,7 +846,7 @@ def AssertNotOp : Btor_Op<"assert_not"> {
 
     let verifier = [{ return verifyAssertNotOp(*this); }];
 
-    let assemblyFormat = "`(` $arg `)` attr-dict `:` type($arg)";
+    let assemblyFormat = "`(` $arg `)` attr-dict `:` qualified(type($arg))";
 }
 
 //,AllTypesMatch<["value", "result"]>
@@ -867,7 +867,7 @@ def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect]> {
   let arguments = (ins BitVecAttribute:$value);
   let results = (outs Btor_BitVec:$result);
 
-  let assemblyFormat = "attr-dict type($result) $value";
+  let assemblyFormat = "attr-dict qualified(type($result)) qualified($value)";
 
   let verifier = [{ return verifyConstantOp(*this); }];
   
