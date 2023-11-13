@@ -9,8 +9,8 @@
 #ifndef BTOR_IR_BTOR_H
 #define BTOR_IR_BTOR_H
 
-#include "mlir/IR/Dialect.h"
 #include "mlir/IR/BuiltinTypes.h"
+#include "mlir/IR/Dialect.h"
 #include "mlir/IR/OpDefinition.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/Interfaces/InferTypeOpInterface.h"
@@ -41,5 +41,10 @@
 
 #include "Dialect/Btor/IR/BtorTypes.h"
 
+//===----------------------------------------------------------------------===//
+// Btor Dialect Attributes
+//===----------------------------------------------------------------------===//
+
+#include "Dialect/Btor/IR/BtorAttributes.h"
 
 #endif // BTOR_IR_BTOR_H

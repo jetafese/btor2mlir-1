@@ -17,6 +17,7 @@ include "mlir/Interfaces/CastInterfaces.td"
 include "mlir/Interfaces/VectorInterfaces.td"
 include "mlir/IR/BuiltinAttributes.td"
 include "Dialect/Btor/IR/BtorTypes.td"
+include "Dialect/Btor/IR/BtorAttributes.td"
 
 
 //===----------------------------------------------------------------------===//
