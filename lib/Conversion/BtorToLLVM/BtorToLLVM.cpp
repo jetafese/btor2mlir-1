@@ -294,9 +294,24 @@ struct SRemOpLowering : public ConvertOpToLLVMPattern<btor::SRemOp> {
 LogicalResult
 ConstantOpLowering::matchAndRewrite(btor::ConstantOp op, OpAdaptor adaptor,
                                     ConversionPatternRewriter &rewriter) const {
-  return LLVM::detail::oneToOneRewrite(op, LLVM::ConstantOp::getOperationName(),
-                                       adaptor.getOperands(),
-                                       *getTypeConverter(), rewriter);
+  auto resultType = op.getResult().getType();
+  auto intType = typeConverter->convertType(resultType);
+
+  unsigned val = op.valueAttr().getValue().getSExtValue();
+
+  rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
+      op, intType,
+      rewriter.getIntegerAttr(intType, val));
+
+  return success();
+
+  //   Value oneConst = rewriter.create<LLVM::ConstantOp>(
+  //     decOp.getLoc(), opType, rewriter.getIntegerAttr(opType, 1));
+  // rewriter.replaceOpWithNewOp<LLVM::SubOp>(decOp, operand, oneConst);
+
+  // return LLVM::detail::oneToOneRewrite(op, LLVM::ConstantOp::getOperationName(),
+  //                                      adaptor.getOperands(),
+  //                                      *getTypeConverter(), rewriter);
 }
 
 //===----------------------------------------------------------------------===//

@@ -9,6 +9,7 @@
 
 #include "Dialect/Btor/IR/Btor.h"
 #include "Dialect/Btor/IR/BtorTypes.h"
+#include "Dialect/Btor/IR/BtorAttributes.h"
 
 #include "mlir/IR/OwningOpRef.h"
 #include "mlir/Support/LLVM.h"
@@ -196,7 +197,7 @@ class Deserialize {
                             const std::string &str,
                             const unsigned radix,
                             const unsigned  lineId) {
-    Type intAttrType = m_builder.getIntegerType(width);
+    btor::BitVecType bvAttrType = btor::BitVecType::get(m_context, width);
     Type type = btor::BitVecType::get(m_context, width);
     mlir::APInt value(width, 0, radix);
     if (str.compare("ones") == 0) {
@@ -208,7 +209,7 @@ class Deserialize {
     }
     auto res = m_builder.create<btor::ConstantOp>(
                         FileLineColLoc::get(m_sourceFile, lineId, 0),
-                        type, m_builder.getIntegerAttr(intAttrType, value));
+                        type, BitVecAttr::get(m_context, bvAttrType, value));
     return res;
   }
 
@@ -246,16 +247,17 @@ class Deserialize {
                         const int64_t upper, 
                         const int64_t lower,
                         const unsigned  lineId) {
-    auto opType = val.getType();
+    Type resultType = val.getType();
+    btor::BitVecType opType = resultType.dyn_cast<btor::BitVecType>();
     assert(opType.getIntOrFloatBitWidth() > upper && upper >= lower);
     auto loc = FileLineColLoc::get(m_sourceFile, lineId, 0);
 
     auto resType = m_builder.getIntegerType(upper - lower + 1);
     auto u = m_builder.create<btor::ConstantOp>(
-        loc, opType, m_builder.getIntegerAttr(opType, upper));
+        loc, opType, BitVecAttr::get(m_context, opType, APInt(opType.getLength(), upper)));
     assert(u && u->getNumResults() == 1);
     auto l = m_builder.create<btor::ConstantOp>(
-        loc, opType, m_builder.getIntegerAttr(opType, lower));
+        loc, opType, BitVecAttr::get(m_context, opType, APInt(opType.getLength(), lower)));
     assert(l && l->getNumResults() == 1);
 
     auto res = m_builder.create<btor::SliceOp>(

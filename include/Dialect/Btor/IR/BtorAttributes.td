@@ -38,7 +38,16 @@ def BitVecAttribute : Btor_Attr<"BitVec", "bv"> {
     Bit vector attribute
   }];
   let parameters = (ins "BitVecType":$type, "APInt":$value);
-  let assemblyFormat = "`<` $type `=` $value `>`";
+
+  //let assemblyFormat = "`<` $type `=` $value `>`";
+
+  //let parser = [{
+  //  return parseBitVecAttr(parser, type);
+  //}];
+
+  //let printer = [{
+  //  return printBitVecAttr(p, *this);
+  //}];    
 
 }
 

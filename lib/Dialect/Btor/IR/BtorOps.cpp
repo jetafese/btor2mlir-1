@@ -429,6 +429,14 @@ LogicalResult verifyWriteOp(Op op) {
   return success();
 }
 
+template <typename Op>
+LogicalResult verifyConstantOp(Op op) {
+  auto resultType = op.result().getType();
+  auto attributeType = op.valueAttr().getType();
+  if (attributeType == resultType) return success();
+  else return failure();
+}
+
 static ParseResult parseWriteOp(OpAsmParser &parser, OperationState &result) {
   OpAsmParser::OperandType value, base, index;
   btor::ArrayType resultType; //IntegerType indexType;

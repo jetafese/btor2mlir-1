@@ -15,7 +15,6 @@
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/Interfaces/InferTypeOpInterface.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
-#include "llvm/ADT/APInt.h"
 
 
 //===----------------------------------------------------------------------===//

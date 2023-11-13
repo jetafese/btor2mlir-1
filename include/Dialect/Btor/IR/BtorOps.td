@@ -849,7 +849,8 @@ def AssertNotOp : Btor_Op<"assert_not"> {
     let assemblyFormat = "`(` $arg `)` attr-dict `:` type($arg)";
 }
 
-def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect,AllTypesMatch<["value", "result"]>]> {
+//,AllTypesMatch<["value", "result"]>
+def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect]> {
   let summary = "integer constant";
   let description = [{
     The `constant` operation produces an SSA value equal to some constant
@@ -866,7 +867,9 @@ def ConstantOp : Btor_Op<"constant", [ConstantLike, NoSideEffect,AllTypesMatch<[
   let arguments = (ins BitVecAttribute:$value);
   let results = (outs Btor_BitVec:$result);
 
-  let assemblyFormat = "attr-dict $value";
+  let assemblyFormat = "attr-dict type($result) $value";
+
+  let verifier = [{ return verifyConstantOp(*this); }];
   
   let hasFolder = 1;
 }
