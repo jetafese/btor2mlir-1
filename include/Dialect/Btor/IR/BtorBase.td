@@ -42,6 +42,12 @@ def Btor_Dialect : Dialect {
     let name = "btor";
     let summary = "A BTOR2 MLIR dialect";
     let cppNamespace = "::mlir::btor";
+    let extraClassDeclaration = [{
+    private:
+            // Register the custom btor Types.
+            void registerTypes();
+    public:
+    }];
 }
 
 #endif // BTOR_DIALECT

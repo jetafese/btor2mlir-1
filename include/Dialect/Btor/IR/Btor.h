@@ -35,5 +35,11 @@
 #define GET_OP_CLASSES
 #include "Dialect/Btor/IR/BtorOps.h.inc"
 
+//===----------------------------------------------------------------------===//
+// Btor Dialect Types
+//===----------------------------------------------------------------------===//
+
+#include "Dialect/Btor/IR/BtorTypes.h"
+
 
 #endif // BTOR_IR_BTOR_H
