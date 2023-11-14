@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     // Register our used dialects
     mlir::DialectRegistry registry;
     registry.insert<mlir::crab::CrabDialect>();
-    registry.insert<arith::ArithmeticDialect>();
+    registry.insert<arith::ArithmeticDialect, mlir::StandardOpsDialect>();
 
     // Set up needed tools
     InitLLVM y(argc, argv);
