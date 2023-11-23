@@ -16,12 +16,6 @@ RUN apt install -y libmlir-14-dev mlir-14-tools
 WORKDIR /opt
 COPY . btor2mlir
 
-# Get btor2parser files
-RUN mkdir -p /opt/btor2mlir/include/Target/Btor/btor2parser
-RUN curl -O -L https://raw.githubusercontent.com/Boolector/btor2tools/master/src/btor2parser/btor2parser.c
-RUN curl -O -L https://raw.githubusercontent.com/Boolector/btor2tools/master/src/btor2parser/btor2parser.h
-
-
 RUN mkdir -p /opt/btor2mlir/build
 WORKDIR /opt/btor2mlir/build
 
@@ -39,3 +33,16 @@ RUN cmake -G Ninja .. \
     -DCMAKE_INSTALL_PREFIX=$(pwd)/run && \
     ninja && \
     ninja install
+
+RUN cp bin/* /usr/bin
+
+# get btor2tools
+WORKDIR /opt
+RUN git clone https://github.com/Boolector/btor2tools.git
+WORKDIR /opt/btor2tools
+RUN ./configure.sh
+WORKDIR /opt/btor2tools/build
+RUN make
+RUN cp bin/* /usr/bin
+
+WORKDIR /opt/btor2mlir

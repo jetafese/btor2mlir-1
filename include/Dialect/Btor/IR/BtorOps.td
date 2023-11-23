@@ -842,11 +842,9 @@ def AssertNotOp : Btor_Op<"assert_not"> {
         ```
     }];
 
-    let arguments = (ins Btor_BitVec:$arg);
+    let arguments = (ins Btor_BitVec:$arg, AnyI64Attr:$id);
 
-    let verifier = [{ return verifyAssertNotOp(*this); }];
-
-    let assemblyFormat = "`(` $arg `)` attr-dict `:` qualified(type($arg))";
+    let assemblyFormat = "`(` $arg `)` attr-dict `,` $id `:` qualified(type($arg))";
 }
 
 //, AllTypesMatch<["value", "result"]>

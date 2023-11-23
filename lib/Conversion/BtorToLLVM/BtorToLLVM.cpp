@@ -338,7 +338,7 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
     ConversionPatternRewriter &rewriter) const {
 
   auto loc = assertOp.getLoc();
-
+  Type i64Type = rewriter.getI64Type();
   Value notBad = rewriter.create<btor::NotOp>(loc, adaptor.arg());
 
   // Insert the `__VERIFIER_error` declaration if necessary.
@@ -346,6 +346,9 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
   auto verifierError = "__VERIFIER_error";
   auto verifierErrorFunc =
       module.lookupSymbol<LLVM::LLVMFuncOp>(verifierError);
+  auto verifierAssert = "__VERIFIER_assert";
+  auto verifierAssertFunc =
+      module.lookupSymbol<LLVM::LLVMFuncOp>(verifierAssert);
   if (!verifierErrorFunc) {
     OpBuilder::InsertionGuard guard(rewriter);
     rewriter.setInsertionPointToStart(module.getBody());
@@ -353,6 +356,11 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
         LLVM::LLVMFunctionType::get(LLVM::LLVMVoidType::get(getContext()), {});
     verifierErrorFunc = rewriter.create<LLVM::LLVMFuncOp>(
         rewriter.getUnknownLoc(), verifierError, verifierErrorFuncTy);
+    auto verifierAssertFuncTy =
+        LLVM::LLVMFunctionType::get(LLVM::LLVMVoidType::get(
+          getContext()), {notBad.getType(), i64Type});
+    verifierAssertFunc = rewriter.create<LLVM::LLVMFuncOp>(
+        rewriter.getUnknownLoc(), verifierAssert, verifierAssertFuncTy);
   }
 
   // Split block at `assert` operation.
@@ -362,6 +370,9 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
 
   // Generate IR to call `abort`.
   Block *failureBlock = rewriter.createBlock(opBlock->getParent());
+  Value propertyNumber = rewriter.create<LLVM::ConstantOp>(
+    loc, i64Type, rewriter.getIntegerAttr(i64Type, adaptor.id()));
+  rewriter.create<LLVM::CallOp>(loc, verifierAssertFunc, ValueRange({notBad, propertyNumber}));
   rewriter.create<LLVM::CallOp>(loc, verifierErrorFunc, llvm::None);
   rewriter.create<LLVM::UnreachableOp>(loc);
 
@@ -837,10 +848,9 @@ void BtorToLLVMLoweringPass::runOnOperation() {
 
   /// unary operators
   target.addIllegalOp<btor::NotOp, btor::IncOp, btor::DecOp, btor::NegOp>();
-  target.addIllegalOp<btor::RedAndOp, btor::RedXorOp, btor::RedOrOp, 
-                      btor::InputOp>();
-  target.addIllegalOp<btor::AssertNotOp, btor::ConstraintOp, btor::ConstantOp, 
-                      btor::NDStateOp>();
+  target.addIllegalOp<btor::RedAndOp, btor::RedXorOp, btor::RedOrOp>();
+  // target.addIllegalOp<btor::NDStateOp, btor::InputOp>();
+  target.addIllegalOp<btor::AssertNotOp, btor::ConstraintOp, btor::ConstantOp>(); 
 
   /// binary operators
   // logical
@@ -889,8 +899,9 @@ void mlir::btor::populateBtorToLLVMConversionPatterns(
       IffOpLowering, ImpliesOpLowering, XnorOpLowering, NandOpLowering,
       NorOpLowering, IncOpLowering, DecOpLowering, NegOpLowering,
       RedOrOpLowering, RedAndOpLowering, RedXorOpLowering, UExtOpLowering,
-      SExtOpLowering, SliceOpLowering, ConcatOpLowering, NDStateOpLowering,
-      ConstraintOpLowering, InputOpLowering, ArrayOpLowering>(converter);
+      SExtOpLowering, SliceOpLowering, ConcatOpLowering, 
+      // NDStateOpLowering, InputOpLowering,
+      ConstraintOpLowering, ArrayOpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `Btor` operations
