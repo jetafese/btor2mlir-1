@@ -7,10 +7,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "Dialect/Btor/IR/Btor.h"
+#include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/Parser.h"
 #include "mlir/Transforms/InliningUtils.h"
-#include "mlir/Dialect/StandardOps/IR/Ops.h"
 
 using namespace mlir;
 using namespace mlir::btor;

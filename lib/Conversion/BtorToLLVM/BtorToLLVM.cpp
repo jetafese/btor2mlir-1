@@ -308,9 +308,9 @@ ConstantOpLowering::matchAndRewrite(btor::ConstantOp op, OpAdaptor adaptor,
 
   // return success();
 
-  return LLVM::detail::oneToOneRewrite(
-        op, LLVM::ConstantOp::getOperationName(), adaptor.getOperands(),
-        *getTypeConverter(), rewriter);
+  return LLVM::detail::oneToOneRewrite(op, LLVM::ConstantOp::getOperationName(),
+                                       adaptor.getOperands(),
+                                       *getTypeConverter(), rewriter);
 }
 
 //===----------------------------------------------------------------------===//
