@@ -171,7 +171,7 @@ static void printBinaryOverflowOp(OpAsmPrinter &p, Operation *op) {
   p.printOptionalAttrDict(op->getAttrs());
 
   // Now we can output only one type for all operands and the result.
-  p << " : " << op->getResult(0).getType();
+  p << " : " << op->getOperand(0).getType();
 }
 
 //===----------------------------------------------------------------------===//
