@@ -18,6 +18,9 @@ using namespace mlir;
 
 namespace {
 
+/// @brief Converts SourceOp(args) into Not(BaseOp(Args))
+/// @tparam SourceOp source operator, such as xnor
+/// @tparam BaseOp base operator, such as xor
 template <typename SourceOp, typename BaseOp>
 class ConvertNotOpToBtorPattern : public ConvertOpToLLVMPattern<SourceOp> {
 public:
@@ -38,6 +41,9 @@ public:
   }
 };
 
+/// @brief Converts an opeator to llvm_reduce intrinsic
+/// @tparam SourceOp
+/// @tparam TargetOp
 template <typename SourceOp, typename TargetOp>
 class ConvertReduceOpToLLVMPattern : public ConvertOpToLLVMPattern<SourceOp> {
 public:
@@ -67,43 +73,42 @@ public:
 //===----------------------------------------------------------------------===//
 // Straightforward Op Lowerings
 //===----------------------------------------------------------------------===//
+#define CONVERT_OP(BTOR, LLVM) mlir::VectorConvertToLLVMPattern<BTOR, LLVM>
+#define CONVERT_NOP(BTOR, NBTOR) ConvertNotOpToBtorPattern<BTOR, NBTOR>
 
-using AddOpLowering = VectorConvertToLLVMPattern<btor::AddOp, LLVM::AddOp>;
-using SubOpLowering = VectorConvertToLLVMPattern<btor::SubOp, LLVM::SubOp>;
-using MulOpLowering = VectorConvertToLLVMPattern<btor::MulOp, LLVM::MulOp>;
-using AndOpLowering = VectorConvertToLLVMPattern<btor::AndOp, LLVM::AndOp>;
-using OrOpLowering = VectorConvertToLLVMPattern<btor::OrOp, LLVM::OrOp>;
-using XOrOpLowering = VectorConvertToLLVMPattern<btor::XOrOp, LLVM::XOrOp>;
-using ShiftLLOpLowering =
-    VectorConvertToLLVMPattern<btor::ShiftLLOp, LLVM::ShlOp>;
-using ShiftRLOpLowering =
-    VectorConvertToLLVMPattern<btor::ShiftRLOp, LLVM::LShrOp>;
-using ShiftRAOpLowering =
-    VectorConvertToLLVMPattern<btor::ShiftRAOp, LLVM::AShrOp>;
-using UAddOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::UAddOverflowOp, LLVM::UAddWithOverflowOp>;
-using SAddOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::SAddOverflowOp, LLVM::SAddWithOverflowOp>;
-using USubOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::USubOverflowOp, LLVM::USubWithOverflowOp>;
-using SSubOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::SSubOverflowOp, LLVM::SSubWithOverflowOp>;
-using SMulOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::SMulOverflowOp, LLVM::SMulWithOverflowOp>;
-using UMulOverflowOpLowering =
-    VectorConvertToLLVMPattern<btor::UMulOverflowOp, LLVM::UMulWithOverflowOp>;
-using UExtOpLowering = VectorConvertToLLVMPattern<btor::UExtOp, LLVM::ZExtOp>;
-using SExtOpLowering = VectorConvertToLLVMPattern<btor::SExtOp, LLVM::SExtOp>;
-using IteOpLowering = VectorConvertToLLVMPattern<btor::IteOp, LLVM::SelectOp>;
+using AddOpLowering = CONVERT_OP(btor::AddOp, LLVM::AddOp);
+using SubOpLowering = CONVERT_OP(btor::SubOp, LLVM::SubOp);
+using MulOpLowering = CONVERT_OP(btor::MulOp, LLVM::MulOp);
+using AndOpLowering = CONVERT_OP(btor::AndOp, LLVM::AndOp);
+using OrOpLowering = CONVERT_OP(btor::OrOp, LLVM::OrOp);
+using XOrOpLowering = CONVERT_OP(btor::XOrOp, LLVM::XOrOp);
+using ShiftLLOpLowering = CONVERT_OP(btor::ShiftLLOp, LLVM::ShlOp);
+using ShiftRLOpLowering = CONVERT_OP(btor::ShiftRLOp, LLVM::LShrOp);
+using ShiftRAOpLowering = CONVERT_OP(btor::ShiftRAOp, LLVM::AShrOp);
+using UAddOverflowOpLowering = CONVERT_OP(btor::UAddOverflowOp,
+                                          LLVM::UAddWithOverflowOp);
+using SAddOverflowOpLowering = CONVERT_OP(btor::SAddOverflowOp,
+                                          LLVM::SAddWithOverflowOp);
+using USubOverflowOpLowering = CONVERT_OP(btor::USubOverflowOp,
+                                          LLVM::USubWithOverflowOp);
+using SSubOverflowOpLowering = CONVERT_OP(btor::SSubOverflowOp,
+                                          LLVM::SSubWithOverflowOp);
+using SMulOverflowOpLowering = CONVERT_OP(btor::SMulOverflowOp,
+                                          LLVM::SMulWithOverflowOp);
+using UMulOverflowOpLowering = CONVERT_OP(btor::UMulOverflowOp,
+                                          LLVM::UMulWithOverflowOp);
+using UExtOpLowering = CONVERT_OP(btor::UExtOp, LLVM::ZExtOp);
+using SExtOpLowering = CONVERT_OP(btor::SExtOp, LLVM::SExtOp);
+using IteOpLowering = CONVERT_OP(btor::IteOp, LLVM::SelectOp);
 using RedOrOpLowering =
     ConvertReduceOpToLLVMPattern<btor::RedOrOp, LLVM::vector_reduce_or>;
 using RedXorOpLowering =
     ConvertReduceOpToLLVMPattern<btor::RedXorOp, LLVM::vector_reduce_xor>;
 using RedAndOpLowering =
     ConvertReduceOpToLLVMPattern<btor::RedAndOp, LLVM::vector_reduce_and>;
-using XnorOpLowering = ConvertNotOpToBtorPattern<btor::XnorOp, btor::XOrOp>;
-using NandOpLowering = ConvertNotOpToBtorPattern<btor::NandOp, btor::AndOp>;
-using NorOpLowering = ConvertNotOpToBtorPattern<btor::NorOp, btor::OrOp>;
+using XnorOpLowering = CONVERT_NOP(btor::XnorOp, btor::XOrOp);
+using NandOpLowering = CONVERT_NOP(btor::NandOp, btor::AndOp);
+using NorOpLowering = CONVERT_NOP(btor::NorOp, btor::OrOp);
 
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
@@ -215,25 +220,11 @@ struct SModOpLowering : public ConvertOpToLLVMPattern<btor::SModOp> {
                   ConversionPatternRewriter &rewriter) const override;
 };
 
-struct NDStateOpLowering : public ConvertOpToLLVMPattern<btor::NDStateOp> {
-  using ConvertOpToLLVMPattern<btor::NDStateOp>::ConvertOpToLLVMPattern;
-  LogicalResult
-  matchAndRewrite(btor::NDStateOp op, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
-};
-
 struct ConstraintOpLowering
     : public ConvertOpToLLVMPattern<btor::ConstraintOp> {
   using ConvertOpToLLVMPattern<btor::ConstraintOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(btor::ConstraintOp op, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
-};
-
-struct InputOpLowering : public ConvertOpToLLVMPattern<btor::InputOp> {
-  using ConvertOpToLLVMPattern<btor::InputOp>::ConvertOpToLLVMPattern;
-  LogicalResult
-  matchAndRewrite(btor::InputOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override;
 };
 
@@ -307,15 +298,19 @@ struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
 LogicalResult
 ConstantOpLowering::matchAndRewrite(btor::ConstantOp op, OpAdaptor adaptor,
                                     ConversionPatternRewriter &rewriter) const {
-  auto resultType = op.getResult().getType();
-  auto intType = typeConverter->convertType(resultType);
+  // auto resultType = op.getResult().getType();
+  // auto intType = typeConverter->convertType(resultType);
 
-  unsigned val = op.valueAttr().getValue().getSExtValue();
+  // unsigned val = op.valueAttr().getValue().getSExtValue();
 
-  rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
-      op, intType, rewriter.getIntegerAttr(intType, val));
+  // rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
+  //     op, intType, rewriter.getIntegerAttr(intType, val));
 
-  return success();
+  // return success();
+
+  return LLVM::detail::oneToOneRewrite(
+        op, LLVM::ConstantOp::getOperationName(), adaptor.getOperands(),
+        *getTypeConverter(), rewriter);
 }
 
 //===----------------------------------------------------------------------===//
@@ -349,6 +344,7 @@ CmpOpLowering::matchAndRewrite(btor::CmpOp op, OpAdaptor adaptor,
 LogicalResult
 NotOpLowering::matchAndRewrite(btor::NotOp notOp, OpAdaptor adaptor,
                                ConversionPatternRewriter &rewriter) const {
+  // not x ==> x xor true
   Value operand = adaptor.operand();
   Type opType = operand.getType();
   Value trueConst = rewriter.create<LLVM::ConstantOp>(
@@ -418,14 +414,8 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
 LogicalResult
 IffOpLowering::matchAndRewrite(btor::IffOp iffOp, OpAdaptor adaptor,
                                ConversionPatternRewriter &rewriter) const {
-  auto loc = iffOp.getLoc();
-
-  Value notLHS = rewriter.create<btor::NotOp>(loc, adaptor.lhs());
-  Value notRHS = rewriter.create<btor::NotOp>(loc, adaptor.rhs());
-
-  Value notLHSorRHS = rewriter.create<LLVM::OrOp>(loc, notLHS, adaptor.rhs());
-  Value notRHSorLHS = rewriter.create<LLVM::OrOp>(loc, notRHS, adaptor.lhs());
-  rewriter.replaceOpWithNewOp<LLVM::AndOp>(iffOp, notLHSorRHS, notRHSorLHS);
+  rewriter.replaceOpWithNewOp<LLVM::ICmpOp>(iffOp, LLVM::ICmpPredicate::eq,
+                                            adaptor.lhs(), adaptor.rhs());
   return success();
 }
 
@@ -458,7 +448,7 @@ RotateLOpLowering::matchAndRewrite(btor::RotateLOp rolOp, OpAdaptor adaptor,
   Value rhs = adaptor.rhs();
   Type opType = lhs.getType();
 
-  int width = opType.getIntOrFloatBitWidth();
+  unsigned int width = opType.getIntOrFloatBitWidth();
   Value widthVal = rewriter.create<LLVM::ConstantOp>(
       loc, opType, rewriter.getIntegerAttr(opType, width));
   Value shiftBy = rewriter.create<LLVM::URemOp>(loc, rhs, widthVal);
@@ -486,7 +476,7 @@ RotateROpLowering::matchAndRewrite(btor::RotateROp rorOp, OpAdaptor adaptor,
   Value rhs = adaptor.rhs();
   Type opType = lhs.getType();
 
-  int width = opType.getIntOrFloatBitWidth();
+  uint64_t width = opType.getIntOrFloatBitWidth();
   Value widthVal = rewriter.create<LLVM::ConstantOp>(
       loc, opType, rewriter.getIntegerAttr(opType, width));
   Value shiftBy = rewriter.create<LLVM::URemOp>(loc, rhs, widthVal);
@@ -578,8 +568,8 @@ ConcatOpLowering::matchAndRewrite(mlir::btor::ConcatOp concatOp,
   Value lhs = adaptor.lhs();
   Value rhs = adaptor.rhs();
 
-  int lhsWidth = lhs.getType().getIntOrFloatBitWidth();
-  int rhsWidth = rhs.getType().getIntOrFloatBitWidth();
+  unsigned int lhsWidth = lhs.getType().getIntOrFloatBitWidth();
+  unsigned int rhsWidth = rhs.getType().getIntOrFloatBitWidth();
   auto resultWidthType = rewriter.getIntegerType(lhsWidth + rhsWidth);
   Value resultWidthVal = rewriter.create<LLVM::ConstantOp>(
       loc, resultWidthType,
@@ -649,30 +639,6 @@ SModOpLowering::matchAndRewrite(mlir::btor::SModOp smodOp, OpAdaptor adaptor,
 }
 
 //===----------------------------------------------------------------------===//
-// NDStateOpLowering
-//===----------------------------------------------------------------------===//
-LogicalResult
-NDStateOpLowering::matchAndRewrite(btor::NDStateOp op, OpAdaptor adaptor,
-                                   ConversionPatternRewriter &rewriter) const {
-  Type opType = typeConverter->convertType(op.result().getType());
-  // Insert the `havoc` declaration if necessary.
-  auto module = op->getParentOfType<ModuleOp>();
-  std::string havoc;
-  havoc.append("nd_bv");
-  havoc.append(std::to_string(opType.getIntOrFloatBitWidth()));
-  auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
-  if (!havocFunc) {
-    OpBuilder::InsertionGuard guard(rewriter);
-    rewriter.setInsertionPointToStart(module.getBody());
-    auto havocFuncTy = LLVM::LLVMFunctionType::get(opType, {});
-    havocFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
-                                                  havoc, havocFuncTy);
-  }
-  rewriter.replaceOpWithNewOp<LLVM::CallOp>(op, havocFunc, llvm::None);
-  return success();
-}
-
-//===----------------------------------------------------------------------===//
 // ConstraintOpLowering
 //===----------------------------------------------------------------------===//
 LogicalResult ConstraintOpLowering::matchAndRewrite(
@@ -695,30 +661,6 @@ LogicalResult ConstraintOpLowering::matchAndRewrite(
 
   rewriter.replaceOpWithNewOp<LLVM::CallOp>(op, seaAssumeFunc,
                                             adaptor.constraint());
-  return success();
-}
-
-//===----------------------------------------------------------------------===//
-// InputOpLowering
-//===----------------------------------------------------------------------===//
-LogicalResult
-InputOpLowering::matchAndRewrite(btor::InputOp op, OpAdaptor adaptor,
-                                 ConversionPatternRewriter &rewriter) const {
-  Type opType = typeConverter->convertType(op.result().getType());
-  // Insert the `havoc` declaration if necessary.
-  auto module = op->getParentOfType<ModuleOp>();
-  std::string havoc;
-  havoc.append("nd_bv");
-  havoc.append(std::to_string(opType.getIntOrFloatBitWidth()));
-  auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
-  if (!havocFunc) {
-    OpBuilder::InsertionGuard guard(rewriter);
-    rewriter.setInsertionPointToStart(module.getBody());
-    auto havocFuncTy = LLVM::LLVMFunctionType::get(opType, {});
-    havocFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
-                                                  havoc, havocFuncTy);
-  }
-  rewriter.replaceOpWithNewOp<LLVM::CallOp>(op, havocFunc, llvm::None);
   return success();
 }
 
@@ -880,7 +822,6 @@ void BtorToLLVMLoweringPass::runOnOperation() {
   /// unary operators
   target.addIllegalOp<btor::NotOp, btor::IncOp, btor::DecOp, btor::NegOp>();
   target.addIllegalOp<btor::RedAndOp, btor::RedXorOp, btor::RedOrOp>();
-  // target.addIllegalOp<btor::NDStateOp, btor::InputOp>();
   target
       .addIllegalOp<btor::AssertNotOp, btor::ConstraintOp, btor::ConstantOp>();
 
