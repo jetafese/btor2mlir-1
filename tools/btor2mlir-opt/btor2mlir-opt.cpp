@@ -19,12 +19,14 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
-#include "Dialect/Btor/IR/Btor.h"
 #include "Conversion/Passes.h"
+#include "Dialect/Btor/IR/Btor.h"
+#include "Dialect/Btor/Transforms/Passes.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
   mlir::btor::registerBtorConversionPasses();
+  mlir::btor::registerBtorTransformPasses();
 
   mlir::DialectRegistry registry;
   registry.insert<mlir::btor::BtorDialect>();

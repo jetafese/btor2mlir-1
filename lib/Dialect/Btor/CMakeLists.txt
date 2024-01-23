@@ -15,3 +15,5 @@ add_mlir_dialect_library(MLIRBtor
     MLIRDialect
 	MLIRIR
 	)
+
+add_subdirectory(Transforms)
