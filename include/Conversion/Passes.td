@@ -69,7 +69,7 @@ def ConvertBtorToMemref : Pass<"convert-btor-to-memref", "ModuleOp"> {
     Convert btor array operations into memref instructions
   }];
   let constructor = "mlir::btor::createLowerToMemrefPass()";
-  let dependentDialects = ["vector::VectorDialect"];
+  let dependentDialects = ["memref::MemRefDialect"];
 }
 
 #endif // BTOR_CONVERSION_PASSES

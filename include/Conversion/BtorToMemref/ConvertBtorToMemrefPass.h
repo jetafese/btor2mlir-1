@@ -2,6 +2,8 @@
 #define BTOR_CONVERSION_BTORTOMEMREF_CONVERTBTORTOMEMREFPASS_H_
 
 #include "Conversion/BtorToLLVM/ConvertBtorToLLVMPass.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+
 #include <memory>
 
 namespace mlir {
