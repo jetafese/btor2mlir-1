@@ -12,32 +12,50 @@
 
 #include "mlir/Transforms/DialectConversion.h"
 #include "mlir/Analysis/Liveness.h"
+#include "llvm/ADT/TypeSwitch.h"
 
 using namespace mlir;
 using namespace btor;
 
 namespace {
+LogicalResult resultIsLiveAfter(btor::WriteOp &op) {
+    auto opPtr = op.getOperation();
+    auto blockPtr = opPtr->getBlock();
+    Value resValue = op.result();
+
+    Liveness liveness(opPtr);
+
+    // auto &allInValues = liveness.getLiveIn(&block);
+    // auto &allOutValues = liveness.getLiveOut(blockPtr);
+    // for (auto val : liveness.getLiveOut(blockPtr)) {
+    //     val.dump();
+    // }
+    // auto allOperationsInWhichValueIsLive = liveness.resolveLiveness(resValue);
+    bool isDeadAfter = liveness.isDeadAfter(resValue, opPtr);
+
+    return isDeadAfter ? success() : failure();
+}
+
 struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
   void runOnOperation() override {
     Operation *rootOp = getOperation();
     auto module_regions = rootOp->getRegions();
     auto &blocks = module_regions.front().getBlocks();
     auto &funcOp = blocks.front().getOperations().front();
-    // translate each block
     auto &regions = funcOp.getRegion(0);
     assert(regions.getBlocks().size() == 2);
     auto &nextBlock = regions.getBlocks().back();
 
     for (Operation &op : nextBlock.getOperations()) {
-        if (op.getName().getStringRef() == btor::WriteOp::getOperationName()) {
-            // Value arrayVal = op.getResult(0);
-            Liveness liveness(&op);
-            auto allOperationsInWhichValueIsLive = liveness.resolveLiveness(op.getResult(0));
-            // bool isDeadAfter = liveness.isDeadAfter(adaptor.base(), writeOp);
-            // assert (isDeadAfter);
-            continue;
-        }
         op.dump();
+        LogicalResult status = llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+            // btor ops.
+            .Case<btor::WriteOp>(
+                [&](auto op) { return resultIsLiveAfter(op); })
+            .Default([&](Operation *) {
+                return success();
+            });
+        assert(status.succeeded());
     }
   }
 };
