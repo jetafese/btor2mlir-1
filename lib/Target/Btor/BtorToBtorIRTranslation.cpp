@@ -467,7 +467,10 @@ void Deserialize::toOp(Btor2Line *line) {
     SmallVector<unsigned> arguments;
     if (cur->tag != BTOR2_TAG_slice) {
       for (unsigned i = 0; i < cur->nargs; ++i) {
-        if (isStateArgumentOfInitOp(cur, i)) {
+        // we deal with cases where a state is initialized using
+        // another state: id init sort_id state_id state_id_0
+        // as long as state_id_0 < state_id, we can proceed
+        if (isStateArgumentOfInitOp(cur, i) && (i == 0)) {
           kids.push_back(nullptr);
           continue;
         }
