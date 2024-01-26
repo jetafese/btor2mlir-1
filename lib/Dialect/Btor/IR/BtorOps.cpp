@@ -385,7 +385,7 @@ static ParseResult parseReadOp(OpAsmParser &parser, OperationState &result) {
 // Write Operations
 //===----------------------------------------------------------------------===//
 
-void printWriteOp(OpAsmPrinter &p, WriteOp &op) {
+template <typename Op> void printWriteOp(OpAsmPrinter &p, Op op) {
   p << " " << op.value() << ", " << op.base() << "[" << op.index() << "]";
   p.printOptionalAttrDict(op->getAttrs());
   p << " : " << op.result().getType();

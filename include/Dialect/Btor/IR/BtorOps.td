@@ -1059,51 +1059,54 @@ let results = (outs AnyType : $result);
 
   def ArrayOp : Btor_Op<"nd_array"> {
     let summary = "btor array allocation operation";
+    // clang-format off
     let description = [{
-    The `nd_array` operation represents a btor array from 
-    bitvec -> bitvec. For example:
+      The `nd_array` operation represents a btor array from 
+      bitvec -> bitvec. For example:
 
-    ```mlir
-    %0 = btor.nd_array : !array<!bv<8>,!bv<32>>
-    ```
+      ```mlir
+      %0 = btor.nd_array : !array<!bv<8>,!bv<32>>
+      ```
 
-    This operation returns a single SSA value of a btor array type used
-    by subsequent read and write operations. 
-  }];
+      This operation returns a single SSA value of a btor array type used
+      by subsequent read and write operations. 
+    }];
 
     let results = (outs Btor_Array : $result);
-    let assemblyFormat = "attr-dict `:` qualified(type($result))";
-    let verifier = [{ return verifyArrayOp(*this); }];
-  let extraClassDeclaration = [{
-    ArrayType getArrayType() {
-      return result().getType().cast<ArrayType>();
-  }
-  }];
+    let extraClassDeclaration = [{
+      ArrayType getArrayType() {
+        return result().getType().cast<ArrayType>();
+      }
+    }];
+  // clang-format on
+  let assemblyFormat = "attr-dict `:` qualified(type($result))";
+  let verifier = [{ return verifyArrayOp(*this); }];
   }
 
   def InitArrayOp : Btor_Op<"array"> {
     let summary = "btor initialized array allocation operation";
+    // clang-format off
     let description = [{
       The `array` operation represents a btor array from
           bitvec->bitvec that has been initialized with a value.
 
       For example:
 
-    ```mlir % 4 = btor.array %
-                   1: !array<!bv<8>, !bv<32>>
-    ```
-
-                   This operation returns a single SSA value of a btor array
-                       type used by subsequent read and write operations.
+      ```mlir
+      % 4 = btor.array % 1: !array<!bv<8>, !bv<32>>
+      ```
+      This operation returns a single SSA value of a btor array type used
+      by subsequent read and write operations.
     }];
 
-    let arguments = (ins Btor_BitVec : $init);
-    let results = (outs Btor_Array : $result);
-  let extraClassDeclaration = [{
-    ArrayType getArrayType() {
-      return result().getType().cast<ArrayType>();
-  }
-  }];
+    let extraClassDeclaration = [{
+      ArrayType getArrayType() {
+        return result().getType().cast<ArrayType>();
+      }
+    }];
+  // clang-format on
+  let arguments = (ins Btor_BitVec : $init);
+  let results = (outs Btor_Array : $result);
   let verifier = [{ return verifyInitArrayOp(*this); }];
   let parser = [{ return parseInitArrayOp(parser, result); }];
   let printer = [{ return printInitArrayOp(p, *this); }];
@@ -1111,27 +1114,27 @@ let results = (outs AnyType : $result);
 
   def ReadOp : Btor_Op<"read"> {
     let summary = "btor read operation";
+    // clang-format off
     let description = [{
-      The `read` op reads an element from a btor array specified by an index
-          .The output of load is a new value with the same type as the elements
-              of the btor array.
+      The `read` op reads an element from a btor array specified by an index.
+      The output of load is a new value with the same type as the elements
+      of the btor array.
 
       Example:
 
-    ```mlir % 1 = btor.read % A[% 0]: !array<!bv<8>, !bv<32>>,
-      !bv<32>
-    ```
+      ```mlir
+      % 1 = btor.read % A[% 0]: !array<!bv<8>, !bv<32>>, !bv<32>
+      ```
     }];
 
-    let arguments = (ins Btor_Array : $base, Btor_BitVec : $index);
-    let results = (outs Btor_BitVec : $result);
-
-  let extraClassDeclaration = [{
-    ArrayType getArrayType() {
-      return base().getType().cast<ArrayType>();
-  }
-  }];
-
+    let extraClassDeclaration = [{
+      ArrayType getArrayType() {
+        return base().getType().cast<ArrayType>();
+      }
+    }];
+  // clang-format on
+  let arguments = (ins Btor_Array : $base, Btor_BitVec : $index);
+  let results = (outs Btor_BitVec : $result);
   let verifier = [{ return verifyReadOp(*this); }];
   let parser = [{ return parseReadOp(parser, result); }];
   let printer = [{ return printReadOp(p, *this); }];
@@ -1139,28 +1142,57 @@ let results = (outs AnyType : $result);
 
   def WriteOp : Btor_Op<"write"> {
     let summary = "btor write operation";
+    // clang-format off
     let description = [{
       Copy the given array and write the given value to the provided location
-          given by index
-              .The value stored should have the same type as the elemental type
-                  of the array.Example:
+      given by index. The value stored should have the same type as the 
+      elemental type of the array.Example:
 
-    ```mlir % 4 = btor.write % 2,
-      % A[% 1]: !array<!bv<8>, !bv<32>>
-    ```
+      ```mlir
+      % 4 = btor.write % 2, % A[% 1]: !array<!bv<8>, !bv<32>>
+      ```
     }];
 
-    let arguments = (ins Btor_BitVec
-                     : $value, Btor_Array
-                     : $base, Btor_BitVec
-                     : $index);
+    let arguments = (ins Btor_BitVec: $value,
+                        Btor_Array: $base,
+                        Btor_BitVec: $index);
 
     let results = (outs Btor_Array : $result);
     let extraClassDeclaration = [{
-    ArrayType getArrayType() {
-      return base().getType().cast<ArrayType>();
+      ArrayType getArrayType() {
+        return base().getType().cast<ArrayType>();
+      }
+    }];
+  // clang-format on
+  let verifier = [{ return verifyWriteOp(*this); }];
+  let parser = [{ return parseWriteOp(parser, result); }];
+  let printer = [{ return printWriteOp(p, *this); }];
   }
-  }];
+
+  def WriteInPlaceOp : Btor_Op<"write_in_place"> {
+    let summary = "btor write in place operation";
+    // clang-format off
+    let description = [{
+      Write the given value to the provided location given by index.
+      The value stored should have the same type as the elemental type
+      of the array. Example:
+
+      ```mlir
+      % 4 = btor.write_in_place % 2,% A[% 1]: !array<!bv<8>, !bv<32>>
+      ```
+    }];
+
+    let arguments = (ins Btor_BitVec: $value,
+                        Btor_Array: $base,
+                        Btor_BitVec: $index);
+
+    let results = (outs Btor_Array : $result);
+    let extraClassDeclaration = [{
+      ArrayType getArrayType() {
+        return base().getType().cast<ArrayType>();
+      }
+    }];
+  // clang-format on
 
   let verifier = [{ return verifyWriteOp(*this); }];
   let parser = [{ return parseWriteOp(parser, result); }];
