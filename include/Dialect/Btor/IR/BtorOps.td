@@ -970,30 +970,27 @@ let results = (outs AnyType : $result);
   //===----------------------------------------------------------------------===//
 
   def VectorInitArrayOp : Btor_Op<"array_vec"> {
-    let summary =
-        "btor initialized array allocation operation using vector types";
+    let summary = "btor initialized array allocation using vector types";
+    // clang-format off
     let description = [{
-      The `array` operation represents a btor array,
-      using vectors,
+      The `array` operation represents a btor array, using vectors,
       that has been initialized with a value.
 
       For example:
 
-    ```mlir % 4 = btor.array_vec %
-                   1: vector<8xi32>
-    ```
-
-                   This operation returns a single SSA value of a vector type
-                       used by subsequent read and write operations.
+      ```mlir % 4 = btor.array_vec %1: vector<8xi32>
+      ```
+      This operation returns a single SSA value of a vector type
+      used by subsequent read and write operations.
     }];
-
     let arguments = (ins SignlessIntegerLike : $init);
     let results = (outs AnyVector : $result);
-  let extraClassDeclaration = [{
-    VectorType getArrayType() {
-      return result().getType().cast<VectorType>();
-  }
-  }];
+    let extraClassDeclaration = [{
+      VectorType getArrayType() {
+        return result().getType().cast<VectorType>();
+      }
+    }];
+  // clang-format on
   let verifier = [{ return verifyVectorInitArrayOp(*this); }];
   let parser = [{ return parseVectorInitArrayOp(parser, result); }];
   let printer = [{ return printVectorInitArrayOp(p, *this); }];
@@ -1001,27 +998,27 @@ let results = (outs AnyType : $result);
 
   def VectorReadOp : Btor_Op<"read_vec"> {
     let summary = "btor read operation using vector types";
+    // clang-format off
     let description = [{
-      The `read` op reads an element from a btor array specified by an index
-          .The output of load is a new value with the same type as the elements
-              of the btor array.
+      The `read` op reads an element from a btor array specified by an index.
+      The output of load is a new value with the same type as the elements
+      of the btor array.
 
       Example:
 
-    ```mlir % 1 = btor.read % A[% 0]: vector<8xi32>,
-      i32
-    ```
+      ```mlir % 1 = btor.read % A[% 0]: vector<8xi32>, i32
+      ```
     }];
 
-    let arguments = (ins AnyVector : $base, SignlessIntegerLike : $index);
+    let arguments = (ins AnyVector : $base,
+                        SignlessIntegerLike : $index);
     let results = (outs SignlessIntegerLike : $result);
-
-  let extraClassDeclaration = [{
-    VectorType getArrayType() {
-      return base().getType().cast<VectorType>();
-  }
-  }];
-
+    let extraClassDeclaration = [{
+      VectorType getArrayType() {
+        return base().getType().cast<VectorType>();
+      }
+    }];
+  // clang-format on
   let verifier = [{ return verifyVectorReadOp(*this); }];
   let parser = [{ return parseVectorReadOp(parser, result); }];
   let printer = [{ return printVectorReadOp(p, *this); }];
@@ -1029,21 +1026,19 @@ let results = (outs AnyType : $result);
 
   def VectorWriteOp : Btor_Op<"write_vec"> {
     let summary = "btor write operation with vector types";
+    // clang-format off
     let description = [{
       Copy the given array and write the given value to the provided location
-          given by index
-              .The value stored should have the same type as the elemental type
-                  of the array.Example:
+      given by index.The value stored should have the same type as the 
+      elemental type of the array.Example:
 
-    ```mlir % 4 = btor.write % 2,
-      % A[% 1]: vector<8xi32>
-    ```
+      ```mlir % 4 = btor.write % 2, % A[% 1]: vector<8xi32>
+      ```
     }];
 
-    let arguments = (ins SignlessIntegerLike
-                     : $value, AnyVector
-                     : $base, SignlessIntegerLike
-                     : $index);
+    let arguments = (ins SignlessIntegerLike: $value,
+                     AnyVector: $base, 
+                     SignlessIntegerLike: $index);
 
     let results = (outs AnyVector : $result);
     let extraClassDeclaration = [{
@@ -1051,6 +1046,7 @@ let results = (outs AnyType : $result);
       return base().getType().cast<VectorType>();
   }
   }];
+  // clang-format on
 
   let verifier = [{ return verifyVectorWriteOp(*this); }];
   let parser = [{ return parseVectorWriteOp(parser, result); }];
