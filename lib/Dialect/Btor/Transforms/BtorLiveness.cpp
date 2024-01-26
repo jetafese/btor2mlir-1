@@ -10,30 +10,29 @@
 #include "Dialect/Btor/IR/Btor.h"
 #include "PassDetail.h"
 
+#include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "mlir/Transforms/DialectConversion.h"
-#include "mlir/Analysis/Liveness.h"
 #include "llvm/ADT/TypeSwitch.h"
 
 using namespace mlir;
 using namespace btor;
 
 namespace {
-LogicalResult resultIsLiveAfter(btor::WriteOp &op) {
+LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
+  auto status = resultIsLiveAfter(op);
+  if (status.succeeded()) {
+    auto resValue = op.result();
     auto opPtr = op.getOperation();
-    auto blockPtr = opPtr->getBlock();
-    Value resValue = op.result();
+    auto m_context = opPtr->getContext();
+    auto m_builder = OpBuilder(m_context);
+    m_builder.setInsertionPointAfterValue(resValue);
+    Value writeInPlace = m_builder.create<btor::WriteInPlaceOp>(
+        op.getLoc(), op.getType(), op.value(), op.base(), op.index());
+    resValue.replaceAllUsesWith(writeInPlace);
+    assert(resValue.use_empty());
+  }
 
-    Liveness liveness(opPtr);
-
-    // auto &allInValues = liveness.getLiveIn(&block);
-    // auto &allOutValues = liveness.getLiveOut(blockPtr);
-    // for (auto val : liveness.getLiveOut(blockPtr)) {
-    //     val.dump();
-    // }
-    // auto allOperationsInWhichValueIsLive = liveness.resolveLiveness(resValue);
-    bool isDeadAfter = liveness.isDeadAfter(resValue, opPtr);
-
-    return isDeadAfter ? success() : failure();
+  return status;
 }
 
 struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
@@ -47,15 +46,13 @@ struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
     auto &nextBlock = regions.getBlocks().back();
 
     for (Operation &op : nextBlock.getOperations()) {
-        op.dump();
-        LogicalResult status = llvm::TypeSwitch<Operation *, LogicalResult>(&op)
-            // btor ops.
-            .Case<btor::WriteOp>(
-                [&](auto op) { return resultIsLiveAfter(op); })
-            .Default([&](Operation *) {
-                return success();
-            });
-        assert(status.succeeded());
+      LogicalResult status =
+          llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+              // btor ops.
+              .Case<btor::WriteOp>(
+                  [&](auto op) { return replaceWithWriteInPlace(op); })
+              .Default([&](Operation *) { return success(); });
+      assert(status.succeeded());
     }
   }
 };
@@ -63,4 +60,27 @@ struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
 
 std::unique_ptr<mlir::Pass> mlir::btor::computeBtorLiveness() {
   return std::make_unique<BtorLivenessPass>();
+}
+
+/// @brief Determine if a writeOp is used by non-branch operations
+/// @param Btor WriteOp
+/// @return success/failure wrapped in LogicalResult
+LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
+  auto opPtr = op.getOperation();
+  auto blockPtr = opPtr->getBlock();
+  Value resValue = op.result();
+
+  assert(opPtr != nullptr);
+  assert(blockPtr != nullptr);
+  assert(!resValue.isUsedOutsideOfBlock(blockPtr));
+  if (!resValue.hasOneUse()) {
+    return failure();
+  }
+  auto use = resValue.user_begin();
+  auto useOp = use.getCurrent().getUser();
+  LogicalResult status =
+      llvm::TypeSwitch<Operation *, LogicalResult>(useOp)
+          .Case<mlir::BranchOp>([&](auto op) { return success(); })
+          .Default([&](Operation *) { return failure(); });
+  return status;
 }

@@ -9,8 +9,8 @@
 #ifndef BTOR_DIALECT_TRANSFORMS_BTORLIVENESS_H
 #define BTOR_DIALECT_TRANSFORMS_BTORLIVENESS_H
 
-// #include "mlir/Support/LLVM.h"
-// #include "llvm/ADT/STLExtras.h"
+#include "Dialect/Btor/IR/Btor.h"
+#include "mlir/Support/LLVM.h"
 
 #include <memory>
 
@@ -21,6 +21,8 @@ namespace btor {
 
 /// Creates an instance of computeBtorLiveness pass.
 std::unique_ptr<mlir::Pass> computeBtorLiveness();
+
+LogicalResult resultIsLiveAfter(btor::WriteOp &writeOp);
 
 } // namespace btor
 } // namespace mlir
