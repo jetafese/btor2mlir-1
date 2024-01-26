@@ -2,6 +2,7 @@
 #include "Dialect/Btor/IR/Btor.h"
 
 #include "../PassDetail.h"
+#include "Dialect/Btor/Transforms/BtorLiveness.h"
 #include "mlir/Conversion/LLVMCommon/ConversionTarget.h"
 #include "mlir/Conversion/LLVMCommon/VectorPattern.h"
 #include "mlir/Conversion/StandardToLLVM/ConvertStandardToLLVM.h"
@@ -20,21 +21,59 @@ struct InitArrayLowering
   using ConvertOpToLLVMPattern<mlir::btor::InitArrayOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::InitArrayOp initArrayOp, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    auto arrayType = typeConverter->convertType(initArrayOp.getType());
+    rewriter.replaceOpWithNewOp<mlir::btor::VectorInitArrayOp>(
+        initArrayOp, arrayType, adaptor.init());
+    return success();
+  }
 };
 
 struct ReadOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ReadOp> {
   using ConvertOpToLLVMPattern<mlir::btor::ReadOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::ReadOp readOp, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    auto resType = typeConverter->convertType(readOp.result().getType());
+    rewriter.replaceOpWithNewOp<mlir::btor::VectorReadOp>(
+        readOp, resType, adaptor.base(), adaptor.index());
+    return success();
+  }
+};
+
+struct WriteInPlaceOpLowering
+    : public ConvertOpToLLVMPattern<mlir::btor::WriteInPlaceOp> {
+  using ConvertOpToLLVMPattern<
+      mlir::btor::WriteInPlaceOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::WriteInPlaceOp writeInPlaceOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    // assert (false);
+    auto resType =
+        typeConverter->convertType(writeInPlaceOp.result().getType());
+    rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
+        writeInPlaceOp, resType, adaptor.value(), adaptor.base(),
+        adaptor.index());
+    return success();
+  }
 };
 
 struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
   using ConvertOpToLLVMPattern<mlir::btor::WriteOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::WriteOp writeOp, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    if (resultIsLiveAfter(writeOp).succeeded()) {
+      rewriter.replaceOpWithNewOp<mlir::btor::WriteInPlaceOp>(
+          writeOp, writeOp.getType(), adaptor.value(), adaptor.base(),
+          adaptor.index());
+      return success();
+    }
+    auto resType = typeConverter->convertType(writeOp.result().getType());
+    rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
+        writeOp, resType, adaptor.value(), adaptor.base(), adaptor.index());
+    return success();
+  }
 };
 
 struct VectorInitArrayOpLowering
@@ -44,7 +83,11 @@ struct VectorInitArrayOpLowering
   LogicalResult
   matchAndRewrite(mlir::btor::VectorInitArrayOp vecInitArrayOp,
                   OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<vector::BroadcastOp>(
+        vecInitArrayOp, vecInitArrayOp.getType(), vecInitArrayOp.init());
+    return success();
+  }
 };
 
 struct VectorReadOpLowering
@@ -53,7 +96,12 @@ struct VectorReadOpLowering
       mlir::btor::VectorReadOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::VectorReadOp vecReadOp, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<vector::ExtractElementOp>(
+        vecReadOp, vecReadOp.result().getType(), adaptor.base(),
+        adaptor.index());
+    return success();
+  }
 };
 
 struct VectorWriteOpLowering
@@ -62,65 +110,13 @@ struct VectorWriteOpLowering
       mlir::btor::VectorWriteOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::VectorWriteOp vecWriteOp, OpAdaptor adaptor,
-                  ConversionPatternRewriter &rewriter) const override;
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<vector::InsertElementOp>(
+        vecWriteOp, adaptor.base().getType(), adaptor.value(), adaptor.base(),
+        adaptor.index());
+    return success();
+  }
 };
-
-//===----------------------------------------------------------------------===//
-// Lowering Definitions
-//===----------------------------------------------------------------------===//
-
-LogicalResult
-InitArrayLowering::matchAndRewrite(mlir::btor::InitArrayOp initArrayOp,
-                                   OpAdaptor adaptor,
-                                   ConversionPatternRewriter &rewriter) const {
-  auto arrayType = typeConverter->convertType(initArrayOp.getType());
-  rewriter.replaceOpWithNewOp<mlir::btor::VectorInitArrayOp>(
-      initArrayOp, arrayType, adaptor.init());
-  return success();
-}
-
-LogicalResult
-ReadOpLowering::matchAndRewrite(mlir::btor::ReadOp readOp, OpAdaptor adaptor,
-                                ConversionPatternRewriter &rewriter) const {
-  auto resType = typeConverter->convertType(readOp.result().getType());
-  rewriter.replaceOpWithNewOp<mlir::btor::VectorReadOp>(
-      readOp, resType, adaptor.base(), adaptor.index());
-  return success();
-}
-
-LogicalResult
-WriteOpLowering::matchAndRewrite(mlir::btor::WriteOp writeOp, OpAdaptor adaptor,
-                                 ConversionPatternRewriter &rewriter) const {
-  auto resType = typeConverter->convertType(writeOp.base().getType());
-  rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
-      writeOp, resType, adaptor.value(), adaptor.base(), adaptor.index());
-  return success();
-}
-
-LogicalResult VectorInitArrayOpLowering::matchAndRewrite(
-    mlir::btor::VectorInitArrayOp vecInitArrayOp, OpAdaptor adaptor,
-    ConversionPatternRewriter &rewriter) const {
-  rewriter.replaceOpWithNewOp<vector::BroadcastOp>(
-      vecInitArrayOp, vecInitArrayOp.getType(), vecInitArrayOp.init());
-  return success();
-}
-
-LogicalResult VectorReadOpLowering::matchAndRewrite(
-    mlir::btor::VectorReadOp vecReadOp, OpAdaptor adaptor,
-    ConversionPatternRewriter &rewriter) const {
-  rewriter.replaceOpWithNewOp<vector::ExtractElementOp>(
-      vecReadOp, vecReadOp.result().getType(), adaptor.base(), adaptor.index());
-  return success();
-}
-
-LogicalResult VectorWriteOpLowering::matchAndRewrite(
-    mlir::btor::VectorWriteOp vecWriteOp, OpAdaptor adaptor,
-    ConversionPatternRewriter &rewriter) const {
-  rewriter.replaceOpWithNewOp<vector::InsertElementOp>(
-      vecWriteOp, vecWriteOp.base().getType(), adaptor.value(), adaptor.base(),
-      adaptor.index());
-  return success();
-}
 
 //===----------------------------------------------------------------------===//
 // Populate Lowering Patterns
@@ -129,8 +125,8 @@ LogicalResult VectorWriteOpLowering::matchAndRewrite(
 void mlir::btor::populateBtorToVectorConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
-               VectorInitArrayOpLowering, VectorReadOpLowering,
-               VectorWriteOpLowering>(converter);
+               WriteInPlaceOpLowering, VectorInitArrayOpLowering,
+               VectorReadOpLowering, VectorWriteOpLowering>(converter);
 }
 
 namespace {
@@ -150,6 +146,7 @@ struct ConvertBtorToVectorPass
     /// indexed operators
     target.addIllegalOp<btor::ReadOp, btor::VectorReadOp>();
     target.addIllegalOp<btor::WriteOp, btor::VectorWriteOp>();
+    target.addIllegalOp<btor::WriteInPlaceOp>();
 
     target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });
     if (failed(applyPartialConversion(getOperation(), target,
