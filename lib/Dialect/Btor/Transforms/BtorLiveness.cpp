@@ -35,6 +35,56 @@ LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
   return status;
 }
 
+bool opsMatch(Value &value, llvm::StringLiteral name) {
+  if (value.isa<BlockArgument>()) {
+    return false;
+  }
+  return value.getDefiningOp()->getName().getStringRef().equals(name);
+}
+
+bool opsMatch(Operation *op, llvm::StringLiteral name) {
+  return op->getName().getStringRef().equals(name);
+}
+
+LogicalResult moveReadOpsBefore(Value &array, Operation *opPtr) {
+  for (auto it = array.user_begin(); it != array.user_end(); ++it) {
+    auto curUse = it.getCurrent().getUser();
+    if ((curUse != opPtr) && (!curUse->isBeforeInBlock(opPtr))) {
+      if (!opsMatch(curUse, btor::ReadOp::getOperationName())) {
+        return failure();
+      }
+      curUse->moveBefore(opPtr);
+      assert(it.getCurrent().getUser()->isBeforeInBlock(opPtr));
+    }
+  }
+  return success();
+}
+
+// find and replace ite pattern below
+//  %wr = write %v1, %A[%i1]
+//  %ite = ite %c1, %wr, %A
+//  return %ite
+LogicalResult usedInITEPattern(btor::IteOp &iteOp) {
+  auto opPtr = iteOp.getOperation();
+  Value resValue = iteOp.result();
+  assert(resValue.hasOneUse());
+  auto useOp = resValue.user_begin().getCurrent().getUser();
+  auto useOpName = useOp->getName().getStringRef();
+  assert(useOpName.equals(mlir::BranchOp::getOperationName()));
+  Value trueValue = iteOp.true_value();
+  Value falseValue = iteOp.false_value();
+
+  if (opsMatch(trueValue, btor::WriteOp::getOperationName())) {
+    assert(trueValue.hasOneUse());
+    assert(falseValue == trueValue.getDefiningOp()->getOperand(1));
+    return moveReadOpsBefore(falseValue, opPtr);
+  }
+  assert(opsMatch(falseValue, btor::WriteOp::getOperationName()));
+  assert(falseValue.hasOneUse());
+  assert(trueValue == falseValue.getDefiningOp()->getOperand(1));
+  return moveReadOpsBefore(trueValue, opPtr);
+}
+
 struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
   void runOnOperation() override {
     Operation *rootOp = getOperation();
@@ -81,6 +131,7 @@ LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
   LogicalResult status =
       llvm::TypeSwitch<Operation *, LogicalResult>(useOp)
           .Case<mlir::BranchOp>([&](auto op) { return success(); })
+          .Case<btor::IteOp>([&](auto op) { return usedInITEPattern(op); })
           .Default([&](Operation *) { return failure(); });
   return status;
 }

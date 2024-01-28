@@ -48,7 +48,6 @@ struct WriteInPlaceOpLowering
   LogicalResult
   matchAndRewrite(mlir::btor::WriteInPlaceOp writeInPlaceOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    // assert (false);
     auto resType =
         typeConverter->convertType(writeInPlaceOp.result().getType());
     rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
