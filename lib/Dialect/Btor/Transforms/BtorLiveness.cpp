@@ -18,23 +18,6 @@ using namespace mlir;
 using namespace btor;
 
 namespace {
-LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
-  auto status = resultIsLiveAfter(op);
-  if (status.succeeded()) {
-    auto resValue = op.result();
-    auto opPtr = op.getOperation();
-    auto m_context = opPtr->getContext();
-    auto m_builder = OpBuilder(m_context);
-    m_builder.setInsertionPointAfterValue(resValue);
-    Value writeInPlace = m_builder.create<btor::WriteInPlaceOp>(
-        op.getLoc(), op.getType(), op.value(), op.base(), op.index());
-    resValue.replaceAllUsesWith(writeInPlace);
-    assert(resValue.use_empty());
-  }
-
-  return status;
-}
-
 bool opsMatch(Value &value, llvm::StringLiteral name) {
   if (value.isa<BlockArgument>()) {
     return false;
@@ -46,43 +29,69 @@ bool opsMatch(Operation *op, llvm::StringLiteral name) {
   return op->getName().getStringRef().equals(name);
 }
 
-LogicalResult moveReadOpsBefore(Value &array, Operation *opPtr) {
-  for (auto it = array.user_begin(); it != array.user_end(); ++it) {
+LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
+  auto status = resultIsLiveAfter(op);
+  if (status.succeeded()) {
+    auto opPtr = op.getOperation();
+    auto m_context = opPtr->getContext();
+    auto m_builder = OpBuilder(m_context);
+    auto resValue = op.result();
+    assert(resValue.hasOneUse());
+    auto useOp = resValue.user_begin().getCurrent().getUser();
+    m_builder.setInsertionPointAfterValue(resValue);
+    if (opsMatch(useOp, btor::IteOp::getOperationName())) {
+      // remove write op
+      // replace ite op with ite_write_in_place
+    } else {
+      assert(opsMatch(useOp, mlir::BranchOp::getOperationName()));
+      Value writeInPlace = m_builder.create<btor::WriteInPlaceOp>(
+          op.getLoc(), op.getType(), op.value(), op.base(), op.index());
+      resValue.replaceAllUsesWith(writeInPlace);
+      assert(resValue.use_empty());
+    }
+  }
+
+  return status;
+}
+
+/// @brief Make sure all uses of baseArray are before the current operation
+/// @param baseArray, newArray, opPtr
+/// @return success/failure based on identified uses
+LogicalResult moveAfterReadOps(Value &baseArray, Value &newArray,
+                               Operation *opPtr) {
+  for (auto it = baseArray.user_begin(); it != baseArray.user_end(); ++it) {
     auto curUse = it.getCurrent().getUser();
     if ((curUse != opPtr) && (!curUse->isBeforeInBlock(opPtr))) {
       if (!opsMatch(curUse, btor::ReadOp::getOperationName())) {
         return failure();
       }
-      curUse->moveBefore(opPtr);
-      assert(it.getCurrent().getUser()->isBeforeInBlock(opPtr));
+      opPtr->moveAfter(curUse);
+      newArray.getDefiningOp()->moveAfter(curUse);
+      assert(curUse->isBeforeInBlock(opPtr));
+      assert(curUse->isBeforeInBlock(newArray.getDefiningOp()));
     }
   }
   return success();
 }
 
-// find and replace ite pattern below
-//  %wr = write %v1, %A[%i1]
-//  %ite = ite %c1, %wr, %A
-//  return %ite
+/// find and replace ite pattern below
+///  %wr = write %v1, %A[%i1]
+///  %ite = ite %c1, %wr, %A
+///  return %ite
 LogicalResult usedInITEPattern(btor::IteOp &iteOp) {
   auto opPtr = iteOp.getOperation();
-  Value resValue = iteOp.result();
-  assert(resValue.hasOneUse());
-  auto useOp = resValue.user_begin().getCurrent().getUser();
-  auto useOpName = useOp->getName().getStringRef();
-  assert(useOpName.equals(mlir::BranchOp::getOperationName()));
   Value trueValue = iteOp.true_value();
   Value falseValue = iteOp.false_value();
 
   if (opsMatch(trueValue, btor::WriteOp::getOperationName())) {
     assert(trueValue.hasOneUse());
     assert(falseValue == trueValue.getDefiningOp()->getOperand(1));
-    return moveReadOpsBefore(falseValue, opPtr);
+    return moveAfterReadOps(falseValue, trueValue, opPtr);
   }
   assert(opsMatch(falseValue, btor::WriteOp::getOperationName()));
   assert(falseValue.hasOneUse());
   assert(trueValue == falseValue.getDefiningOp()->getOperand(1));
-  return moveReadOpsBefore(trueValue, opPtr);
+  return moveAfterReadOps(trueValue, falseValue, opPtr);
 }
 
 struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
@@ -123,6 +132,7 @@ LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
   assert(opPtr != nullptr);
   assert(blockPtr != nullptr);
   assert(!resValue.isUsedOutsideOfBlock(blockPtr));
+  assert(resValue.hasOneUse());
   if (!resValue.hasOneUse()) {
     return failure();
   }
