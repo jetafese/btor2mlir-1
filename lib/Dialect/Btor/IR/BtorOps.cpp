@@ -140,6 +140,59 @@ static ParseResult parseIteOp(OpAsmParser &parser, OperationState &result) {
                                 parser.getNameLoc(), result.operands);
 }
 
+//===----------------------------------------------------------------------===//
+// Conditional Write Operation
+//===----------------------------------------------------------------------===//
+
+static void printIteWriteInPlaceOp(OpAsmPrinter &p, IteWriteInPlaceOp &op) {
+  p << " " << op.condition() << ", " << op.value() << ", ";
+  p << op.base() << "[" << op.index() << "]";
+  p.printOptionalAttrDict(op->getAttrs());
+  p << " : " << op.result().getType();
+}
+
+static LogicalResult verifyIteWriteInPlaceOp(IteWriteInPlaceOp &op) {
+  auto valType = getBVType(op.value().getType());
+  auto valWidth = valType.getWidth();
+  // The value's type must match the array's element type.
+  if (op.getArrayType().getElement().getWidth() != valWidth) {
+    return op.emitOpError() << "element type of the array must match "
+                            << " bitwidth of return type: " << valWidth;
+  }
+  // ensure that the condition is a bitvector of width one
+  if (getBVType(op.condition().getType()).getWidth() != 1) {
+    return op.emitError() << "condition needs to have width 1 (a boolean)";
+  }
+  return success();
+}
+
+static ParseResult parseIteWriteInPlaceOp(OpAsmParser &parser,
+                                          OperationState &result) {
+  OpAsmParser::OperandType condition, value, base, index;
+  btor::ArrayType resultType;
+  btor::BitVecType indexType, conditionType;
+  if (parser.parseOperand(condition) || parser.parseComma() ||
+      parser.parseOperand(value) || parser.parseComma() ||
+      parser.parseOperand(base) || parser.parseLSquare() ||
+      parser.parseOperand(index) || parser.parseRSquare() ||
+      parser.parseOptionalAttrDict(result.attributes) || parser.parseColon() ||
+      parser.parseType(resultType))
+    return failure();
+
+  result.addTypes(resultType);
+  indexType = resultType.getShape();
+  conditionType = btor::BitVecType::get(parser.getContext(), 1);
+
+  return parser.resolveOperands(
+      {condition, value, base, index},
+      {conditionType, resultType.getElement(), resultType, indexType},
+      parser.getNameLoc(), result.operands);
+}
+
+//===----------------------------------------------------------------------===//
+// Constant Operation
+//===----------------------------------------------------------------------===//
+
 OpFoldResult ConstantOp::fold(ArrayRef<Attribute> operands) {
   assert(operands.empty() && "constant has no operands");
   return value();
@@ -392,7 +445,6 @@ template <typename Op> void printWriteOp(OpAsmPrinter &p, Op op) {
 }
 
 template <typename Op> LogicalResult verifyWriteOp(Op op) {
-  // auto type = op.value().getType().getIntOrFloatBitWidth();
   auto valType = getBVType(op.value().getType());
   auto valWidth = valType.getWidth();
   // The value's type must match the array's element type.

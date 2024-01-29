@@ -1203,4 +1203,34 @@ def WriteInPlaceOp : Btor_Op<"write_in_place"> {
 // clang-format on
 }
 
+def IteWriteInPlaceOp : Btor_Op<"ite_write_in_place"> {
+  let summary = "btor conditional write in place operation";
+  // clang-format off
+  let description = [{
+    Write the given value to the provided location given by index if
+    the condition is true. The value stored should have the same type as
+    the elemental type of the array. Example:
+
+    ```mlir
+    % 4 = btor.ite_write_in_place %3, %2, %A[%1]: !array<!bv<8>, !bv<32>>
+    ```
+  }];
+
+  let arguments = (ins Btor_BitVec: $condition,
+                      Btor_BitVec: $value,
+                      Btor_Array: $base,
+                      Btor_BitVec: $index);
+
+  let results = (outs Btor_Array : $result);
+  let extraClassDeclaration = [{
+    ArrayType getArrayType() {
+      return base().getType().cast<ArrayType>();
+    }
+  }];
+  let verifier = [{ return verifyIteWriteInPlaceOp(*this); }];
+  let parser = [{ return parseIteWriteInPlaceOp(parser, result); }];
+  let printer = [{ return printIteWriteInPlaceOp(p, *this); }];
+// clang-format on
+}
+
 #endif // BTOR_OPS
