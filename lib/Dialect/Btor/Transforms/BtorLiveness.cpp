@@ -38,11 +38,17 @@ LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
     auto resValue = op.result();
     assert(resValue.hasOneUse());
     auto useOp = resValue.user_begin().getCurrent().getUser();
-    m_builder.setInsertionPointAfterValue(resValue);
     if (opsMatch(useOp, btor::IteOp::getOperationName())) {
-      // remove write op
       // replace ite op with ite_write_in_place
+      auto iteOpResult = useOp->getResult(0);
+      m_builder.setInsertionPointAfterValue(iteOpResult);
+      Value iteWriteInPlaceOp = m_builder.create<btor::IteWriteInPlaceOp>(
+        op.getLoc(), op.getType(), useOp->getOperand(0),
+        op.value(), op.base(), op.index());
+      iteOpResult.replaceAllUsesWith(iteWriteInPlaceOp);
+      assert(iteOpResult.use_empty());
     } else {
+      m_builder.setInsertionPointAfterValue(resValue);
       assert(opsMatch(useOp, mlir::BranchOp::getOperationName()));
       Value writeInPlace = m_builder.create<btor::WriteInPlaceOp>(
           op.getLoc(), op.getType(), op.value(), op.base(), op.index());
