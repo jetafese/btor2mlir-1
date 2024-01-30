@@ -12,6 +12,16 @@
 using namespace mlir;
 using namespace mlir::btor;
 
+namespace {
+LogicalResult shouldConvertToMemRef(Type &arrayType) {
+  if (!arrayType.isa<VectorType>()) {
+    assert(arrayType.isa<MemRefType>());
+    return success(); /// the MemRef pass will deal with this operation
+  }
+  return failure();
+}
+} // namespace
+
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
 //===----------------------------------------------------------------------===//
@@ -23,6 +33,9 @@ struct InitArrayLowering
   matchAndRewrite(mlir::btor::InitArrayOp initArrayOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     auto arrayType = typeConverter->convertType(initArrayOp.getType());
+    if (shouldConvertToMemRef(arrayType).succeeded()) {
+      return success();
+    }
     rewriter.replaceOpWithNewOp<mlir::btor::VectorInitArrayOp>(
         initArrayOp, arrayType, adaptor.init());
     return success();
@@ -35,6 +48,10 @@ struct ReadOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ReadOp> {
   matchAndRewrite(mlir::btor::ReadOp readOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     auto resType = typeConverter->convertType(readOp.result().getType());
+    auto arrayType = typeConverter->convertType(readOp.base().getType());
+    if (shouldConvertToMemRef(arrayType).succeeded()) {
+      return success();
+    }
     rewriter.replaceOpWithNewOp<mlir::btor::VectorReadOp>(
         readOp, resType, adaptor.base(), adaptor.index());
     return success();
@@ -50,6 +67,9 @@ struct WriteInPlaceOpLowering
                   ConversionPatternRewriter &rewriter) const override {
     auto resType =
         typeConverter->convertType(writeInPlaceOp.result().getType());
+    if (shouldConvertToMemRef(resType).succeeded()) {
+      return success();
+    }
     rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
         writeInPlaceOp, resType, adaptor.value(), adaptor.base(),
         adaptor.index());
@@ -66,6 +86,29 @@ struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
     /// identified by the liveness analysis
     assert(writeOp.use_empty() && "include the liveness analysis pass");
     writeOp.erase();
+    return success();
+  }
+};
+
+struct IteWriteInPlaceOpLowering
+    : public ConvertOpToLLVMPattern<mlir::btor::IteWriteInPlaceOp> {
+  using ConvertOpToLLVMPattern<
+      mlir::btor::IteWriteInPlaceOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::IteWriteInPlaceOp iteWriteInPlaceOp,
+                  OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto resType =
+        typeConverter->convertType(iteWriteInPlaceOp.result().getType());
+    if (shouldConvertToMemRef(resType).succeeded()) {
+      return success();
+    }
+    Value writeInPlace = rewriter.create<mlir::btor::VectorWriteOp>(
+        iteWriteInPlaceOp.getLoc(), resType, adaptor.value(), adaptor.base(),
+        adaptor.index());
+    rewriter.replaceOpWithNewOp<LLVM::SelectOp>(iteWriteInPlaceOp, resType,
+                                                adaptor.condition(),
+                                                writeInPlace, adaptor.base());
     return success();
   }
 };
@@ -120,7 +163,8 @@ void mlir::btor::populateBtorToVectorConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
                WriteInPlaceOpLowering, VectorInitArrayOpLowering,
-               VectorReadOpLowering, VectorWriteOpLowering>(converter);
+               VectorReadOpLowering, VectorWriteOpLowering,
+               IteWriteInPlaceOpLowering>(converter);
 }
 
 namespace {
@@ -140,7 +184,7 @@ struct ConvertBtorToVectorPass
     /// indexed operators
     target.addIllegalOp<btor::ReadOp, btor::VectorReadOp>();
     target.addIllegalOp<btor::WriteOp, btor::VectorWriteOp>();
-    target.addIllegalOp<btor::WriteInPlaceOp>();
+    target.addIllegalOp<btor::WriteInPlaceOp, btor::IteWriteInPlaceOp>();
 
     target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });
     if (failed(applyPartialConversion(getOperation(), target,

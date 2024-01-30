@@ -44,12 +44,14 @@ public:
     return btor::BitVecType::get(type.getContext(), type.getWidth());
   }
 
-  VectorType convertBtorArrayType(btor::ArrayType type) {
+  Type convertBtorArrayType(btor::ArrayType type) {
     unsigned indexWidth = pow(2, type.getShape().getWidth());
     auto elementType =
         ::IntegerType::get(type.getContext(), type.getElement().getWidth());
-    // return MemRefType::get(ArrayRef<int64_t>{indexWidth}, elementType);
-    return VectorType::get(ArrayRef<int64_t>{indexWidth}, elementType);
+    if (type.getShape().getWidth() <= 5) {
+      return VectorType::get(ArrayRef<int64_t>{indexWidth}, elementType);
+    }
+    return MemRefType::get(ArrayRef<int64_t>{indexWidth}, elementType);
   }
 };
 

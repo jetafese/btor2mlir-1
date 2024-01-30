@@ -19,7 +19,28 @@ void mlir::btor::populateBtorToMemrefConversionPatterns(
 namespace {
 struct ConvertBtorToMemrefPass
     : public ConvertBtorToMemrefBase<ConvertBtorToMemrefPass> {
-  void runOnOperation() override { std::cout << "Hello World" << std::endl; }
+  void runOnOperation() override {
+    RewritePatternSet patterns(&getContext());
+    LLVMConversionTarget target(getContext());
+    BtorToLLVMTypeConverter converter(&getContext());
+
+    mlir::btor::populateBtorToMemrefConversionPatterns(converter, patterns);
+    // mlir::populateStdToLLVMConversionPatterns(converter, patterns);
+    /// Configure conversion to lower out btor; Anything else is fine.
+    // init operators
+    target.addIllegalOp<btor::InitArrayOp, btor::VectorInitArrayOp>();
+
+    /// indexed operators
+    target.addIllegalOp<btor::ReadOp, btor::VectorReadOp>();
+    target.addIllegalOp<btor::WriteOp, btor::VectorWriteOp>();
+    target.addIllegalOp<btor::WriteInPlaceOp>();
+
+    target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });
+    if (failed(applyPartialConversion(getOperation(), target,
+                                      std::move(patterns)))) {
+      signalPassFailure();
+    }
+  }
 };
 } // end anonymous namespace
 
