@@ -28,6 +28,10 @@ namespace vector {
 class VectorDialect;
 } // end namespace vector
 
+namespace memref{
+class MemRefDialect;
+}
+
 #define GEN_PASS_CLASSES
 #include "Conversion/Passes.h.inc"
 

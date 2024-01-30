@@ -5,6 +5,7 @@
 #include "Conversion/BtorToLLVM/ConvertBtorToLLVMPass.h"
 #include "Conversion/BtorToVector/ConvertBtorToVectorPass.h"
 #include "Conversion/BtorNDToLLVM/ConvertBtorNDToLLVMPass.h"
+#include "Conversion/BtorToMemref/ConvertBtorToMemrefPass.h"
 
 namespace mlir {
 namespace btor {
