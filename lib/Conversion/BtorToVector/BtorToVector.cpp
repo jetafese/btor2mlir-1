@@ -2,7 +2,6 @@
 #include "Dialect/Btor/IR/Btor.h"
 
 #include "../PassDetail.h"
-#include "Dialect/Btor/Transforms/BtorLiveness.h"
 #include "mlir/Conversion/LLVMCommon/ConversionTarget.h"
 #include "mlir/Conversion/LLVMCommon/VectorPattern.h"
 #include "mlir/Conversion/StandardToLLVM/ConvertStandardToLLVM.h"
