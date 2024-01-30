@@ -1,9 +1,9 @@
 #ifndef BTORCONVERSION_PASSDETAIL_H_
 #define BTORCONVERSION_PASSDETAIL_H_
 
-#include "mlir/Pass/Pass.h"
 #include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Vector/IR/VectorOps.h"
+#include "mlir/Pass/Pass.h"
 
 namespace mlir {
 class ModuleOp;
@@ -28,7 +28,7 @@ namespace vector {
 class VectorDialect;
 } // end namespace vector
 
-namespace memref{
+namespace memref {
 class MemRefDialect;
 }
 

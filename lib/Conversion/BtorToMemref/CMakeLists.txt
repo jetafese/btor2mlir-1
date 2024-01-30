@@ -9,5 +9,4 @@ add_mlir_conversion_library(MLIRBtorToMemref
 
     LINK_LIBS PUBLIC
     MLIRIR
-    # MLIRMemref
   )
