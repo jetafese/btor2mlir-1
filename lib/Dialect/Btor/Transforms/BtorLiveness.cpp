@@ -139,14 +139,19 @@ struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
     assert(regions.getBlocks().size() == 2);
     auto &nextBlock = regions.getBlocks().back();
 
-    for (Operation &op : nextBlock.getOperations()) {
-      LogicalResult status =
-          llvm::TypeSwitch<Operation *, LogicalResult>(&op)
-              // btor ops.
-              .Case<btor::WriteOp>(
-                  [&](auto op) { return replaceWithWriteInPlace(op); })
-              .Default([&](Operation *) { return success(); });
-      assert(status.succeeded());
+    auto rescanAfterChanges = 1;
+    for (auto i = 0; i < rescanAfterChanges; ++i) {
+      for (Operation &op : nextBlock.getOperations()) {
+        LogicalResult status =
+            llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+                // btor ops.
+                .Case<btor::WriteOp>(
+                    [&](auto op) { return replaceWithWriteInPlace(op); })
+                .Default([&](Operation *) { return failure(); });
+        if (status.succeeded()) {
+          rescanAfterChanges++;
+        }
+      }
     }
   }
 };
@@ -163,6 +168,9 @@ LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
   auto opPtr = op.getOperation();
   auto blockPtr = opPtr->getBlock();
   Value resValue = op.result();
+  if (resValue.use_empty()) {
+    return failure();
+  }
 
   assert(opPtr != nullptr);
   assert(blockPtr != nullptr);
@@ -175,7 +183,8 @@ LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
   auto useOp = use.getCurrent().getUser();
   LogicalResult status =
       llvm::TypeSwitch<Operation *, LogicalResult>(useOp)
-          .Case<mlir::BranchOp>([&](auto op) { return success(); })
+          .Case<mlir::BranchOp>(
+              [&](auto brOp) { return usedInWritePattern(op); })
           .Case<btor::IteOp>([&](auto op) { return usedInITEPattern(op); })
           .Default([&](Operation *) { return failure(); });
   return status;
