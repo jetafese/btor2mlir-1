@@ -43,8 +43,8 @@ LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
       auto iteOpResult = useOp->getResult(0);
       m_builder.setInsertionPointAfterValue(iteOpResult);
       Value iteWriteInPlaceOp = m_builder.create<btor::IteWriteInPlaceOp>(
-        op.getLoc(), op.getType(), useOp->getOperand(0),
-        op.value(), op.base(), op.index());
+          op.getLoc(), op.getType(), useOp->getOperand(0), op.value(),
+          op.base(), op.index());
       iteOpResult.replaceAllUsesWith(iteWriteInPlaceOp);
       assert(iteOpResult.use_empty());
       assert(useOp->use_empty());
@@ -63,7 +63,7 @@ LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
   return status;
 }
 
-/// @brief Make sure all uses of baseArray are before the current operation
+/// @brief Make sure all uses of baseArray are before the newArray operation
 /// @param baseArray, newArray, opPtr
 /// @return success/failure based on identified uses
 LogicalResult moveAfterReadOps(Value &baseArray, Value &newArray,
@@ -78,6 +78,23 @@ LogicalResult moveAfterReadOps(Value &baseArray, Value &newArray,
       newArray.getDefiningOp()->moveAfter(curUse);
       assert(curUse->isBeforeInBlock(opPtr));
       assert(curUse->isBeforeInBlock(newArray.getDefiningOp()));
+    }
+  }
+  return success();
+}
+
+/// @brief Make sure all uses of baseArray are before the given operation
+/// @param baseArray, opPtr
+/// @return success/failure based on identified uses
+LogicalResult moveAfterReadOps(Value &baseArray, Operation *opPtr) {
+  for (auto it = baseArray.user_begin(); it != baseArray.user_end(); ++it) {
+    auto curUse = it.getCurrent().getUser();
+    if ((curUse != opPtr) && (!curUse->isBeforeInBlock(opPtr))) {
+      if (!opsMatch(curUse, btor::ReadOp::getOperationName())) {
+        return failure();
+      }
+      opPtr->moveAfter(curUse);
+      assert(curUse->isBeforeInBlock(opPtr));
     }
   }
   return success();
@@ -101,6 +118,15 @@ LogicalResult usedInITEPattern(btor::IteOp &iteOp) {
   assert(falseValue.hasOneUse());
   assert(trueValue == falseValue.getDefiningOp()->getOperand(1));
   return moveAfterReadOps(trueValue, falseValue, opPtr);
+}
+
+/// find and replace ite pattern below
+///  %wr = write %v1, %A[%i1]
+///  return %wr
+LogicalResult usedInWritePattern(btor::WriteOp &writeOp) {
+  auto opPtr = writeOp.getOperation();
+  Value baseArray = writeOp.base();
+  return moveAfterReadOps(baseArray, opPtr);
 }
 
 struct BtorLivenessPass : public BtorLivenessBase<BtorLivenessPass> {
