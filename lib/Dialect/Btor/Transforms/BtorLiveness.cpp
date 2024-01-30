@@ -47,6 +47,9 @@ LogicalResult replaceWithWriteInPlace(btor::WriteOp &op) {
         op.value(), op.base(), op.index());
       iteOpResult.replaceAllUsesWith(iteWriteInPlaceOp);
       assert(iteOpResult.use_empty());
+      assert(useOp->use_empty());
+      useOp->erase();
+      assert(opPtr->use_empty());
     } else {
       m_builder.setInsertionPointAfterValue(resValue);
       assert(opsMatch(useOp, mlir::BranchOp::getOperationName()));

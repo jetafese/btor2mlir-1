@@ -62,15 +62,10 @@ struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
   LogicalResult
   matchAndRewrite(mlir::btor::WriteOp writeOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    if (resultIsLiveAfter(writeOp).succeeded()) {
-      rewriter.replaceOpWithNewOp<mlir::btor::WriteInPlaceOp>(
-          writeOp, writeOp.getType(), adaptor.value(), adaptor.base(),
-          adaptor.index());
-      return success();
-    }
-    auto resType = typeConverter->convertType(writeOp.result().getType());
-    rewriter.replaceOpWithNewOp<mlir::btor::VectorWriteOp>(
-        writeOp, resType, adaptor.value(), adaptor.base(), adaptor.index());
+    /// we are working under the assumption that all patterns are
+    /// identified by the liveness analysis
+    assert(writeOp.use_empty() && "include the liveness analysis pass");
+    writeOp.erase();
     return success();
   }
 };
