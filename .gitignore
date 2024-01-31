@@ -1,4 +1,5 @@
 debug
 build
+asan
 .vscode
 CMakeUserPresets.json
