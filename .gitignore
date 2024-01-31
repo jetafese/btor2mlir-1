@@ -1,6 +1,4 @@
 debug
 build
-run-script.sh
-clang-debug
 .vscode
-hwmcc20
+CMakeUserPresets.json
