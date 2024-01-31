@@ -19,7 +19,6 @@ LogicalResult shouldConvertToMemRef(Type &arrayType) {
   }
   return failure();
 }
-} // namespace
 
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
@@ -153,6 +152,7 @@ struct VectorWriteOpLowering
     return success();
   }
 };
+} // namespace
 
 //===----------------------------------------------------------------------===//
 // Populate Lowering Patterns

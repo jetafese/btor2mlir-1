@@ -298,16 +298,6 @@ struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
 LogicalResult
 ConstantOpLowering::matchAndRewrite(btor::ConstantOp op, OpAdaptor adaptor,
                                     ConversionPatternRewriter &rewriter) const {
-  // auto resultType = op.getResult().getType();
-  // auto intType = typeConverter->convertType(resultType);
-
-  // unsigned val = op.valueAttr().getValue().getSExtValue();
-
-  // rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
-  //     op, intType, rewriter.getIntegerAttr(intType, val));
-
-  // return success();
-
   return LLVM::detail::oneToOneRewrite(op, LLVM::ConstantOp::getOperationName(),
                                        adaptor.getOperands(),
                                        *getTypeConverter(), rewriter);

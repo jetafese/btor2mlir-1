@@ -18,13 +18,12 @@ LogicalResult shouldConvertToVector(Type &arrayType) {
   }
   return failure();
 }
-} // namespace
 
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
 //===----------------------------------------------------------------------===//
 
-struct InitArrayMemrefLowering
+struct InitArrayLowering
     : public ConvertOpToLLVMPattern<mlir::btor::InitArrayOp> {
   using ConvertOpToLLVMPattern<mlir::btor::InitArrayOp>::ConvertOpToLLVMPattern;
   LogicalResult
@@ -35,27 +34,36 @@ struct InitArrayMemrefLowering
       return success();
     }
     /// TODO
+    // Operation *init = adaptor.init().getDefiningOp();
+    // adaptor.init().dump();
+    // assert(init->getName().getStringRef().equals(
+    //     btor::ConstantOp::getOperationName()));
+    // rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
+    //     initArrayOp, arrayType, init->getAttr("value"));
+    // rewriter.create<memref::GlobalOp>(initArrayOp.getLoc(), arrayType,
+    //                                               adaptor.init());
     return success();
   }
 };
 
-struct ReadOpMemrefLowering
-    : public ConvertOpToLLVMPattern<mlir::btor::ReadOp> {
+struct ReadOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ReadOp> {
   using ConvertOpToLLVMPattern<mlir::btor::ReadOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::ReadOp readOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    // auto resType = typeConverter->convertType(readOp.result().getType());
+    auto resType = typeConverter->convertType(readOp.result().getType());
     auto arrayType = typeConverter->convertType(readOp.base().getType());
     if (shouldConvertToVector(arrayType).succeeded()) {
       return success();
     }
     /// TODO
+    // rewriter.replaceOpWithNewOp<memref::LoadOp>(readOp, resType,
+    // readOp.base(), readOp.index());
     return success();
   }
 };
 
-struct WriteInPlaceOpMemrefLowering
+struct WriteInPlaceOpLowering
     : public ConvertOpToLLVMPattern<mlir::btor::WriteInPlaceOp> {
   using ConvertOpToLLVMPattern<
       mlir::btor::WriteInPlaceOp>::ConvertOpToLLVMPattern;
@@ -68,12 +76,14 @@ struct WriteInPlaceOpMemrefLowering
       return success();
     }
     /// TODO
+    // rewriter.replaceOpWithNewOp<memref::StoreOp>(
+    //     writeInPlaceOp, resType, adaptor.value(), adaptor.base(),
+    //     adaptor.index());
     return success();
   }
 };
 
-struct WriteOpMemrefLowering
-    : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
+struct WriteOpLowering : public ConvertOpToLLVMPattern<mlir::btor::WriteOp> {
   using ConvertOpToLLVMPattern<mlir::btor::WriteOp>::ConvertOpToLLVMPattern;
   LogicalResult
   matchAndRewrite(mlir::btor::WriteOp writeOp, OpAdaptor adaptor,
@@ -86,7 +96,7 @@ struct WriteOpMemrefLowering
   }
 };
 
-struct IteWriteInPlaceOpMemrefLowering
+struct IteWriteInPlaceOpLowering
     : public ConvertOpToLLVMPattern<mlir::btor::IteWriteInPlaceOp> {
   using ConvertOpToLLVMPattern<
       mlir::btor::IteWriteInPlaceOp>::ConvertOpToLLVMPattern;
@@ -103,6 +113,7 @@ struct IteWriteInPlaceOpMemrefLowering
     return success();
   }
 };
+} // namespace
 
 //===----------------------------------------------------------------------===//
 // Populate Lowering Patterns
@@ -110,10 +121,8 @@ struct IteWriteInPlaceOpMemrefLowering
 
 void mlir::btor::populateBtorToMemrefConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
-  patterns
-      .add<ReadOpMemrefLowering, WriteOpMemrefLowering, InitArrayMemrefLowering,
-           WriteInPlaceOpMemrefLowering, IteWriteInPlaceOpMemrefLowering>(
-          converter);
+  patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
+               WriteInPlaceOpLowering, IteWriteInPlaceOpLowering>(converter);
 }
 
 namespace {
