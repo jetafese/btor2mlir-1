@@ -139,7 +139,18 @@ struct IteWriteInPlaceOpLowering
     if (shouldConvertToVector(resType).succeeded()) {
       return success();
     }
-    /// TODO
+    auto valType =
+        typeConverter->convertType(iteWriteInPlaceOp.value().getType());
+    auto loc = iteWriteInPlaceOp.getLoc();
+    Value curValue = rewriter.create<btor::MemRefReadOp>(
+        loc, valType, adaptor.base(), adaptor.index());
+    auto selectedVal = rewriter.create<LLVM::SelectOp>(
+        loc, valType, adaptor.condition(), adaptor.value(), curValue);
+
+    rewriter.create<btor::MemRefWriteOp>(loc, resType, selectedVal,
+                                         adaptor.base(), adaptor.index());
+
+    rewriter.replaceOp(iteWriteInPlaceOp, iteWriteInPlaceOp.base());
     return success();
   }
 };
