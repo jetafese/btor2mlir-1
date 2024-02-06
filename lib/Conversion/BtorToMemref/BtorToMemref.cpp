@@ -56,9 +56,24 @@ struct ReadOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ReadOp> {
     if (shouldConvertToVector(arrayType).succeeded()) {
       return success();
     }
-    /// TODO
-    // rewriter.replaceOpWithNewOp<memref::LoadOp>(readOp, resType,
-    // readOp.base(), readOp.index());
+    rewriter.replaceOpWithNewOp<btor::MemRefReadOp>(
+        readOp, resType, adaptor.base(), adaptor.index());
+    return success();
+  }
+};
+
+struct MemRefReadOpLowering
+    : public ConvertOpToLLVMPattern<mlir::btor::MemRefReadOp> {
+  using ConvertOpToLLVMPattern<
+      mlir::btor::MemRefReadOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::MemRefReadOp memReadOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    Value index = rewriter.create<arith::IndexCastOp>(
+        memReadOp.getLoc(), rewriter.getIndexType(), adaptor.index());
+    rewriter.replaceOpWithNewOp<memref::LoadOp>(
+        memReadOp, memReadOp.getResult().getType(), memReadOp.base(),
+        ValueRange(index));
     return success();
   }
 };
@@ -122,7 +137,8 @@ struct IteWriteInPlaceOpLowering
 void mlir::btor::populateBtorToMemrefConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
-               WriteInPlaceOpLowering, IteWriteInPlaceOpLowering>(converter);
+               MemRefReadOpLowering, WriteInPlaceOpLowering,
+               IteWriteInPlaceOpLowering>(converter);
 }
 
 namespace {
@@ -139,7 +155,7 @@ struct ConvertBtorToMemrefPass
     target.addIllegalOp<btor::InitArrayOp>();
 
     // /// indexed operators
-    target.addIllegalOp<btor::ReadOp>();
+    target.addIllegalOp<btor::ReadOp, btor::MemRefReadOp>();
     target.addIllegalOp<btor::WriteOp>();
     target.addIllegalOp<btor::WriteInPlaceOp, btor::IteWriteInPlaceOp>();
 

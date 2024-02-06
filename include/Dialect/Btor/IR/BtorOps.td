@@ -1058,6 +1058,35 @@ def VectorWriteOp : Btor_Op<"write_vec"> {
 // clang-format on
 }
 
+def MemRefReadOp : Btor_Op<"read_mem"> {
+  let summary = "btor read operation using memref types";
+  // clang-format off
+  let description = [{
+    The `read` op reads an element from a btor array specified by an index.
+    The output of load is a new value with the same type as the elements
+    of the btor array.
+
+    Example:
+
+    ```mlir 
+    %1 = btor.read %A[%0]: memref<8xi32>, i32
+    ```
+  }];
+
+  let arguments = (ins AnyMemRef : $base,
+                      SignlessIntegerLike : $index);
+  let results = (outs SignlessIntegerLike : $result);
+  let extraClassDeclaration = [{
+    MemRefType getArrayType() {
+      return base().getType().cast<MemRefType>();
+    }
+  }];
+  let verifier = [{ return verifyMemRefReadOp(*this); }];
+  let parser = [{ return parseMemRefReadOp(parser, result); }];
+  let printer = [{ return printMemRefReadOp(p, *this); }];
+// clang-format on
+}
+
 //===----------------------------------------------------------------------===//
 // Btor arrays
 //===----------------------------------------------------------------------===//
