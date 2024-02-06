@@ -90,10 +90,25 @@ struct WriteInPlaceOpLowering
     if (shouldConvertToVector(resType).succeeded()) {
       return success();
     }
-    /// TODO
-    // rewriter.replaceOpWithNewOp<memref::StoreOp>(
-    //     writeInPlaceOp, resType, adaptor.value(), adaptor.base(),
-    //     adaptor.index());
+    rewriter.replaceOpWithNewOp<btor::MemRefWriteOp>(
+        writeInPlaceOp, resType, adaptor.value(), adaptor.base(),
+        adaptor.index());
+    return success();
+  }
+};
+
+struct MemRefWriteOpLowering
+    : public ConvertOpToLLVMPattern<mlir::btor::MemRefWriteOp> {
+  using ConvertOpToLLVMPattern<
+      mlir::btor::MemRefWriteOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::MemRefWriteOp memWriteOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    Value index = rewriter.create<arith::IndexCastOp>(
+        memWriteOp.getLoc(), rewriter.getIndexType(), adaptor.index());
+    rewriter.create<memref::StoreOp>(rewriter.getUnknownLoc(), adaptor.value(),
+                                     memWriteOp.base(), ValueRange(index));
+    rewriter.replaceOp(memWriteOp, memWriteOp.base());
     return success();
   }
 };
@@ -137,8 +152,8 @@ struct IteWriteInPlaceOpLowering
 void mlir::btor::populateBtorToMemrefConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
-               MemRefReadOpLowering, WriteInPlaceOpLowering,
-               IteWriteInPlaceOpLowering>(converter);
+               MemRefReadOpLowering, MemRefWriteOpLowering,
+               WriteInPlaceOpLowering, IteWriteInPlaceOpLowering>(converter);
 }
 
 namespace {
@@ -156,7 +171,7 @@ struct ConvertBtorToMemrefPass
 
     // /// indexed operators
     target.addIllegalOp<btor::ReadOp, btor::MemRefReadOp>();
-    target.addIllegalOp<btor::WriteOp>();
+    target.addIllegalOp<btor::WriteOp, btor::MemRefWriteOp>();
     target.addIllegalOp<btor::WriteInPlaceOp, btor::IteWriteInPlaceOp>();
 
     target.markUnknownOpDynamicallyLegal([](Operation *) { return true; });

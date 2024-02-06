@@ -727,6 +727,47 @@ static ParseResult parseMemRefReadOp(OpAsmParser &parser,
 }
 
 //===----------------------------------------------------------------------===//
+// Write Operations using MemRefs
+//===----------------------------------------------------------------------===//
+
+void printMemRefWriteOp(OpAsmPrinter &p, MemRefWriteOp &op) {
+  p << " " << op.value() << ", " << op.base() << "[" << op.index() << "]";
+  p.printOptionalAttrDict(op->getAttrs());
+  p << " : " << op.result().getType();
+}
+
+template <typename Op> LogicalResult verifyMemRefWriteOp(Op op) {
+  auto type = op.value().getType().getIntOrFloatBitWidth();
+  // The value's type must match the array's element type.
+  if (op.getArrayType().getElementType().getIntOrFloatBitWidth() != type) {
+    return op.emitOpError() << "element type of the array must match "
+                            << " bitwidth of given value: " << type;
+  }
+  return success();
+}
+
+static ParseResult parseMemRefWriteOp(OpAsmParser &parser,
+                                      OperationState &result) {
+  OpAsmParser::OperandType value, base, index;
+  MemRefType resultType;
+  IntegerType indexType;
+  if (parser.parseOperand(value) || parser.parseComma() ||
+      parser.parseOperand(base) || parser.parseLSquare() ||
+      parser.parseOperand(index) || parser.parseRSquare() ||
+      parser.parseOptionalAttrDict(result.attributes) || parser.parseColon() ||
+      parser.parseType(resultType))
+    return failure();
+
+  result.addTypes(resultType);
+  indexType =
+      parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]));
+  return parser.resolveOperands(
+      {value, base, index},
+      {resultType.getElementType(), resultType, indexType}, parser.getNameLoc(),
+      result.operands);
+}
+
+//===----------------------------------------------------------------------===//
 // TableGen'd op method definitions
 //===----------------------------------------------------------------------===//
 
