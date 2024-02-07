@@ -33,15 +33,18 @@ struct InitArrayLowering
     if (shouldConvertToVector(arrayType).succeeded()) {
       return success();
     }
-    /// TODO
-    // Operation *init = adaptor.init().getDefiningOp();
-    // adaptor.init().dump();
-    // assert(init->getName().getStringRef().equals(
-    //     btor::ConstantOp::getOperationName()));
-    // rewriter.replaceOpWithNewOp<LLVM::ConstantOp>(
-    //     initArrayOp, arrayType, init->getAttr("value"));
-    // rewriter.create<memref::GlobalOp>(initArrayOp.getLoc(), arrayType,
-    //                                               adaptor.init());
+    auto memType = arrayType.cast<MemRefType>();
+    auto loc = initArrayOp.getLoc();
+    auto newArrayOp = rewriter.create<memref::AllocOp>(loc, memType);
+    auto newArray = newArrayOp.getResult();
+    int64_t shape = memType.getShape().front();
+    for (int64_t i = 0; i < shape; ++i) {
+      auto idx = rewriter.create<arith::ConstantOp>(
+          loc, rewriter.getIndexAttr(i), rewriter.getIndexType());
+      rewriter.create<memref::StoreOp>(loc, adaptor.init(), newArray,
+                                       ValueRange({idx}));
+    }
+    rewriter.replaceOp(initArrayOp, newArray);
     return success();
   }
 };

@@ -1058,6 +1058,38 @@ def VectorWriteOp : Btor_Op<"write_vec"> {
 // clang-format on
 }
 
+//===----------------------------------------------------------------------===//
+// MemRef using Btor arrays
+//===----------------------------------------------------------------------===//
+
+def MemRefInitArrayOp : Btor_Op<"array_mem"> {
+  let summary = "btor initialized array allocation using memref types";
+  // clang-format off
+  let description = [{
+    The `array` operation represents a btor array, using memrefs,
+    that has been initialized with a value.
+
+    For example:
+
+    ```mlir
+    %4 = btor.array_mem %1: memref<8xi32>
+    ```
+    This operation returns a single SSA value of a memref type
+    used by subsequent read and write operations.
+  }];
+  let arguments = (ins Builtin_IntegerAttr : $init);
+  let results = (outs AnyMemRef : $result);
+  let extraClassDeclaration = [{
+    MemRefType getArrayType() {
+      return result().getType().cast<MemRefType>();
+    }
+  }];
+  let verifier = [{ return verifyMemRefInitArrayOp(*this); }];
+  let parser = [{ return parseMemRefInitArrayOp(parser, result); }];
+  let printer = [{ return printMemRefInitArrayOp(p, *this); }];
+// clang-format on
+}
+
 def MemRefReadOp : Btor_Op<"read_mem"> {
   let summary = "btor read operation using memref types";
   // clang-format off
