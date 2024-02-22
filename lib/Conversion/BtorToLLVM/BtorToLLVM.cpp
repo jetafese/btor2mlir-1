@@ -560,7 +560,7 @@ ConcatOpLowering::matchAndRewrite(mlir::btor::ConcatOp concatOp,
 
   unsigned int lhsWidth = lhs.getType().getIntOrFloatBitWidth();
   unsigned int rhsWidth = rhs.getType().getIntOrFloatBitWidth();
-  auto resultWidthType = rewriter.getIntegerType(lhsWidth + rhsWidth);
+  auto resultWidthType = rewriter.getIntegerType(lhsWidth + rhsWidth, false);
   Value resultWidthVal = rewriter.create<LLVM::ConstantOp>(
       loc, resultWidthType,
       rewriter.getIntegerAttr(resultWidthType, lhsWidth + rhsWidth));
@@ -800,7 +800,7 @@ struct BtorToLLVMLoweringPass
 void BtorToLLVMLoweringPass::runOnOperation() {
   LLVMConversionTarget target(getContext());
   RewritePatternSet patterns(&getContext());
-  BtorToLLVMTypeConverter converter(&getContext());
+  BtorToLLVMTypeConverter converter(&getContext(), true);
 
   mlir::btor::populateBtorToLLVMConversionPatterns(converter, patterns);
   mlir::populateStdToLLVMConversionPatterns(converter, patterns);
