@@ -553,7 +553,8 @@ Deserialize::buildNextFunction(const std::vector<Type> &returnTypes,
       auto stateType = getFromCacheById(m_states.at(i)->id).getType();
       auto res = m_builder.create<btor::NDStateOp>(
           FileLineColLoc::get(m_sourceFile, m_states.at(i)->lineno, 0),
-          stateType, m_builder.getIntegerAttr(m_builder.getIntegerType(64), i));
+          stateType,
+          m_builder.getIntegerAttr(m_builder.getIntegerType(64, false), i));
       assert(res);
       assert(res->getNumResults() == 1);
       results[i] = res->getResult(0);

@@ -212,7 +212,8 @@ private:
     }
     auto res = m_builder.create<btor::ConstantOp>(
         FileLineColLoc::get(m_sourceFile, lineId, 0), type,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(width), value));
+        m_builder.getIntegerAttr(m_builder.getIntegerType(width, false),
+                                 value));
     return res;
   }
 
@@ -239,7 +240,7 @@ private:
     Type type = btor::BitVecType::get(m_context, width);
     auto res = m_builder.create<btor::InputOp>(
         FileLineColLoc::get(m_sourceFile, lineId, 0), type,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(64),
+        m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
                                  m_inputs.at(lineId)));
     return res;
   }
@@ -247,7 +248,7 @@ private:
   Operation *buildAssertNotOp(const Value &val, const unsigned lineId) {
     auto res = m_builder.create<btor::AssertNotOp>(
         FileLineColLoc::get(m_sourceFile, lineId, 0), val,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(64),
+        m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
                                  map_bads.at(lineId)));
     return res;
   }
@@ -262,13 +263,13 @@ private:
     auto resType = btor::BitVecType::get(m_context, upper - lower + 1);
     auto u = m_builder.create<btor::ConstantOp>(
         loc, opType,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(opType.getWidth()),
-                                 upper));
+        m_builder.getIntegerAttr(
+            m_builder.getIntegerType(opType.getWidth(), false), upper));
     assert(u && u->getNumResults() == 1);
     auto l = m_builder.create<btor::ConstantOp>(
         loc, opType,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(opType.getWidth()),
-                                 lower));
+        m_builder.getIntegerAttr(
+            m_builder.getIntegerType(opType.getWidth(), false), lower));
     assert(l && l->getNumResults() == 1);
 
     auto res = m_builder.create<btor::SliceOp>(
@@ -325,7 +326,7 @@ private:
     } else {
       auto res = m_builder.create<btor::NDStateOp>(
           FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line),
-          m_builder.getIntegerAttr(m_builder.getIntegerType(64), index));
+          m_builder.getIntegerAttr(m_builder.getIntegerType(64, false), index));
       return res;
     }
   }

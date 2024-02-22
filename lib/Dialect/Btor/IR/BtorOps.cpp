@@ -304,7 +304,7 @@ static ParseResult parseInputOp(OpAsmParser &parser, OperationState &result) {
   Attribute idAttr;
   Type type;
 
-  Type i64Type = parser.getBuilder().getIntegerType(64);
+  Type i64Type = parser.getBuilder().getIntegerType(64, false);
 
   if (parser.parseAttribute(idAttr, i64Type, "id", attrs) ||
       parser.parseOptionalAttrDict(attrs) || parser.parseColonType(type))
@@ -335,7 +335,7 @@ static ParseResult parseNDStateOpOp(OpAsmParser &parser,
   Attribute idAttr;
   Type type;
 
-  Type i64Type = parser.getBuilder().getIntegerType(64);
+  Type i64Type = parser.getBuilder().getIntegerType(64, false);
 
   if (parser.parseAttribute(idAttr, i64Type, "id", attrs) ||
       parser.parseOptionalAttrDict(attrs) || parser.parseColonType(type))
@@ -632,7 +632,8 @@ static ParseResult parseVectorReadOp(OpAsmParser &parser,
     return failure();
 
   result.addTypes(resultType);
-  indexType = parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]));
+  indexType =
+      parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]), false);
   return parser.resolveOperands({base, index}, {baseType, indexType},
                                 parser.getNameLoc(), result.operands);
 }
@@ -671,7 +672,7 @@ static ParseResult parseVectorWriteOp(OpAsmParser &parser,
 
   result.addTypes(resultType);
   indexType =
-      parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]));
+      parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]), false);
   return parser.resolveOperands(
       {value, base, index},
       {resultType.getElementType(), resultType, indexType}, parser.getNameLoc(),
@@ -683,28 +684,28 @@ static ParseResult parseVectorWriteOp(OpAsmParser &parser,
 //===----------------------------------------------------------------------===//
 
 static void printMemRefInitArrayOp(OpAsmPrinter &p, MemRefInitArrayOp &op) {
-  p << " " << op.init();
+  // p << " " << op.init();
   p.printOptionalAttrDict(op->getAttrs());
   p << " : " << op.result().getType();
 }
 
 template <typename Op> static LogicalResult verifyMemRefInitArrayOp(Op op) {
-  auto initType = op.init().getType();
-  auto initWidth = initType.getIntOrFloatBitWidth();
-  auto elementType = op.getArrayType().getElementType();
-  if (elementType.getIntOrFloatBitWidth() != initWidth) {
-    return op.emitOpError() << "element type of the array must match "
-                            << " bitwidth of given value: " << initWidth;
-  }
-  if (op.getArrayType().getShape().size() != 1) {
-    return op.emitOpError() << "provide only one shape attribute ";
-  }
-  auto shape = op.getArrayType().getShape()[0];
-  auto indicator = shape & (shape - 1);
-  if (indicator != 0) {
-    return op.emitOpError()
-           << "given shape: " << shape << " has to be a power of two";
-  }
+  // auto initType = op.init().getType();
+  // auto initWidth = initType.getIntOrFloatBitWidth();
+  // auto elementType = op.getArrayType().getElementType();
+  // if (elementType.getIntOrFloatBitWidth() != initWidth) {
+  //   return op.emitOpError() << "element type of the array must match "
+  //                           << " bitwidth of given value: " << initWidth;
+  // }
+  // if (op.getArrayType().getShape().size() != 1) {
+  //   return op.emitOpError() << "provide only one shape attribute ";
+  // }
+  // auto shape = op.getArrayType().getShape()[0];
+  // auto indicator = shape & (shape - 1);
+  // if (indicator != 0) {
+  //   return op.emitOpError()
+  //          << "given shape: " << shape << " has to be a power of two";
+  // }
   return success();
 }
 
@@ -712,14 +713,14 @@ static ParseResult parseMemRefInitArrayOp(OpAsmParser &parser,
                                           OperationState &result) {
   OpAsmParser::OperandType init;
   MemRefType resultType;
-  if (parser.parseOperand(init) ||
+  if (
+      // parser.parseOperand(init) ||
       parser.parseOptionalAttrDict(result.attributes) || parser.parseColon() ||
       parser.parseType(resultType))
     return failure();
 
   result.addTypes(resultType);
-  return parser.resolveOperands({init}, {resultType.getElementType()},
-                                parser.getNameLoc(), result.operands);
+  return parser.resolveOperands({}, {}, parser.getNameLoc(), result.operands);
 }
 
 //===----------------------------------------------------------------------===//
@@ -765,7 +766,8 @@ static ParseResult parseMemRefReadOp(OpAsmParser &parser,
     return failure();
 
   result.addTypes(resultType);
-  indexType = parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]));
+  indexType =
+      parser.getBuilder().getIntegerType(log2(baseType.getShape()[0]), false);
   return parser.resolveOperands({base, index}, {baseType, indexType},
                                 parser.getNameLoc(), result.operands);
 }
@@ -804,7 +806,7 @@ static ParseResult parseMemRefWriteOp(OpAsmParser &parser,
 
   result.addTypes(resultType);
   indexType =
-      parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]));
+      parser.getBuilder().getIntegerType(log2(resultType.getShape()[0]), false);
   return parser.resolveOperands(
       {value, base, index},
       {resultType.getElementType(), resultType, indexType}, parser.getNameLoc(),
