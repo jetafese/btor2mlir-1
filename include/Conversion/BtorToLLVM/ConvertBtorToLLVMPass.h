@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <iostream>
 
 #include "Dialect/Btor/IR/Btor.h"
 #include "mlir/Conversion/LLVMCommon/TypeConverter.h"
@@ -24,14 +25,19 @@ std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
 
 } // namespace btor
 class BtorToLLVMTypeConverter : public LLVMTypeConverter {
+private:
+  bool m_to_LLVM;
 public:
-  BtorToLLVMTypeConverter(MLIRContext *ctx,
+  BtorToLLVMTypeConverter(MLIRContext *ctx, bool to_LLVM = false,
                           const DataLayoutAnalysis *analysis = nullptr)
-      : LLVMTypeConverter(ctx, analysis) {
+      : LLVMTypeConverter(ctx, analysis), m_to_LLVM(to_LLVM) {
     addConversion([&](btor::BitVecType type) -> llvm::Optional<Type> {
       return convertBtorBitVecType(type);
     });
     addConversion([&](btor::ArrayType type) -> llvm::Optional<Type> {
+      if (m_to_LLVM) {
+        return convertBtorMemRefType(type);
+      }
       return convertBtorArrayType(type);
     });
   }
@@ -44,7 +50,23 @@ public:
     return btor::BitVecType::get(type.getContext(), type.getWidth());
   }
 
+  Type convertBtorMemRefType(btor::ArrayType type) {
+    auto memType = convertBtorArrayType(type);
+    if (!memType.isa<MemRefType>()) {
+      assert(memType.isa<VectorType>());
+      return memType;
+    }
+    LLVMTypeConverter friendTypeConverter(type.getContext());
+    auto result = friendTypeConverter.convertType(memType);
+    assert(result.isa<LLVM::LLVMStructType>());
+    std::cerr << "Converting array type to llvm struct: ";
+      result.dump();
+      std::cerr << std::endl;
+    return result;
+  }
+
   Type convertBtorArrayType(btor::ArrayType type) {
+    std::cerr << "Converting array type to mem cell" << std::endl;
     unsigned indexWidth = pow(2, type.getShape().getWidth());
     auto elementType =
         ::IntegerType::get(type.getContext(), type.getElement().getWidth());
