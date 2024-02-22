@@ -560,7 +560,7 @@ ConcatOpLowering::matchAndRewrite(mlir::btor::ConcatOp concatOp,
 
   unsigned int lhsWidth = lhs.getType().getIntOrFloatBitWidth();
   unsigned int rhsWidth = rhs.getType().getIntOrFloatBitWidth();
-  auto resultWidthType = rewriter.getIntegerType(lhsWidth + rhsWidth, false);
+  auto resultWidthType = rewriter.getIntegerType(lhsWidth + rhsWidth);
   Value resultWidthVal = rewriter.create<LLVM::ConstantOp>(
       loc, resultWidthType,
       rewriter.getIntegerAttr(resultWidthType, lhsWidth + rhsWidth));
