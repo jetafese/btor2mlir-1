@@ -3,6 +3,17 @@
 
 extern "C" {
 
+void __TRACKER() {
+  std::cout << "finished another loop" << std::endl;
+}
+
+void __SEA_assume(bool x) {
+  if (!x) {
+    std::cout << "[sea] __SEA_assume failed" << std::endl;
+    // exit(1);
+  }
+}
+
 void __VERIFIER_error() {
   std::cout << "[sea] __VERIFIER_error was executed" << std::endl;
   exit(1);

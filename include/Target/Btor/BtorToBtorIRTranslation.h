@@ -238,10 +238,13 @@ private:
 
   Operation *buildInputOp(const unsigned width, const unsigned lineId) {
     Type type = btor::BitVecType::get(m_context, width);
-    auto res = m_builder.create<btor::InputOp>(
+    auto res = m_builder.create<btor::ConstantOp>(
         FileLineColLoc::get(m_sourceFile, lineId, 0), type,
-        m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
-                                 m_inputs.at(lineId)));
+        m_builder.getIntegerAttr(m_builder.getIntegerType(width, false), 0));
+    // auto res = m_builder.create<btor::InputOp>(
+    //     FileLineColLoc::get(m_sourceFile, lineId, 0), type,
+    //     m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
+    //                              m_inputs.at(lineId)));
     return res;
   }
 
@@ -318,15 +321,27 @@ private:
       return nullptr;
     auto it = std::find(m_states.begin(), m_states.end(), line);
     assert(it != m_states.end());
-    auto index = it - m_states.begin();
+    // auto index = it - m_states.begin();
     if (line->sort.tag == BTOR2_TAG_SORT_array) {
-      auto res = m_builder.create<btor::ArrayOp>(
-          FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line));
+      auto elementType = btor::BitVecType::get(
+          m_context, m_sorts.at(line->sort.array.element)->sort.bitvec.width);
+      auto ndValue = m_builder.create<btor::ConstantOp>(
+          FileLineColLoc::get(m_sourceFile, lineId, 0), elementType,
+          m_builder.getIntegerAttr(
+              m_builder.getIntegerType(elementType.getWidth(), false), 0));
+      auto res = m_builder.create<btor::InitArrayOp>(
+          FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line),
+          ndValue);
       return res;
     } else {
-      auto res = m_builder.create<btor::NDStateOp>(
+      auto res = m_builder.create<btor::ConstantOp>(
           FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line),
-          m_builder.getIntegerAttr(m_builder.getIntegerType(64, false), index));
+          m_builder.getIntegerAttr(
+              m_builder.getIntegerType(line->sort.bitvec.width, false), 0));
+      // auto res = m_builder.create<btor::NDStateOp>(
+      //     FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line),
+      //     m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
+      //     index));
       return res;
     }
   }

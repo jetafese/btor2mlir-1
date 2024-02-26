@@ -362,23 +362,29 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
   auto verifierAssert = "__VERIFIER_assert";
   auto verifierAssertFunc =
       module.lookupSymbol<LLVM::LLVMFuncOp>(verifierAssert);
+  auto tracker = "__TRACKER";
+  auto trackerFunc =
+      module.lookupSymbol<LLVM::LLVMFuncOp>(tracker);
   if (!verifierErrorFunc) {
     OpBuilder::InsertionGuard guard(rewriter);
     rewriter.setInsertionPointToStart(module.getBody());
-    auto verifierErrorFuncTy =
+    auto voidNoArgFuncTy =
         LLVM::LLVMFunctionType::get(LLVM::LLVMVoidType::get(getContext()), {});
     verifierErrorFunc = rewriter.create<LLVM::LLVMFuncOp>(
-        rewriter.getUnknownLoc(), verifierError, verifierErrorFuncTy);
+        rewriter.getUnknownLoc(), verifierError, voidNoArgFuncTy);
     auto verifierAssertFuncTy = LLVM::LLVMFunctionType::get(
         LLVM::LLVMVoidType::get(getContext()), {notBad.getType(), i64Type});
     verifierAssertFunc = rewriter.create<LLVM::LLVMFuncOp>(
         rewriter.getUnknownLoc(), verifierAssert, verifierAssertFuncTy);
+    trackerFunc = rewriter.create<LLVM::LLVMFuncOp>(
+        rewriter.getUnknownLoc(), tracker, voidNoArgFuncTy);
   }
 
   // Split block at `assert` operation.
   Block *opBlock = rewriter.getInsertionBlock();
   auto opPosition = rewriter.getInsertionPoint();
   Block *continuationBlock = rewriter.splitBlock(opBlock, opPosition);
+  rewriter.create<LLVM::CallOp>(loc, trackerFunc, llvm::None);
 
   // Generate IR to call `abort`.
   Block *failureBlock = rewriter.createBlock(opBlock->getParent());
@@ -387,6 +393,7 @@ LogicalResult AssertNotOpLowering::matchAndRewrite(
   rewriter.create<LLVM::CallOp>(loc, verifierAssertFunc,
                                 ValueRange({notBad, propertyNumber}));
   rewriter.create<LLVM::CallOp>(loc, verifierErrorFunc, llvm::None);
+  rewriter.create<LLVM::CallOp>(loc, trackerFunc, llvm::None);
   rewriter.create<LLVM::UnreachableOp>(loc);
 
   // Generate assertion test.
