@@ -17,4 +17,10 @@ def BtorLiveness : Pass<"btor-liveness", "ModuleOp"> {
   let dependentDialects = [];
 }
 
+def ResolveCasts : Pass<"resolve-casts", "ModuleOp"> {
+  let summary = "Resolve casts in mlir module";
+  let constructor = "mlir::btor::resolveCasts()";
+  let dependentDialects = [];
+}
+
 #endif // BTOR_DIALECT_TRANSFORMS_PASSES

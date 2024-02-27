@@ -10,6 +10,7 @@
 #define BTOR_DIALECT_TRANSFORMS_PASSES_H
 
 #include "Dialect/Btor/Transforms/BtorLiveness.h"
+#include "Dialect/Btor/Transforms/ResolveCasts.h"
 #include "mlir/Pass/Pass.h"
 
 namespace mlir {
