@@ -10,7 +10,7 @@ void __TRACKER() {
 void __SEA_assume(bool x) {
   if (!x) {
     std::cout << "[sea] __SEA_assume failed" << std::endl;
-    // exit(1);
+    exit(1);
   }
 }
 
