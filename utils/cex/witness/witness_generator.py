@@ -32,9 +32,11 @@ class CexWitnessGenerator(object):
     # keeps track of seen states and inputs
     seenStates = dict()
     seenInputs = dict()
+    seenArrays = dict()
     # keeps track of states and inputs per frame
     states = list()
     inputs = list()
+    arrays = list()
     # register violated assertion
     violatedProperty = 0
     # read each line
@@ -52,34 +54,41 @@ class CexWitnessGenerator(object):
         btorValue = int(splitLine[2].split()[0])
         bvWidth = int(splitLine[3].split()[0])
         # print(f'{name}, {btorId}, {btorValue}, {bvWidth}, {self.get_value(btorValue, bvWidth)}')
-        if name == 'state':
+        if name == 'array':
+          btorIndex = int(splitLine[2].split()[0])
+          btorValue = int(splitLine[3].split()[0])
+          bvWidth = int(splitLine[4].split()[0])
+          # print(f'{name}, {btorId}, {btorIndex}, {btorValue}, {bvWidth}, {self.get_value(btorValue, bvWidth)}')
+          idx_val = tuple((self.get_value(btorIndex, bvWidth), self.get_value(btorValue, bvWidth)))
+          if btorId in seenArrays:
+            # print('repeat state: ', btorId)
+            prev = seenArrays[btorId]
+            seenArrays[btorId] = prev + list(idx_val)
+          else:
+            # print('got state: ', btorId)
+            seenArrays[btorId] = list(idx_val)
+        elif name == 'state':
           if btorId in seenStates:
             # print('repeat state: ', btorId)
             states.append(seenStates)
+            arrays.append(seenArrays)
             inputs.append(seenInputs)
-            seenStates = dict(); seenInputs = dict()
+            seenStates = dict(); seenInputs = dict(); seenArrays = dict()
             seenStates[btorId] = self.get_value(btorValue, bvWidth)
-            # print(inputs)
-            # print(states)
           else:
             # print('got state: ', btorId)
             seenStates[btorId] = self.get_value(btorValue, bvWidth)
-            # print(inputs)
-            # print(states)
         else:
           if btorId in seenInputs:
             # print('repeat input: ', btorId)
             states.append(seenStates)
+            arrays.append(seenArrays)
             inputs.append(seenInputs)
-            seenStates = dict(); seenInputs = dict()
+            seenStates = dict(); seenInputs = dict(); seenArrays = dict()
             seenInputs[btorId] = self.get_value(btorValue, bvWidth)
-            # print(inputs)
-            # print(states)
           else:
             # print('got input: ', btorId)
             seenInputs[btorId] = self.get_value(btorValue, bvWidth)
-            # print(inputs)
-            # print(states)
 
     # write to output file
     f = open(args.out_file, 'w')
@@ -88,19 +97,26 @@ class CexWitnessGenerator(object):
     f.write(f'sat\n')
     f.write(f'b{violatedProperty}\n') # which property is violated? (b0, b1, j0,...)
 
-    if seenStates or seenInputs:
+    if seenStates or seenInputs or seenArrays:
       states.append(seenStates)
+      arrays.append(seenArrays)
       inputs.append(seenInputs)
     # print(inputs)
     # print(states)
-      for (s, i) in zip(states, inputs):
+      for (s, a, i) in zip(states, arrays, inputs):
         # print(s, i)
         f.write(f'#{frame}\n')
         if s:
           for k, v in s.items():
             f.write(f'{k} {v}\n')
+        if a:
+          for k, v in a.items():
+            for c in range(len(v)):
+              if c % 2 == 0:
+                f.write(f'{k} [{v[c]}] {v[c+1]}\n')
         f.write(f'@{frame}\n')
         if i:
+          print(i)
           for k, v in i.items():
             f.write(f'{k} {v}\n')
         frame += 1
