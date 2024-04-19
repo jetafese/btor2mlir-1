@@ -19,9 +19,134 @@ LogicalResult shouldConvertToVector(Type &arrayType) {
   return failure();
 }
 
+template <typename Op>
+void createPrintFunctionHelper(Op op, const Value ndValue, const int64_t index,
+                               const std::string printHelper,
+                               mlir::ConversionPatternRewriter &rewriter,
+                               ModuleOp module, Type resultType) {
+  auto printFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(printHelper);
+  auto i64Type = rewriter.getI64Type();
+  if (!printFunc) {
+    OpBuilder::InsertionGuard printerGuard(rewriter);
+    rewriter.setInsertionPointToStart(module.getBody());
+    auto printFuncTy = LLVM::LLVMFunctionType::get(
+        LLVM::LLVMVoidType::get(rewriter.getContext()),
+        {i64Type, i64Type, i64Type, i64Type});
+    printFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
+                                                  printHelper, printFuncTy);
+  }
+  Value ndValueWidth = rewriter.create<LLVM::ConstantOp>(
+      op.getLoc(), resultType,
+      rewriter.getIntegerAttr(resultType, resultType.getIntOrFloatBitWidth()));
+  Value zextNDWidth =
+      rewriter.create<LLVM::ZExtOp>(op.getLoc(), i64Type, ndValueWidth);
+  Value ndValueId = rewriter.create<LLVM::ConstantOp>(
+      op.getLoc(), rewriter.getI64Type(), op.idAttr());
+  Value indexInArray = rewriter.create<LLVM::ConstantOp>(
+      op.getLoc(), rewriter.getI64Type(), rewriter.getI64IntegerAttr(index));
+  // TODO: We need to handle values with bitwidth > 64
+  auto needsExt = ndValue.getType().getIntOrFloatBitWidth() <= 64;
+  if (needsExt) {
+    Value zextNDValue =
+        rewriter.create<LLVM::ZExtOp>(op.getLoc(), i64Type, ndValue);
+    rewriter.create<LLVM::CallOp>(
+        op.getLoc(), TypeRange({}), printHelper,
+        ValueRange({ndValueId, indexInArray, zextNDValue, zextNDWidth}));
+    return;
+  }
+}
+
+unsigned numConcats(unsigned opWidth, unsigned ndFunc = 32) {
+  if (opWidth <= ndFunc) {
+    return 0;
+  }
+  if ((opWidth % ndFunc) == 0) {
+    return opWidth / ndFunc;
+  }
+  return (opWidth / ndFunc) + 1;
+}
+
+template <typename Op>
+Value getNDValueHelper(Op op, mlir::ConversionPatternRewriter &rewriter,
+                       ModuleOp module, Type resultType, unsigned ndSize = 32) {
+  const std::string havoc = "nd_bv32";
+  auto loc = op.getLoc();
+  auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
+  if (!havocFunc) {
+    OpBuilder::InsertionGuard guard(rewriter);
+    rewriter.setInsertionPointToStart(module.getBody());
+    auto havocFuncTy =
+        LLVM::LLVMFunctionType::get(rewriter.getIntegerType(ndSize), {});
+    havocFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
+                                                  havoc, havocFuncTy);
+  }
+  Value callND =
+      rewriter.create<LLVM::CallOp>(loc, havocFunc, llvm::None).getResult(0);
+  // Type resultWidthType = rewriter.getI32Type();
+  // unsigned resultWidth = ndSize;
+  // // concatenate as many 32bit integers as needed
+  auto concats = numConcats(resultType.getIntOrFloatBitWidth());
+  Value finalVal;
+  if (concats == 0) {
+    finalVal =
+        rewriter.create<LLVM::TruncOp>(loc, TypeRange({resultType}), callND);
+  } else {
+    finalVal = rewriter.create<LLVM::ZExtOp>(loc, resultType, callND);
+  }
+  return finalVal;
+  // for(unsigned i = 0; i < concats; ++i) {
+  //   resultWidthType = rewriter.getIntegerType(resultWidth + ndSize);
+  //   resultWidth += ndSize;
+  //   Value nextND = rewriter.create<LLVM::CallOp>(loc, havocFunc,
+  //   llvm::None).getResult(0); Value callNDZExt =
+  //     rewriter.create<LLVM::ZExtOp>(loc, resultWidthType, callND);
+  //   Value shiftValue = rewriter.create<LLVM::ConstantOp>(
+  //     loc, resultWidthType, rewriter.getIntegerAttr(resultWidthType,
+  //     ndSize));
+  //   Value lhsShiftLeft =
+  //     rewriter.create<LLVM::ShlOp>(loc, callNDZExt, shiftValue);
+  //   Value rhsZeroExtend =
+  //     rewriter.create<LLVM::ZExtOp>(loc, resultWidthType, nextND);
+  //   callND = rewriter.create<LLVM::OrOp>(loc, lhsShiftLeft, rhsZeroExtend);
+  // }
+  // auto finalVal = rewriter.create<LLVM::TruncOp>(loc,
+  // TypeRange({resultType}), callND); return finalVal;
+}
+
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
 //===----------------------------------------------------------------------===//
+
+struct ArrayOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ArrayOp> {
+  using ConvertOpToLLVMPattern<mlir::btor::ArrayOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::ArrayOp arrayOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto arrayType = typeConverter->convertType(arrayOp.getType());
+    if (shouldConvertToVector(arrayType).succeeded()) {
+      return success();
+    }
+    auto memType = arrayType.cast<MemRefType>();
+    auto module = arrayOp->getParentOfType<ModuleOp>();
+    auto loc = arrayOp.getLoc();
+    auto newArrayOp = rewriter.create<memref::AllocOp>(loc, memType);
+    auto newArray = newArrayOp.getResult();
+    int64_t shape = memType.getShape().front();
+    for (int64_t i = 0; i < shape; ++i) {
+      auto idx = rewriter.create<arith::ConstantOp>(
+          loc, rewriter.getIndexAttr(i), rewriter.getIndexType());
+      auto callND =
+          getNDValueHelper(arrayOp, rewriter, module, memType.getElementType());
+      rewriter.create<memref::StoreOp>(loc, callND, newArray,
+                                       ValueRange({idx}));
+      std::string printHelper = "btor2mlir_print_array_state_num";
+      createPrintFunctionHelper(arrayOp, callND, i, printHelper, rewriter,
+                                module, memType.getElementType());
+    }
+    rewriter.replaceOp(arrayOp, newArray);
+    return success();
+  }
+};
 
 struct InitArrayLowering
     : public ConvertOpToLLVMPattern<mlir::btor::InitArrayOp> {
@@ -166,7 +291,7 @@ struct IteWriteInPlaceOpLowering
 void mlir::btor::populateBtorToMemrefConversionPatterns(
     BtorToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
-               MemRefReadOpLowering, MemRefWriteOpLowering,
+               MemRefReadOpLowering, MemRefWriteOpLowering, ArrayOpLowering,
                WriteInPlaceOpLowering, IteWriteInPlaceOpLowering>(converter);
 }
 
@@ -181,7 +306,7 @@ struct ConvertBtorToMemrefPass
     mlir::btor::populateBtorToMemrefConversionPatterns(converter, patterns);
     /// Configure conversion to lower out btor; Anything else is fine.
     // init operators
-    target.addIllegalOp<btor::InitArrayOp>();
+    target.addIllegalOp<btor::InitArrayOp, btor::ArrayOp>();
 
     // /// indexed operators
     target.addIllegalOp<btor::ReadOp, btor::MemRefReadOp>();

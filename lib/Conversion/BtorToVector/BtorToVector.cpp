@@ -20,9 +20,68 @@ LogicalResult shouldConvertToMemRef(Type &arrayType) {
   return failure();
 }
 
+unsigned numConcats(unsigned opWidth, unsigned ndFunc = 32) {
+  if (opWidth <= ndFunc) {
+    return 0;
+  }
+  if ((opWidth % ndFunc) == 0) {
+    return opWidth / ndFunc;
+  }
+  return (opWidth / ndFunc) + 1;
+}
+
+template <typename Op>
+Value getNDValueHelper(Op op, mlir::ConversionPatternRewriter &rewriter,
+                       ModuleOp module, Type resultType, unsigned ndSize = 32) {
+  const std::string havoc = "nd_bv32";
+  auto loc = op.getLoc();
+  auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
+  if (!havocFunc) {
+    OpBuilder::InsertionGuard guard(rewriter);
+    rewriter.setInsertionPointToStart(module.getBody());
+    auto havocFuncTy =
+        LLVM::LLVMFunctionType::get(rewriter.getIntegerType(ndSize), {});
+    havocFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
+                                                  havoc, havocFuncTy);
+  }
+  Value callND =
+      rewriter.create<LLVM::CallOp>(loc, havocFunc, llvm::None).getResult(0);
+  // Type resultWidthType = rewriter.getI32Type();
+  // unsigned resultWidth = ndSize;
+  // // concatenate as many 32bit integers as needed
+  auto concats = numConcats(resultType.getIntOrFloatBitWidth());
+  Value finalVal;
+  if (concats == 0) {
+    finalVal =
+        rewriter.create<LLVM::TruncOp>(loc, TypeRange({resultType}), callND);
+  } else {
+    finalVal = rewriter.create<LLVM::ZExtOp>(loc, resultType, callND);
+  }
+  return finalVal;
+}
+
 //===----------------------------------------------------------------------===//
 // Lowering Declarations
 //===----------------------------------------------------------------------===//
+
+struct ArrayOpLowering : public ConvertOpToLLVMPattern<mlir::btor::ArrayOp> {
+  using ConvertOpToLLVMPattern<mlir::btor::ArrayOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(mlir::btor::ArrayOp arrayOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto arrayType = typeConverter->convertType(arrayOp.getType());
+    if (shouldConvertToMemRef(arrayType).succeeded()) {
+      return success();
+    }
+    auto vecType = arrayType.cast<VectorType>();
+    auto module = arrayOp->getParentOfType<ModuleOp>();
+    auto callND =
+        getNDValueHelper(arrayOp, rewriter, module, vecType.getElementType());
+    rewriter.replaceOpWithNewOp<mlir::btor::VectorInitArrayOp>(
+        arrayOp, arrayType, callND);
+    return success();
+  }
+};
 
 struct InitArrayLowering
     : public ConvertOpToLLVMPattern<mlir::btor::InitArrayOp> {
@@ -163,7 +222,7 @@ void mlir::btor::populateBtorToVectorConversionPatterns(
   patterns.add<ReadOpLowering, WriteOpLowering, InitArrayLowering,
                WriteInPlaceOpLowering, VectorInitArrayOpLowering,
                VectorReadOpLowering, VectorWriteOpLowering,
-               IteWriteInPlaceOpLowering>(converter);
+               IteWriteInPlaceOpLowering, ArrayOpLowering>(converter);
 }
 
 namespace {
@@ -179,6 +238,7 @@ struct ConvertBtorToVectorPass
     /// Configure conversion to lower out btor; Anything else is fine.
     // init operators
     target.addIllegalOp<btor::InitArrayOp, btor::VectorInitArrayOp>();
+    target.addIllegalOp<btor::ArrayOp>();
 
     /// indexed operators
     target.addIllegalOp<btor::ReadOp, btor::VectorReadOp>();

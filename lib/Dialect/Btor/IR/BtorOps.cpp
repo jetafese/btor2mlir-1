@@ -354,7 +354,29 @@ static ParseResult parseNDStateOpOp(OpAsmParser &parser,
 // Array Operations
 //===----------------------------------------------------------------------===//
 
-template <typename Op> static LogicalResult verifyArrayOp(Op op) {
+static void printArrayOp(OpAsmPrinter &p, mlir::btor::ArrayOp &op) {
+  p << " " << op.id();
+  p << " : " << op.result().getType();
+}
+
+static ParseResult parseArrayOp(OpAsmParser &parser, OperationState &result) {
+  SmallVector<OpAsmParser::OperandType> ops;
+  NamedAttrList attrs;
+  Attribute idAttr;
+  ArrayType type;
+
+  Type i64Type = parser.getBuilder().getIntegerType(64, false);
+
+  if (parser.parseAttribute(idAttr, i64Type, "id", attrs) ||
+      parser.parseOptionalAttrDict(attrs) || parser.parseColonType(type))
+    return failure();
+
+  if (!idAttr.isa<mlir::IntegerAttr>())
+    return parser.emitError(parser.getNameLoc(),
+                            "expected integer id attribute");
+
+  result.attributes = attrs;
+  result.addTypes({type});
   return success();
 }
 

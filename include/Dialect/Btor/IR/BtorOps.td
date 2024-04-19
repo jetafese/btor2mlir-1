@@ -1167,14 +1167,15 @@ def ArrayOp : Btor_Op<"nd_array"> {
     by subsequent read and write operations. 
   }];
 
+  let arguments = (ins AnyI64Attr : $id);
   let results = (outs Btor_Array : $result);
   let extraClassDeclaration = [{
     ArrayType getArrayType() {
       return result().getType().cast<ArrayType>();
     }
   }];
-  let assemblyFormat = "attr-dict `:` qualified(type($result))";
-  let verifier = [{ return verifyArrayOp(*this); }];
+  let parser = [{ return parseArrayOp(parser, result); }];
+  let printer = [{ return printArrayOp(p, *this); }];
 // clang-format on
 }
 

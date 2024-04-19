@@ -321,7 +321,9 @@ private:
     auto index = it - m_states.begin();
     if (line->sort.tag == BTOR2_TAG_SORT_array) {
       auto res = m_builder.create<btor::ArrayOp>(
-          FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line));
+          FileLineColLoc::get(m_sourceFile, lineId, 0), getTypeOf(line),
+          m_builder.getIntegerAttr(m_builder.getIntegerType(64, false),
+          index));
       return res;
     } else {
       auto res = m_builder.create<btor::NDStateOp>(

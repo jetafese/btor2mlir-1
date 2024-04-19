@@ -575,7 +575,8 @@ OwningOpRef<FuncOp> Deserialize::buildMainFunction() {
   }
   // create main function
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
-  FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {}));
+  FuncOp::build(m_builder, state, "_main",
+                FunctionType::get(m_context, {}, {}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
