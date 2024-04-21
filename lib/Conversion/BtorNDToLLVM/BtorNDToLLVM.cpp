@@ -28,7 +28,6 @@ template <typename Op>
 Value getNDValueHelper(Op op, mlir::ConversionPatternRewriter &rewriter,
                        ModuleOp module, Type resultType, unsigned ndSize = 32) {
   const std::string havoc = "nd_bv32";
-  auto loc = op.getLoc();
   auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
   if (!havocFunc) {
     OpBuilder::InsertionGuard guard(rewriter);
@@ -38,33 +37,10 @@ Value getNDValueHelper(Op op, mlir::ConversionPatternRewriter &rewriter,
     havocFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(),
                                                   havoc, havocFuncTy);
   }
-  havoc.append(suffix);
-  havoc.append(std::to_string(op.idAttr().getInt()));
-  return havoc;
-}
-
-template <typename Op>
-IntegerType
-createFunctionTypeHelper(Op op, mlir::ConversionPatternRewriter &rewriter) {
-  mlir::IntegerType functionType;
-
-  auto opType = getBVType(op.result().getType());
-  auto bvWidth = opType.getWidth();
-
-  if (bvWidth <= 8) {
-    functionType = rewriter.getIntegerType(8);
-  } else if (bvWidth <= 16) {
-    functionType = rewriter.getIntegerType(16);
-  } else if (bvWidth <= 32) {
-    functionType = rewriter.getIntegerType(32);
-  } else if (bvWidth <= 64) {
-    functionType = rewriter.getIntegerType(64);
-  } else if (bvWidth <= 128) {
-    functionType = rewriter.getIntegerType(128);
-  } else {
-    functionType = rewriter.getIntegerType(bvWidth);
-  }
-  return functionType;
+  Value callND =
+      rewriter.create<LLVM::CallOp>(op.getLoc(), havocFunc, llvm::None)
+          .getResult(0);
+  return callND;
 }
 
 template <typename Op>
@@ -100,14 +76,6 @@ void createPrintFunctionHelper(Op op, const Value ndValue,
         ValueRange({ndValueId, zextNDValue, zextNDWidth}));
     return;
   }
-  // Value truncNDValue = rewriter.create<LLVM::TruncOp>(op.getLoc(),
-  //   TypeRange({i64Type}), ndValue);
-  // rewriter.create<LLVM::CallOp>(
-  //       op.getLoc(),
-  //       TypeRange({}),
-  //       printHelper,
-  //       ValueRange({ndValueId, truncNDValue, zextNDWidth}));
-  // return;
 }
 
 //===----------------------------------------------------------------------===//
@@ -126,7 +94,7 @@ struct NDStateOpLowering : public ConvertOpToLLVMPattern<btor::NDStateOp> {
     std::string printHelper = "btor2mlir_print_state_num";
     createPrintFunctionHelper(op, callND, printHelper, rewriter, module,
                               opType);
-    rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, TypeRange({opType}), callND);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(op, TypeRange({opType}), callND);
     return success();
   }
 };
@@ -143,7 +111,7 @@ struct InputOpLowering : public ConvertOpToLLVMPattern<btor::InputOp> {
     std::string printHelper = "btor2mlir_print_input_num";
     createPrintFunctionHelper(op, callND, printHelper, rewriter, module,
                               opType);
-    rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, TypeRange({opType}), callND);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(op, TypeRange({opType}), callND);
     return success();
   }
 };
