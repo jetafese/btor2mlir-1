@@ -18,45 +18,47 @@ using namespace mlir;
 using namespace mlir::ebpf;
 
 void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
-  auto op = jmp.cond.value().op;
-  using Op = Condition::Op;
-  switch (op) {
-  case Op::EQ:
-    std::cout << "==";
-    break;
-  case Op::NE:
-    std::cout << "!=";
-    break;
-  case Op::SET:
-    std::cout << "&==";
-    break;
-  case Op::NSET:
-    std::cout << "&!=";
-    break; // not in ebpf
-  case Op::LT:
-    std::cout << "<";
-    break; // TODO: os << "u<";
-  case Op::LE:
-    std::cout << "<=";
-    break; // TODO: os << "u<=";
-  case Op::GT:
-    std::cout << ">";
-    break; // TODO: os << "u>";
-  case Op::GE:
-    std::cout << ">=";
-    break; // TODO: os << "u>=";
-  case Op::SLE:
-    std::cout << "s<=";
-    break;
-  case Op::SLT:
-    std::cout << "s<";
-    break;
-  case Op::SGT:
-    std::cout << "s>";
-    break;
-  case Op::SGE:
-    std::cout << "s>=";
-    break;
+  if (jmp.cond.has_value()) {
+    auto op = jmp.cond.value().op;
+    using Op = Condition::Op;
+    switch (op) {
+    case Op::EQ:
+      std::cout << "==";
+      break;
+    case Op::NE:
+      std::cout << "!=";
+      break;
+    case Op::SET:
+      std::cout << "&==";
+      break;
+    case Op::NSET:
+      std::cout << "&!=";
+      break; // not in ebpf
+    case Op::LT:
+      std::cout << "<";
+      break; // TODO: os << "u<";
+    case Op::LE:
+      std::cout << "<=";
+      break; // TODO: os << "u<=";
+    case Op::GT:
+      std::cout << ">";
+      break; // TODO: os << "u>";
+    case Op::GE:
+      std::cout << ">=";
+      break; // TODO: os << "u>=";
+    case Op::SLE:
+      std::cout << "s<=";
+      break;
+    case Op::SLT:
+      std::cout << "s<";
+      break;
+    case Op::SGT:
+      std::cout << "s>";
+      break;
+    case Op::SGE:
+      std::cout << "s>=";
+      break;
+    }
   }
   std::cout << " --> f:" << jmp.target.from;
   std::cout << ", t: " << jmp.target.to << std::endl;
@@ -159,7 +161,6 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   } else if (std::holds_alternative<Jmp>(ins)) {
     auto jmpOp = std::get<Jmp>(ins);
     std::cout << "Jmp: ";
-    assert(jmpOp.cond.has_value());
     createJmpOp(jmpOp, cur_label);
     return;
   } else if (std::holds_alternative<Mem>(ins)) {
@@ -198,7 +199,7 @@ void Deserialize::buildFunctionBody(const std::vector<Value> &registers) {
     std::cout << "  next: " << next << std::endl;
     for (; cur_op < next; ++cur_op) {
       const LabeledInstruction &labeled_inst = prog.at(cur_op);
-      const auto &[label, ins, line_info] = labeled_inst;
+      const auto &[label, ins, _] = labeled_inst;
       createMLIR(ins, label);
     }
     if (curBlock->empty() ||
@@ -210,6 +211,11 @@ void Deserialize::buildFunctionBody(const std::vector<Value> &registers) {
       std::cout << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
     }
+  }
+  for (; cur_op < prog.size(); ++cur_op) {
+    const LabeledInstruction &labeled_inst = prog.at(cur_op);
+    const auto &[label, ins, _] = labeled_inst;
+    createMLIR(ins, label);
   }
   // for (const LabeledInstruction& labeled_inst : prog) {
   //   const auto& [label, ins, line_info] = labeled_inst;
@@ -262,7 +268,7 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   buildFunctionBody(registers);
   // add return statement at final block
   m_builder.setInsertionPointToEnd(m_lastBlock);
-  registers.at(REG::R0_RETURN_VALUE) = body->getArguments().front();
+  registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
   assert(registers.at(REG::R0_RETURN_VALUE) != nullptr);
   m_builder.create<ReturnOp>(m_unknownLoc, registers.at(REG::R0_RETURN_VALUE));
   // // make call to init function to initialize latches
@@ -301,7 +307,7 @@ bool Deserialize::parseModelIsSuccessful() {
     }
     auto &prog = std::get<InstructionSeq>(prog_or_error);
     m_sections.push_back(prog);
-    // print(prog, std::cout, {});
+    print(prog, std::cout, {});
     // // Convert the instruction sequence to a control-flow graph.
     // cfg_t cfg = prepare_cfg(prog, raw_prog.info,
     // !ebpf_verifier_options.no_simplify); print_dot(cfg, std::cout);
