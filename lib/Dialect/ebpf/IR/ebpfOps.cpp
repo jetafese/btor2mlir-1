@@ -8,9 +8,6 @@
 
 #include "Dialect/ebpf/IR/ebpf.h"
 
-// #define GET_OP_CLASSES
-// #include "Dialect/ebpf/IR/ebpfOps.cpp.inc"
-
 using namespace mlir;
 
 namespace {
@@ -53,9 +50,3 @@ template <typename Op> LogicalResult verifyCmpOp(Op op) {
 
 #define GET_OP_CLASSES
 #include "Dialect/ebpf/IR/ebpfOps.cpp.inc"
-
-// //===----------------------------------------------------------------------===//
-// // TableGen'd enum attribute definitions
-// //===----------------------------------------------------------------------===//
-
-// #include "Dialect/ebpf/IR/ebpfOpsEnums.cpp.inc"
