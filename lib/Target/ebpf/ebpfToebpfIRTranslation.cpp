@@ -261,16 +261,16 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   updateBlocksMap(body, 0);
   m_lastBlock = body;
   // setup registers
-  std::vector<Value> registers(m_ebpfRegisters, nullptr);
-  registers.at(REG::R1_ARG) = body->getArguments().front();
-  registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
+  m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
+  m_registers.at(REG::R1_ARG) = body->getArguments().front();
+  m_registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
   // build function body
-  buildFunctionBody(registers);
+  buildFunctionBody();
   // add return statement at final block
   m_builder.setInsertionPointToEnd(m_lastBlock);
-  registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
-  assert(registers.at(REG::R0_RETURN_VALUE) != nullptr);
-  m_builder.create<ReturnOp>(m_unknownLoc, registers.at(REG::R0_RETURN_VALUE));
+  m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
+  assert(m_registers.at(REG::R0_RETURN_VALUE) != nullptr);
+  m_builder.create<ReturnOp>(m_unknownLoc, m_registers.at(REG::R0_RETURN_VALUE));
   // // make call to init function to initialize latches
   // auto initResults = buildInitFunction(returnTypes);
   // auto opPosition = m_builder.getInsertionPoint();

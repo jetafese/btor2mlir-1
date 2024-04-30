@@ -59,7 +59,7 @@ public:
   ///===----------------------------------------------------------------------===//
 
   OwningOpRef<mlir::FuncOp> buildXDPFunction();
-  void buildFunctionBody(const std::vector<Value> &registers);
+  void buildFunctionBody();
 
 private:
   ///===----------------------------------------------------------------------===//
@@ -87,6 +87,7 @@ private:
 
   std::vector<InstructionSeq> m_sections;
   std::vector<size_t> m_startOfNextBlock;
+  std::vector<mlir::Value> m_registers;
   std::map<size_t, size_t> m_jmpTargets;
 
   size_t m_numBlocks = 0;

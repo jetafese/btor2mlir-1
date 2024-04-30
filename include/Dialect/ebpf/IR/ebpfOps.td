@@ -21,71 +21,72 @@ include "mlir/IR/BuiltinAttributes.td"
 // Base ebpf operation definition.
 //===----------------------------------------------------------------------===//
 
-class ebpf_Op<string mnemonic, list<Trait> traits = []> :
-        Op<ebpf_Dialect, mnemonic, traits>;
+class ebpf_Op<string mnemonic, list<Trait> traits = []>
+    : Op<ebpf_Dialect, mnemonic, traits>;
 
 def CmpOp : ebpf_Op<"cmp", [
-        NoSideEffect, SameTypeOperands,  
-        TypesMatchWith<"result type has !bv<1> element type and same shape as operands", "lhs", 
-        "result", "getI1SameShape($_self)">
-        ] #ElementwiseMappable.traits> {
-        let summary = "integer comparison operation";
+  NoSideEffect, SameTypeOperands,
+  TypesMatchWith<"result type has i1 element type and same shape as operands",
+                 "lhs", "result", "getI1SameShape($_self)">
+] #ElementwiseMappable.traits> {
+  // clang-format off
+  let summary = "integer comparison operation";
+  let description = [{
+    The `cmp` operation is a generic comparison for two arguments 
+    that need to have their types matching.
 
-        let description = [{
-        The `cmp` operation is a generic comparison for two arguments 
-        that need to have their types matching.
+    Its first argument is an attribute that defines which type of comparison is
+    performed. The following comparisons are supported:
 
-        Its first argument is an attribute that defines which type of comparison is
-        performed. The following comparisons are supported:
+    -   equal (mnemonic: `"eq"`; integer value: `0`)
+    -   not equal (mnemonic: `"ne"`; integer value: `1`)
+    -   signed less than (mnemonic: `"slt"`; integer value: `2`)
+    -   signed less than or equal (mnemonic: `"sle"`; integer value: `3`)
+    -   signed greater than (mnemonic: `"sgt"`; integer value: `4`)
+    -   signed greater than or equal (mnemonic: `"sge"`; integer value: `5`)
+    -   unsigned less than (mnemonic: `"ult"`; integer value: `6`)
+    -   unsigned less than or equal (mnemonic: `"ule"`; integer value: `7`)
+    -   unsigned greater than (mnemonic: `"ugt"`; integer value: `8`)
+    -   unsigned greater than or equal (mnemonic: `"uge"`; integer value: `9`)
+    -   equality after bit-wise and (mnemonic: `"set"`; integer value: `10`)
 
-        -   equal (mnemonic: `"eq"`; integer value: `0`)
-        -   not equal (mnemonic: `"ne"`; integer value: `1`)
-        -   signed less than (mnemonic: `"slt"`; integer value: `2`)
-        -   signed less than or equal (mnemonic: `"sle"`; integer value: `3`)
-        -   signed greater than (mnemonic: `"sgt"`; integer value: `4`)
-        -   signed greater than or equal (mnemonic: `"sge"`; integer value: `5`)
-        -   unsigned less than (mnemonic: `"ult"`; integer value: `6`)
-        -   unsigned less than or equal (mnemonic: `"ule"`; integer value: `7`)
-        -   unsigned greater than (mnemonic: `"ugt"`; integer value: `8`)
-        -   unsigned greater than or equal (mnemonic: `"uge"`; integer value: `9`)
+    The result is `1` if the comparison is true and `0` otherwise.
 
-        The result is `1` if the comparison is true and `0` otherwise.
+    Example:
 
-        Example:
+    ```mlir
+    // Custom form of scalar "signed less than" comparison.
+    %x = ebpf.cmp "slt", %lhs, %rhs : !bv<1>
+    ```
+  }];
 
-        ```mlir
-        // Custom form of scalar "signed less than" comparison.
-        %x = ebpf.cmp "slt", %lhs, %rhs : !bv<1>
-        ```
-        }];
+  let arguments = (ins ebpfPredicateAttr: $predicate,
+                  SignlessIntegerLike: $lhs,
+                  SignlessIntegerLike: $rhs);
+  
+  let results = (outs SignlessIntegerLike : $result);
 
-        let arguments = (ins ebpfPredicateAttr: $predicate,
-                        SignlessIntegerLike: $lhs,
-                        SignlessIntegerLike: $rhs);
-        
-        let results = (outs SignlessIntegerLike : $result);
+  let builders = [
+    OpBuilder<(ins "ebpfPredicate": $predicate, "Value": $lhs, "Value": $rhs),
+      [{
+        build($_builder, $_state, ::getI1SameShape(lhs.getType()),
+              predicate, lhs, rhs);
+      }]>];
+  
+  let extraClassDeclaration = [{
+    static StringRef getPredicateAttrName() { return "predicate"; }
+    static ebpfPredicate getPredicateByName(StringRef name);
 
-        let builders = [OpBuilder<(ins "ebpfPredicate": $predicate, 
-                                "Value": $lhs,
-                                "Value": $rhs),
-                        [{
-                          build($_builder, $_state, ::getI1SameShape(lhs.getType()),
-                                predicate, lhs, rhs);
-                        }]>];
-        
-        let extraClassDeclaration = [{
-                static StringRef getPredicateAttrName() { return "predicate"; }
-                static ebpfPredicate getPredicateByName(StringRef name);
+    ebpfPredicate getPredicate() {
+    return (ebpfPredicate)(*this)->getAttrOfType<IntegerAttr>(
+            getPredicateAttrName()).getInt();
+    }
+  }];
 
-                ebpfPredicate getPredicate() {
-                return (ebpfPredicate)(*this)->getAttrOfType<IntegerAttr>(
-                        getPredicateAttrName()).getInt();
-                }
-        }];
-
-        let verifier = [{ return verifyCmpOp(*this); }];
-        let assemblyFormat = 
-                "$predicate `,` $lhs `,` $rhs attr-dict `:` qualified(type($lhs))";
+  let verifier = [{ return verifyCmpOp(*this); }];
+  let assemblyFormat = "$predicate `,` $lhs `,` $rhs attr-dict `:` type($lhs)";
+  // clang-format on
+}
 
 //===----------------------------------------------------------------------===//
 // ebpf binary integer ops definitions
@@ -109,13 +110,13 @@ class ebpfBinaryOp<string mnemonic, list<Trait> traits = []>
     Arguments<(ins SignlessIntegerLike: $lhs, 
                 SignlessIntegerLike: $rhs)>,
     Results<(outs SignlessIntegerLike: $result)> {
-  let assemblyFormat = "$lhs `,` $rhs attr-dict `:` qualified(type($result))";
-  // clang-format on
-}
+  let assemblyFormat = "$lhs `,` $rhs attr-dict `:` type($result)";
+    // clang-format on
+  }
 
-def AddOp : ebpfBinaryOp<"add", [Commutative]> {
-  let summary = "integer addition operation";
-  // clang-format off
+  def AddOp : ebpfBinaryOp<"add", [Commutative]> {
+    let summary = "integer addition operation";
+    // clang-format off
   let description = [{
     This operation takes two integer arguments and returns an integer.
 
@@ -322,7 +323,7 @@ class ebpfUnaryOp<string mnemonic, list<Trait> traits = []>
       Arguments<(ins SignlessIntegerLike: $operand)>,
       Results<(outs SignlessIntegerLike: $result)> {
 
-  let assemblyFormat = "$operand attr-dict `:` qualified(type($result))";
+  let assemblyFormat = "$operand attr-dict `:` type($result)";
   // clang-format on
 }
 
@@ -551,6 +552,28 @@ def SWAP64 : ebpfUnaryOp<"swap64"> {
     %a = ebpf.bswap64 %b: i64
     ```
   }];
+  // clang-format on
+}
+
+
+def ConstantOp : ebpf_Op<"constant", [ConstantLike, NoSideEffect]> {
+  let summary = "integer constant";
+  // clang-format off
+  let description = [{
+    The `constant` operation produces an SSA value equal to some constant
+        specified by an attribute.
+
+    Example:
+
+    ```mlir
+    // Integer constant
+    %1 = ebpf.constant 42: i64
+    ```
+  }];
+  let arguments = (ins Builtin_IntegerAttr : $value);
+  let results = (outs SignlessIntegerLike : $result);
+  let assemblyFormat = "attr-dict $value type($result)";
+  let verifier = [{ return verifyConstantOp(*this); }];
   // clang-format on
 }
 
