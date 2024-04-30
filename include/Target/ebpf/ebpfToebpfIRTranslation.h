@@ -128,14 +128,17 @@ private:
     m_jumpBlocks[firstOp] = block;
   }
 
-  void buildJmpOp(size_t from, size_t to, bool isConditional) {
+  void buildJmpOp(size_t from, Jmp jmp) {
     OpBuilder::InsertionGuard guard(m_builder);
     m_builder.setInsertionPointToEnd(m_lastBlock);
     auto opPosition = m_builder.getInsertionPoint();
+    // new blocks
     Block *condBlock = nullptr, *toBlock = nullptr;
     std::vector<Location> returnLocs(2, m_unknownLoc);
     Block *curBlock = m_lastBlock;
 
+    size_t to = jmp.target.from;
+    bool isConditional = jmp.cond.has_value();
     assert(to > from && "backjumps not implemented yet");
 
     if (isConditional) {
@@ -160,12 +163,39 @@ private:
     } else {
       toBlock = m_jumpBlocks.at(to);
     }
+    // create branch operation for original block
     m_builder.setInsertionPoint(curBlock, opPosition);
-    m_builder.create<BranchOp>(m_unknownLoc, condBlock,
-                               curBlock->getArguments());
+    if (isConditional) {
+      auto cond = jmp.cond.value();
+      auto lhs = cond.left.v;
+      if (std::holds_alternative<Imm>(cond.right)) {
+        // set rhs to this value
+        createConstantOp(std::get<Imm>(cond.right));
+      } else {
+        auto rhs = std::get<Reg>(cond.right).v;
+        std::cout << "*/* lhs: " << lhs - lhs << " , rhs: " << rhs - rhs
+                  << std::endl;
+      }
+      auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, ebpf::ebpfPredicate::eq,
+                              m_registers.at(1), m_registers.at(1));
+      m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock,
+                                     curBlock->getArguments(), condBlock,
+                                     curBlock->getArguments());
+    } else {
+      m_builder.create<BranchOp>(m_unknownLoc, condBlock,
+                                 curBlock->getArguments());
+    }
     std::cout << "/**/ end block at: " << from << std::endl;
     m_lastBlock = condBlock;
     return;
+  }
+
+  mlir::Value createConstantOp(Imm imm) {
+    auto type = m_builder.getI64Type();
+    auto immVal = m_builder.create<ebpf::ConstantOp>(
+        m_unknownLoc, type, m_builder.getIntegerAttr(type, imm.v));
+    std::cout << "--created const: " << imm.v << std::endl;
+    return immVal;
   }
 };
 

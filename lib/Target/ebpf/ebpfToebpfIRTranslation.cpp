@@ -68,14 +68,17 @@ void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
   std::cout << "  l: " << label.from << ", j-f:" << jmp.target.from
             << std::endl;
   assert(label.from == jmp.target.from);
-  std::cout << "    j to: ";
-  createMLIR(ins, label);
-  buildJmpOp(cur_label.from, jmp.target.from, jmp.cond.has_value());
+  // std::cout << "    j to: ";
+  // createMLIR(ins, label);
+  buildJmpOp(cur_label.from, jmp);
   return;
 }
 
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
+  if (std::holds_alternative<Imm>(bin.v)) {
+    // createConstantOp(std::get<Imm>(bin.v));
+  }
   switch (bin.op) {
   case Op::MOV:
     std::cout << "move";
@@ -185,7 +188,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cout << "unknown" << std::endl;
 }
 
-void Deserialize::buildFunctionBody(const std::vector<Value> &registers) {
+void Deserialize::buildFunctionBody() {
   // get first section
   InstructionSeq prog = m_sections.front();
   collectBlocks();
@@ -245,7 +248,7 @@ void Deserialize::collectBlocks() {
 }
 
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
-  auto regType = m_builder.getIntegerType(64, false);
+  auto regType = m_builder.getI64Type();
   std::vector<Type> argTypes(m_xdpParameters, regType);
   // create xdp_entry function with two pointer parameters
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
