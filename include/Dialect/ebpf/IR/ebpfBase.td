@@ -26,11 +26,12 @@ def ebpf_ULT : I64EnumAttrCase<"ult", 6>;
 def ebpf_ULE : I64EnumAttrCase<"ule", 7>;
 def ebpf_UGT : I64EnumAttrCase<"ugt", 8>;
 def ebpf_UGE : I64EnumAttrCase<"uge", 9>;
+def ebpf_SET : I64EnumAttrCase<"set", 10>;
 
 def ebpfPredicateAttr : I64EnumAttr<
     "ebpfPredicate", "ebpf.cmp comparison predicate",
-    [ebpf_EQ, ebpf_NE, ebpf_SLT, ebpf_SLE, ebpf_SGT,
-     ebpf_SGE, ebpf_ULT, ebpf_ULE, ebpf_UGT, ebpf_UGE]> {
+    [ebpf_EQ, ebpf_NE, ebpf_SLT, ebpf_SLE, ebpf_SGT, ebpf_SGE,
+    ebpf_ULT, ebpf_ULE, ebpf_UGT, ebpf_UGE, ebpf_SET]> {
   let cppNamespace = "::mlir::ebpf";
 }
 
