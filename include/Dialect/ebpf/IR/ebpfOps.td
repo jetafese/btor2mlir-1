@@ -86,6 +86,7 @@ def CmpOp : ebpf_Op<"cmp", [
         let verifier = [{ return verifyCmpOp(*this); }];
         let assemblyFormat = 
                 "$predicate `,` $lhs `,` $rhs attr-dict `:` qualified(type($lhs))";
+}
 
 //===----------------------------------------------------------------------===//
 // ebpf binary integer ops definitions
