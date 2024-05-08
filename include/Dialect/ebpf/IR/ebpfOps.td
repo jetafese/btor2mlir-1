@@ -310,6 +310,70 @@ def XOrOp : ebpfBinaryOp<"xor", [Commutative]> {
   // clang-format on
 }
 
+def MoveOp : ebpfBinaryOp<"move"> {
+  let summary = "integer 64bit assignment";
+  // clang-format off
+  let description = [{
+    The `move` operation assigns a 64bit value to another register.
+    It takes two operands and returns one result of the same type.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.move %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Move32Op : ebpfBinaryOp<"move32"> {
+  let summary = "integer 32bit assignment";
+  // clang-format off
+  let description = [{
+    The `move32` operation assigns a 32bit value to another register.
+    It takes two operands and returns one result of the same type.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.move32 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Move16Op : ebpfBinaryOp<"move16"> {
+  let summary = "integer 16bit assignment";
+  // clang-format off
+  let description = [{
+    The `move32` operation assigns a 16bit value to another register.
+    It takes two operands and returns one result of the same type.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.move16 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Move8Op : ebpfBinaryOp<"move8"> {
+  let summary = "integer 8bit assignment";
+  // clang-format off
+  let description = [{
+    The `move8` operation assigns a 8bit value to another register.
+    It takes two operands and returns one result of the same type.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.move8 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 //===----------------------------------------------------------------------===//
 // ebpf unary integer ops definitions
 //===----------------------------------------------------------------------===//
@@ -339,70 +403,6 @@ def NegOp : ebpfUnaryOp<"neg"> {
     ```mlir
     // Scalar negation value.
     %a = ebpf.neg %b: i64
-    ```
-  }];
-  // clang-format on
-}
-
-def MoveOp : ebpfUnaryOp<"move"> {
-  let summary = "integer 64bit assignment";
-  // clang-format off
-  let description = [{
-    The `move` operation assigns a 64bit value to another register.
-    It takes one operand and returns one result of the same type.
-
-    Example:
-
-    ```mlir
-    %a = ebpf.move %b: i64
-    ```
-  }];
-  // clang-format on
-}
-
-def Move32Op : ebpfUnaryOp<"move32"> {
-  let summary = "integer 32bit assignment";
-  // clang-format off
-  let description = [{
-    The `move32` operation assigns a 32bit value to another register.
-    It takes one operand and returns one result of the same type.
-
-    Example:
-
-    ```mlir
-    %a = ebpf.move %b: i64
-    ```
-  }];
-  // clang-format on
-}
-
-def Move16Op : ebpfUnaryOp<"move16"> {
-  let summary = "integer 16bit assignment";
-  // clang-format off
-  let description = [{
-    The `move32` operation assigns a 16bit value to another register.
-    It takes one operand and returns one result of the same type.
-
-    Example:
-
-    ```mlir
-    %a = ebpf.move %b: i64
-    ```
-  }];
-  // clang-format on
-}
-
-def Move8Op : ebpfUnaryOp<"move8"> {
-  let summary = "integer 8bit assignment";
-  // clang-format off
-  let description = [{
-    The `move8` operation assigns a 8bit value to another register.
-    It takes one operand and returns one result of the same type.
-
-    Example:
-
-    ```mlir
-    %a = ebpf.move %b: i64
     ```
   }];
   // clang-format on

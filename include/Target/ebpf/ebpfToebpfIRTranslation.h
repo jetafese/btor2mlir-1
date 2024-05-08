@@ -201,7 +201,7 @@ private:
       Value rhs;
       if (std::holds_alternative<Imm>(cond.right)) {
         // set rhs to the immediate value
-        rhs = createConstantOp(std::get<Imm>(cond.right));
+        rhs = buildConstantOp(std::get<Imm>(cond.right));
       } else {
         auto rhsId = std::get<Reg>(cond.right).v;
         rhs = m_registers.at(rhsId);
@@ -220,12 +220,18 @@ private:
     return;
   }
 
-  mlir::Value createConstantOp(Imm imm) {
+  mlir::Value buildConstantOp(Imm imm) {
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
         m_unknownLoc, type, m_builder.getIntegerAttr(type, imm.v));
     std::cout << "--created const: " << imm.v << std::endl;
     return immVal;
+  }
+
+  template <typename ebpfOp>
+  mlir::Value buildBinaryOp(const Value &lhs, const Value &rhs) {
+    auto res = m_builder.create<ebpfOp>(m_unknownLoc, lhs, rhs);
+    return res;
   }
 };
 
