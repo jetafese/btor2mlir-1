@@ -18,48 +18,6 @@ using namespace mlir;
 using namespace mlir::ebpf;
 
 void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
-  if (jmp.cond.has_value()) {
-    auto op = jmp.cond.value().op;
-    using Op = Condition::Op;
-    switch (op) {
-    case Op::EQ:
-      std::cout << "==";
-      break;
-    case Op::NE:
-      std::cout << "!=";
-      break;
-    case Op::SET:
-      std::cout << "&==";
-      break;
-    case Op::NSET:
-      std::cout << "&!=";
-      break; // not in ebpf
-    case Op::LT:
-      std::cout << "<";
-      break; // TODO: os << "u<";
-    case Op::LE:
-      std::cout << "<=";
-      break; // TODO: os << "u<=";
-    case Op::GT:
-      std::cout << ">";
-      break; // TODO: os << "u>";
-    case Op::GE:
-      std::cout << ">=";
-      break; // TODO: os << "u>=";
-    case Op::SLE:
-      std::cout << "s<=";
-      break;
-    case Op::SLT:
-      std::cout << "s<";
-      break;
-    case Op::SGT:
-      std::cout << "s>";
-      break;
-    case Op::SGE:
-      std::cout << "s>=";
-      break;
-    }
-  }
   std::cout << " --> f:" << jmp.target.from;
   std::cout << ", t: " << jmp.target.to << std::endl;
   assert(jmp.target.from > cur_label.from);
@@ -200,6 +158,10 @@ void Deserialize::buildFunctionBody() {
     m_builder.setInsertionPointToEnd(curBlock);
     std::cout << "NEW block at: " << cur_op << std::endl;
     std::cout << "  next: " << next << std::endl;
+    // setup registers to match block arguments
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      m_registers.at(i) = curBlock->getArgument(i);
+    }
     for (; cur_op < next; ++cur_op) {
       const LabeledInstruction &labeled_inst = prog.at(cur_op);
       const auto &[label, ins, _] = labeled_inst;
@@ -213,6 +175,12 @@ void Deserialize::buildFunctionBody() {
                                  m_lastBlock->getArguments());
       std::cout << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
+    }
+  }
+  if (cur_op < prog.size()) {
+    // setup registers to match block arguments
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      m_registers.at(i) = m_lastBlock->getArgument(i);
     }
   }
   for (; cur_op < prog.size(); ++cur_op) {
@@ -249,13 +217,13 @@ void Deserialize::collectBlocks() {
 
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   auto regType = m_builder.getI64Type();
-  std::vector<Type> argTypes(m_xdpParameters, regType);
+  std::vector<Type> argTypes(m_ebpfRegisters, regType);
   // create xdp_entry function with two pointer parameters
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
   FuncOp::build(m_builder, state, "xdp_entry",
                 FunctionType::get(m_context, {argTypes}, {regType}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
-  std::vector<Location> argLocs(m_xdpParameters, funcOp->getLoc());
+  std::vector<Location> argLocs(m_ebpfRegisters, funcOp->getLoc());
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
   auto *body = m_builder.createBlock(&region, {}, {argTypes}, {argLocs});
@@ -265,8 +233,11 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   m_lastBlock = body;
   // setup registers
   m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
-  m_registers.at(REG::R1_ARG) = body->getArguments().front();
-  m_registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
+  for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+    m_registers.at(i) = body->getArgument(i);
+  }
+  // m_registers.at(REG::R1_ARG) = body->getArguments().front();
+  // m_registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
   // build function body
   buildFunctionBody();
   // add return statement at final block
