@@ -30,6 +30,45 @@ void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
   return;
 }
 
+void Deserialize::createUnaryOp(Un un) {
+  using Op = Un::Op;
+  Value rhs, res;
+  rhs = m_registers.at(un.dst.v);
+  switch (un.op) {
+    case Op::BE16:
+      res = buildUnaryOp<ebpf::BE16>(rhs);
+      break;
+    case Op::BE32:
+      res = buildUnaryOp<ebpf::BE32>(rhs);
+      break;
+    case Op::BE64:
+      res = buildUnaryOp<ebpf::BE64>(rhs);
+      break;
+    case Op::LE16:
+      res = buildUnaryOp<ebpf::LE16>(rhs);
+      break;
+    case Op::LE32:
+      res = buildUnaryOp<ebpf::LE32>(rhs);
+      break;
+    case Op::LE64:
+      res = buildUnaryOp<ebpf::LE64>(rhs);
+      break;
+    case Op::SWAP16:
+      res = buildUnaryOp<ebpf::SWAP16>(rhs);
+      break;
+    case Op::SWAP32:
+      res = buildUnaryOp<ebpf::SWAP32>(rhs);
+      break;
+    case Op::SWAP64:
+      res = buildUnaryOp<ebpf::SWAP64>(rhs);
+      break;
+    case Op::NEG:
+      res = buildUnaryOp<ebpf::NegOp>(rhs);
+      break;
+  }
+  m_registers.at(un.dst.v) = res;
+}
+
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
   Value rhs, lhs, res;
@@ -125,7 +164,9 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     createBinaryOp(binOp);
     return;
   } else if (std::holds_alternative<Un>(ins)) {
-    std::cout << "unary" << std::endl;
+    auto unOp = std::get<Un>(ins);
+    // std::cout << "unary" << std::endl;
+    createUnaryOp(unOp);
     return;
   } else if (std::holds_alternative<LoadMapFd>(ins)) {
     std::cout << "LoadMapFd" << std::endl;
