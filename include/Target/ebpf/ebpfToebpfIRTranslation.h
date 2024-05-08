@@ -128,13 +128,43 @@ private:
     m_jumpBlocks[firstOp] = block;
   }
 
+  ebpf::ebpfPredicate getPred(Condition::Op op) {
+    using Op = Condition::Op;
+    switch (op) {
+    case Op::EQ:
+      return ebpf::ebpfPredicate::eq;
+    case Op::NE:
+      return ebpf::ebpfPredicate::ne;
+    case Op::SET:
+      return ebpf::ebpfPredicate::set;
+    // case Op::NSET:
+    //   break; // not in ebpf
+    case Op::LT:
+      return ebpf::ebpfPredicate::ult;
+    case Op::LE:
+      return ebpf::ebpfPredicate::ule;
+    case Op::GT:
+      return ebpf::ebpfPredicate::ugt;
+    case Op::GE:
+      return ebpf::ebpfPredicate::uge;
+    case Op::SLE:
+      return ebpf::ebpfPredicate::sle;
+    case Op::SLT:
+      return ebpf::ebpfPredicate::slt;
+    case Op::SGT:
+      return ebpf::ebpfPredicate::sgt;
+    case Op::SGE:
+      return ebpf::ebpfPredicate::sge;
+    }
+  }
+
   void buildJmpOp(size_t from, Jmp jmp) {
     OpBuilder::InsertionGuard guard(m_builder);
     m_builder.setInsertionPointToEnd(m_lastBlock);
     auto opPosition = m_builder.getInsertionPoint();
     // new blocks
     Block *condBlock = nullptr, *toBlock = nullptr;
-    std::vector<Location> returnLocs(2, m_unknownLoc);
+    std::vector<Location> returnLocs(m_ebpfRegisters, m_unknownLoc);
     Block *curBlock = m_lastBlock;
 
     size_t to = jmp.target.from;
@@ -167,17 +197,17 @@ private:
     m_builder.setInsertionPoint(curBlock, opPosition);
     if (isConditional) {
       auto cond = jmp.cond.value();
-      auto lhs = cond.left.v;
+      auto lhsId = cond.left.v;
+      Value rhs;
       if (std::holds_alternative<Imm>(cond.right)) {
-        // set rhs to this value
-        createConstantOp(std::get<Imm>(cond.right));
+        // set rhs to the immediate value
+        rhs = createConstantOp(std::get<Imm>(cond.right));
       } else {
-        auto rhs = std::get<Reg>(cond.right).v;
-        std::cout << "*/* lhs: " << lhs - lhs << " , rhs: " << rhs - rhs
-                  << std::endl;
+        auto rhsId = std::get<Reg>(cond.right).v;
+        rhs = m_registers.at(rhsId);
       }
-      auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, ebpf::ebpfPredicate::eq,
-                              m_registers.at(1), m_registers.at(1));
+      auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, getPred(cond.op),
+                              m_registers.at(lhsId), rhs);
       m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock,
                                      curBlock->getArguments(), condBlock,
                                      curBlock->getArguments());
