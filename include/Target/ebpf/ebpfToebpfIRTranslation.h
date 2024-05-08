@@ -121,6 +121,7 @@ private:
   void createMLIR(Instruction ins, label_t cur_label);
   void createJmpOp(Jmp jmp, label_t cur_label);
   void createBinaryOp(Bin bin);
+  void createUnaryOp(Un un);
   void collectBlocks();
 
   void updateBlocksMap(Block *block, size_t firstOp) {
@@ -231,6 +232,12 @@ private:
   template <typename ebpfOp>
   mlir::Value buildBinaryOp(const Value &lhs, const Value &rhs) {
     auto res = m_builder.create<ebpfOp>(m_unknownLoc, lhs, rhs);
+    return res;
+  }
+
+  template <typename ebpfOp>
+  mlir::Value buildUnaryOp(const Value &op) {
+    auto res = m_builder.create<ebpfOp>(m_unknownLoc, op);
     return res;
   }
 };
