@@ -18,90 +18,110 @@ using namespace mlir;
 using namespace mlir::ebpf;
 
 void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
-  std::cout << " --> f:" << jmp.target.from;
-  std::cout << ", t: " << jmp.target.to << std::endl;
+  // std::cout << " --> f:" << jmp.target.from;
+  // std::cout << ", t: " << jmp.target.to << std::endl;
   assert(jmp.target.from > cur_label.from);
   InstructionSeq prog = m_sections.front();
   const auto &[label, ins, line_info] = prog.at(jmp.target.from);
-  std::cout << "  l: " << label.from << ", j-f:" << jmp.target.from
-            << std::endl;
+  // std::cout << "  l: " << label.from << ", j-f:" << jmp.target.from
+  //           << std::endl;
   assert(label.from == jmp.target.from);
-  // std::cout << "    j to: ";
-  // createMLIR(ins, label);
   buildJmpOp(cur_label.from, jmp);
   return;
 }
 
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
+  Value rhs, lhs, res;
+  lhs = m_registers.at(bin.dst.v);
   if (std::holds_alternative<Imm>(bin.v)) {
-    // createConstantOp(std::get<Imm>(bin.v));
+    rhs = buildConstantOp(std::get<Imm>(bin.v));
+  } else {
+    rhs = m_registers.at(std::get<Reg>(bin.v).v);
   }
   switch (bin.op) {
   case Op::MOV:
-    std::cout << "move";
+    // std::cout << "move";
+    res = buildBinaryOp<ebpf::MoveOp>(lhs, rhs);
     break;
   case Op::MOVSX8:
-    std::cout << "s8";
+    // std::cout << "s8";
+    res = buildBinaryOp<ebpf::Move8Op>(lhs, rhs);
     break;
   case Op::MOVSX16:
-    std::cout << "s16";
+    // std::cout << "s16";
+    res = buildBinaryOp<ebpf::Move16Op>(lhs, rhs);
     break;
   case Op::MOVSX32:
-    std::cout << "s32";
+    // std::cout << "s32";
+    res = buildBinaryOp<ebpf::Move32Op>(lhs, rhs);
     break;
   case Op::ADD:
-    std::cout << "+";
+    // std::cout << "+";
+    res = buildBinaryOp<ebpf::AddOp>(lhs, rhs);
     break;
   case Op::SUB:
-    std::cout << "-";
+    // std::cout << "-";
+    res = buildBinaryOp<ebpf::SubOp>(lhs, rhs);
     break;
   case Op::MUL:
-    std::cout << "*";
+    // std::cout << "*";
+    res = buildBinaryOp<ebpf::MulOp>(lhs, rhs);
     break;
   case Op::UDIV:
-    std::cout << "/";
+    // std::cout << "/";
+    res = buildBinaryOp<ebpf::UDivOp>(lhs, rhs);
     break;
   case Op::SDIV:
-    std::cout << "s/";
+    // std::cout << "s/";
+    res = buildBinaryOp<ebpf::SDivOp>(lhs, rhs);
     break;
   case Op::UMOD:
-    std::cout << "%";
+    // std::cout << "%";
+    res = buildBinaryOp<ebpf::UModOp>(lhs, rhs);
     break;
   case Op::SMOD:
-    std::cout << "s%";
+    // std::cout << "s%";
+    res = buildBinaryOp<ebpf::SModOp>(lhs, rhs);
     break;
   case Op::OR:
-    std::cout << "|";
+    // std::cout << "|";
+    res = buildBinaryOp<ebpf::OrOp>(lhs, rhs);
     break;
   case Op::AND:
-    std::cout << "&";
+    // std::cout << "&";
+    res = buildBinaryOp<ebpf::AndOp>(lhs, rhs);
     break;
   case Op::LSH:
-    std::cout << "<<";
+    // std::cout << "<<";
+    res = buildBinaryOp<ebpf::LSHOp>(lhs, rhs);
     break;
   case Op::RSH:
-    std::cout << ">>";
+    // std::cout << ">>";
+    res = buildBinaryOp<ebpf::RSHOp>(lhs, rhs);
     break;
   case Op::ARSH:
-    std::cout << ">>>";
+    // std::cout << ">>>";
+    res = buildBinaryOp<ebpf::ShiftRAOp>(lhs, rhs);
     break;
   case Op::XOR:
-    std::cout << "^";
+    // std::cout << "^";
+    res = buildBinaryOp<ebpf::XOrOp>(lhs, rhs);
     break;
   }
-  std::cout << std::endl;
+  // std::cout << std::endl;
+  m_registers.at(bin.dst.v) = res;
   return;
 }
 
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cout << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
-    std::cout << "undefined" << std::endl;
+    // std::cout << "undefined" << std::endl;
     return;
   } else if (std::holds_alternative<Bin>(ins)) {
     auto binOp = std::get<Bin>(ins);
-    std::cout << "bin: ";
+    // std::cout << "bin: ";
     createBinaryOp(binOp);
     return;
   } else if (std::holds_alternative<Un>(ins)) {
@@ -121,7 +141,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<Jmp>(ins)) {
     auto jmpOp = std::get<Jmp>(ins);
-    std::cout << "Jmp: ";
+    // std::cout << "Jmp: ";
     createJmpOp(jmpOp, cur_label);
     return;
   } else if (std::holds_alternative<Mem>(ins)) {
@@ -178,6 +198,7 @@ void Deserialize::buildFunctionBody() {
     }
   }
   if (cur_op < prog.size()) {
+    m_builder.setInsertionPointToEnd(m_lastBlock);
     // setup registers to match block arguments
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
       m_registers.at(i) = m_lastBlock->getArgument(i);
