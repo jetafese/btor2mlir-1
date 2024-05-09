@@ -153,6 +153,28 @@ void Deserialize::createBinaryOp(Bin bin) {
   return;
 }
 
+void Deserialize::createMemOp(Mem mem) {
+  Value rhs, res;
+  auto offset = buildConstantOp(mem.access.offset);
+  switch(mem.access.width) {
+    case 1:
+      res = buildBinaryOp<ebpf::Load8Op>(m_registers.at(mem.access.basereg.v), offset);
+      break;
+    case 2:
+      res = buildBinaryOp<ebpf::Load16Op>(m_registers.at(mem.access.basereg.v), offset);
+      break;
+    case 4:
+      res = buildBinaryOp<ebpf::Load32Op>(m_registers.at(mem.access.basereg.v), offset);
+      break;
+    case 8:
+      res = buildBinaryOp<ebpf::LoadOp>(m_registers.at(mem.access.basereg.v), offset);
+      break;
+  }
+  if (mem.is_load) {
+    m_registers.at(std::get<Reg>(mem.value).v) = res;
+  }
+}
+
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cout << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -186,7 +208,9 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     createJmpOp(jmpOp, cur_label);
     return;
   } else if (std::holds_alternative<Mem>(ins)) {
-    std::cout << "Mem" << std::endl;
+    auto memOp = std::get<Mem>(ins);
+    // std::cout << "Mem" << std::endl;
+    createMemOp(memOp);
     return;
   } else if (std::holds_alternative<Packet>(ins)) {
     std::cout << "Packet" << std::endl;
