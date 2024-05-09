@@ -35,36 +35,36 @@ void Deserialize::createUnaryOp(Un un) {
   Value rhs, res;
   rhs = m_registers.at(un.dst.v);
   switch (un.op) {
-    case Op::BE16:
-      res = buildUnaryOp<ebpf::BE16>(rhs);
-      break;
-    case Op::BE32:
-      res = buildUnaryOp<ebpf::BE32>(rhs);
-      break;
-    case Op::BE64:
-      res = buildUnaryOp<ebpf::BE64>(rhs);
-      break;
-    case Op::LE16:
-      res = buildUnaryOp<ebpf::LE16>(rhs);
-      break;
-    case Op::LE32:
-      res = buildUnaryOp<ebpf::LE32>(rhs);
-      break;
-    case Op::LE64:
-      res = buildUnaryOp<ebpf::LE64>(rhs);
-      break;
-    case Op::SWAP16:
-      res = buildUnaryOp<ebpf::SWAP16>(rhs);
-      break;
-    case Op::SWAP32:
-      res = buildUnaryOp<ebpf::SWAP32>(rhs);
-      break;
-    case Op::SWAP64:
-      res = buildUnaryOp<ebpf::SWAP64>(rhs);
-      break;
-    case Op::NEG:
-      res = buildUnaryOp<ebpf::NegOp>(rhs);
-      break;
+  case Op::BE16:
+    res = buildUnaryOp<ebpf::BE16>(rhs);
+    break;
+  case Op::BE32:
+    res = buildUnaryOp<ebpf::BE32>(rhs);
+    break;
+  case Op::BE64:
+    res = buildUnaryOp<ebpf::BE64>(rhs);
+    break;
+  case Op::LE16:
+    res = buildUnaryOp<ebpf::LE16>(rhs);
+    break;
+  case Op::LE32:
+    res = buildUnaryOp<ebpf::LE32>(rhs);
+    break;
+  case Op::LE64:
+    res = buildUnaryOp<ebpf::LE64>(rhs);
+    break;
+  case Op::SWAP16:
+    res = buildUnaryOp<ebpf::SWAP16>(rhs);
+    break;
+  case Op::SWAP32:
+    res = buildUnaryOp<ebpf::SWAP32>(rhs);
+    break;
+  case Op::SWAP64:
+    res = buildUnaryOp<ebpf::SWAP64>(rhs);
+    break;
+  case Op::NEG:
+    res = buildUnaryOp<ebpf::NegOp>(rhs);
+    break;
   }
   m_registers.at(un.dst.v) = res;
 }
@@ -154,21 +154,37 @@ void Deserialize::createBinaryOp(Bin bin) {
 }
 
 void Deserialize::createMemOp(Mem mem) {
-  Value rhs, res;
+  Value res;
   auto offset = buildConstantOp(mem.access.offset);
-  switch(mem.access.width) {
-    case 1:
-      res = buildBinaryOp<ebpf::Load8Op>(m_registers.at(mem.access.basereg.v), offset);
-      break;
-    case 2:
-      res = buildBinaryOp<ebpf::Load16Op>(m_registers.at(mem.access.basereg.v), offset);
-      break;
-    case 4:
-      res = buildBinaryOp<ebpf::Load32Op>(m_registers.at(mem.access.basereg.v), offset);
-      break;
-    case 8:
-      res = buildBinaryOp<ebpf::LoadOp>(m_registers.at(mem.access.basereg.v), offset);
-      break;
+  switch (mem.access.width) {
+  case 1:
+    res = (mem.is_load)
+              ? buildBinaryOp<ebpf::Load8Op>(
+                    m_registers.at(mem.access.basereg.v), offset)
+              : buildStoreOp<ebpf::Store8Op>(
+                    m_registers.at(mem.access.basereg.v), offset, mem);
+    break;
+  case 2:
+    res = (mem.is_load)
+              ? buildBinaryOp<ebpf::Load16Op>(
+                    m_registers.at(mem.access.basereg.v), offset)
+              : buildStoreOp<ebpf::Store16Op>(
+                    m_registers.at(mem.access.basereg.v), offset, mem);
+    break;
+  case 4:
+    res = (mem.is_load)
+              ? buildBinaryOp<ebpf::Load32Op>(
+                    m_registers.at(mem.access.basereg.v), offset)
+              : buildStoreOp<ebpf::Store32Op>(
+                    m_registers.at(mem.access.basereg.v), offset, mem);
+    break;
+  case 8:
+    res = (mem.is_load)
+              ? buildBinaryOp<ebpf::LoadOp>(
+                    m_registers.at(mem.access.basereg.v), offset)
+              : buildStoreOp<ebpf::StoreOp>(
+                    m_registers.at(mem.access.basereg.v), offset, mem);
+    break;
   }
   if (mem.is_load) {
     m_registers.at(std::get<Reg>(mem.value).v) = res;
@@ -330,21 +346,8 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   m_builder.setInsertionPointToEnd(m_lastBlock);
   m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
   assert(m_registers.at(REG::R0_RETURN_VALUE) != nullptr);
-  m_builder.create<ReturnOp>(m_unknownLoc, m_registers.at(REG::R0_RETURN_VALUE));
-  // // make call to init function to initialize latches
-  // auto initResults = buildInitFunction(returnTypes);
-  // auto opPosition = m_builder.getInsertionPoint();
-  // // Create infinite loop that inlines next function
-  // std::vector<Location> returnLocs(m_states.size(), funcOp->getLoc());
-  // Block *loopBlock =
-  //     m_builder.createBlock(body->getParent(), {}, {returnTypes},
-  //     {returnLocs});
-  // auto nextResults = buildNextFunction(returnTypes, loopBlock);
-  // m_builder.create<BranchOp>(m_unknownLoc, loopBlock, nextResults);
-  // // add call to branch from original basic block
-  // m_builder.setInsertionPoint(body, opPosition);
-  // m_builder.create<BranchOp>(m_unknownLoc, loopBlock, initResults);
-
+  m_builder.create<ReturnOp>(m_unknownLoc,
+                             m_registers.at(REG::R0_RETURN_VALUE));
   return funcOp;
 }
 
