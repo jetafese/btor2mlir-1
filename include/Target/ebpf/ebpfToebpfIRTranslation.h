@@ -208,13 +208,11 @@ private:
         rhs = m_registers.at(rhsId);
       }
       auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, getPred(cond.op),
-                              m_registers.at(lhsId), rhs);
-      m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock,
-                                     curBlock->getArguments(), condBlock,
-                                     curBlock->getArguments());
+                                           m_registers.at(lhsId), rhs);
+      m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock, m_registers,
+                                     condBlock, m_registers);
     } else {
-      m_builder.create<BranchOp>(m_unknownLoc, condBlock,
-                                 curBlock->getArguments());
+      m_builder.create<BranchOp>(m_unknownLoc, condBlock, m_registers);
     }
     std::cout << "/**/ end block at: " << from << std::endl;
     m_lastBlock = condBlock;

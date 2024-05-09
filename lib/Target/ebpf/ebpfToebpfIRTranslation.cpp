@@ -233,7 +233,7 @@ void Deserialize::buildFunctionBody() {
       assert(m_jumpBlocks.contains(next));
       m_builder.setInsertionPointToEnd(curBlock);
       m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
-                                 m_lastBlock->getArguments());
+                                 m_registers);
       std::cout << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
     }
