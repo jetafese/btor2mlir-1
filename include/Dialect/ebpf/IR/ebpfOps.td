@@ -374,6 +374,70 @@ def Move8Op : ebpfBinaryOp<"move8"> {
   // clang-format on
 }
 
+def LoadOp : ebpfBinaryOp<"load"> {
+  let summary = "memory load operation";
+  // clang-format off
+  let description = [{
+    The `load` operation loads a 64bit value to a register.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.load %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Load32Op : ebpfBinaryOp<"load32"> {
+  let summary = "memory load32 operation";
+  // clang-format off
+  let description = [{
+    The `load32` operation loads a 32bit value to a register.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.load32 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Load16Op : ebpfBinaryOp<"load16"> {
+  let summary = "memory load16 operation";
+  // clang-format off
+  let description = [{
+    The `load16` operation loads a 16bit value to a register.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.load16 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Load8Op : ebpfBinaryOp<"load8"> {
+  let summary = "memory load8 operation";
+  // clang-format off
+  let description = [{
+    The `load8` operation loads a 8bit value to a register.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.load8 %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 //===----------------------------------------------------------------------===//
 // ebpf unary integer ops definitions
 //===----------------------------------------------------------------------===//

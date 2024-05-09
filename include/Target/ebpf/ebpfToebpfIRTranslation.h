@@ -122,6 +122,7 @@ private:
   void createJmpOp(Jmp jmp, label_t cur_label);
   void createBinaryOp(Bin bin);
   void createUnaryOp(Un un);
+  void createMemOp(Mem mem);
   void collectBlocks();
 
   void updateBlocksMap(Block *block, size_t firstOp) {
@@ -223,7 +224,15 @@ private:
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
         m_unknownLoc, type, m_builder.getIntegerAttr(type, imm.v));
-    std::cout << "--created const: " << imm.v << std::endl;
+    std::cout << "--created imm const: " << imm.v << std::endl;
+    return immVal;
+  }
+
+  mlir::Value buildConstantOp(int32_t value) {
+    auto type = m_builder.getI64Type();
+    auto immVal = m_builder.create<ebpf::ConstantOp>(
+        m_unknownLoc, type, m_builder.getIntegerAttr(type, value));
+    std::cout << "--created val const: " << value << std::endl;
     return immVal;
   }
 
