@@ -139,8 +139,9 @@ private:
       return ebpf::ebpfPredicate::ne;
     case Op::SET:
       return ebpf::ebpfPredicate::set;
-    // case Op::NSET:
-    //   break; // not in ebpf
+    case Op::NSET:
+      assert(false);
+      break; // not in ebpf
     case Op::LT:
       return ebpf::ebpfPredicate::ult;
     case Op::LE:
@@ -240,6 +241,18 @@ private:
   mlir::Value buildBinaryOp(const Value &lhs, const Value &rhs) {
     auto res = m_builder.create<ebpfOp>(m_unknownLoc, lhs, rhs);
     return res;
+  }
+
+  template <typename ebpfOp>
+  mlir::Value buildStoreOp(const Value &base, const Value &offset, Mem mem) {
+    Value writeVal;
+    if (std::holds_alternative<Imm>(mem.value)) {
+      writeVal = buildConstantOp(std::get<Imm>(mem.value));
+    } else {
+      writeVal = m_registers.at(std::get<Reg>(mem.value).v);
+    }
+    m_builder.create<ebpfOp>(m_unknownLoc, base, offset, writeVal);
+    return writeVal;
   }
 
   template <typename ebpfOp>

@@ -641,4 +641,89 @@ def ConstantOp : ebpf_Op<"constant", [ConstantLike, NoSideEffect]> {
   // clang-format on
 }
 
+// This operation takes three operands and returns no result,
+// each operand is required to be of the same type.
+//  The custom assembly form of the operation is as follows
+//
+//     <op> %0, %1, %2: i64
+// clang-format off
+class ebpfTernaryOp<string mnemonic, list<Trait> traits = []>
+  : ebpfArithmeticOp<mnemonic,
+                      !listconcat(traits, [SameTypeOperands])>,
+    Arguments<(ins SignlessIntegerLike: $lhs, 
+                SignlessIntegerLike: $offset,
+                SignlessIntegerLike: $rhs)>
+{
+  let assemblyFormat = "$lhs `,` $offset `,` $rhs attr-dict `:` type($lhs)";
+// clang-format on
+}
+
+def StoreOp : ebpfTernaryOp<"store"> {
+  let summary = "memory store operation";
+  // clang-format off
+  let description = [{
+    The `store` operation stores a 64bit value to a register.
+    First operand is the base register, second operand is the offset.
+    Third operand is the value/register to be written.
+
+    Example:
+
+    ```mlir
+    ebpf.store %a, %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Store32Op : ebpfTernaryOp<"store32"> {
+  let summary = "memory store32 operation";
+  // clang-format off
+  let description = [{
+    The `store32` operation stores a 32bit value to a register.
+    First operand is the base register, second operand is the offset.
+    Third operand is the value/register to be written.
+
+    Example:
+
+    ```mlir
+    ebpf.store32 %a, %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Store16Op : ebpfTernaryOp<"store16"> {
+  let summary = "memory store16 operation";
+  // clang-format off
+  let description = [{
+    The `store16` operation stores a 16bit value to a register.
+    First operand is the base register, second operand is the offset.
+    Third operand is the value/register to be written.
+
+    Example:
+
+    ```mlir
+    ebpf.store16 %a, %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def Store8Op : ebpfTernaryOp<"store8"> {
+  let summary = "memory store8 operation";
+  // clang-format off
+  let description = [{
+    The `store8` operation stores a 8bit value to a register.
+    First operand is the base register, second operand is the offset.
+    Third operand is the value/register to be written.
+
+    Example:
+
+    ```mlir
+    ebpf.store8 %a, %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 #endif // EBPF_OPS
