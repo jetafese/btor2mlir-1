@@ -191,6 +191,14 @@ void Deserialize::createMemOp(Mem mem) {
   }
 }
 
+void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
+  Value res, map;
+  auto dst = loadMap.dst.v;
+  map = buildConstantOp(loadMap.mapfd);
+  res = buildBinaryOp<ebpf::LoadMapOp>(m_registers.at(dst), map);
+  m_registers.at(dst) = res;
+}
+
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cout << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -207,7 +215,9 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     createUnaryOp(unOp);
     return;
   } else if (std::holds_alternative<LoadMapFd>(ins)) {
-    std::cout << "LoadMapFd" << std::endl;
+    auto mapOp = std::get<LoadMapFd>(ins);
+    // std::cout << "LoadMapFd" << std::endl;
+    createLoadMapOp(mapOp);
     return;
   } else if (std::holds_alternative<Call>(ins)) {
     std::cout << "Call" << std::endl;

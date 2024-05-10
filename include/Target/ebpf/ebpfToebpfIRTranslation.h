@@ -123,6 +123,7 @@ private:
   void createBinaryOp(Bin bin);
   void createUnaryOp(Un un);
   void createMemOp(Mem mem);
+  void createLoadMapOp(LoadMapFd loadMap);
   void collectBlocks();
 
   void updateBlocksMap(Block *block, size_t firstOp) {
