@@ -438,6 +438,22 @@ def Load8Op : ebpfBinaryOp<"load8"> {
   // clang-format on
 }
 
+def LoadMapOp : ebpfBinaryOp<"loadMap"> {
+  let summary = "load map operation";
+  // clang-format off
+  let description = [{
+    The `loadMap` operation loads a value to a register.
+    First operand is the target register, second operand is the map
+
+    Example:
+
+    ```mlir
+    %a = ebpf.loadMap %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 //===----------------------------------------------------------------------===//
 // ebpf unary integer ops definitions
 //===----------------------------------------------------------------------===//
