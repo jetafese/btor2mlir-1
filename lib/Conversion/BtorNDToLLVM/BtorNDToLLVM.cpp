@@ -13,17 +13,6 @@ using namespace mlir;
 #define PASS_NAME "convert-btornd-to-llvm"
 
 namespace {
-
-unsigned numConcats(unsigned opWidth, unsigned ndFunc = 32) {
-  if (opWidth <= ndFunc) {
-    return 0;
-  }
-  if ((opWidth % ndFunc) == 0) {
-    return opWidth / ndFunc;
-  }
-  return (opWidth / ndFunc) + 1;
-}
-
 template <typename Op>
 Value getNDValueHelper(Op op, mlir::ConversionPatternRewriter &rewriter,
                        ModuleOp module, Type resultType, unsigned ndSize = 32) {
@@ -94,6 +83,12 @@ struct NDStateOpLowering : public ConvertOpToLLVMPattern<btor::NDStateOp> {
     std::string printHelper = "btor2mlir_print_state_num";
     createPrintFunctionHelper(op, callND, printHelper, rewriter, module,
                               opType);
+    if (opType.getIntOrFloatBitWidth() <
+        callND.getType().getIntOrFloatBitWidth()) {
+      rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, TypeRange({opType}),
+                                                 callND);
+      return success();
+    }
     rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(op, TypeRange({opType}), callND);
     return success();
   }
@@ -111,6 +106,12 @@ struct InputOpLowering : public ConvertOpToLLVMPattern<btor::InputOp> {
     std::string printHelper = "btor2mlir_print_input_num";
     createPrintFunctionHelper(op, callND, printHelper, rewriter, module,
                               opType);
+    if (opType.getIntOrFloatBitWidth() <
+        callND.getType().getIntOrFloatBitWidth()) {
+      rewriter.replaceOpWithNewOp<LLVM::TruncOp>(op, TypeRange({opType}),
+                                                 callND);
+      return success();
+    }
     rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(op, TypeRange({opType}), callND);
     return success();
   }
