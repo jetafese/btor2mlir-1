@@ -19,10 +19,12 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
+#include "Conversion/Passes.h"
 #include "Dialect/ebpf/IR/ebpf.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
+  mlir::ebpf::registerConvertebpfToLLVMPass();
 
   mlir::DialectRegistry registry;
   registry.insert<mlir::ebpf::ebpfDialect>();

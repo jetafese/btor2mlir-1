@@ -18,12 +18,12 @@ using namespace mlir;
 using namespace mlir::ebpf;
 
 void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
-  // std::cout << " --> f:" << jmp.target.from;
-  // std::cout << ", t: " << jmp.target.to << std::endl;
+  // std::cerr << " --> f:" << jmp.target.from;
+  // std::cerr << ", t: " << jmp.target.to << std::endl;
   assert(jmp.target.from > cur_label.from);
   InstructionSeq prog = m_sections.front();
   const auto &[label, ins, line_info] = prog.at(jmp.target.from);
-  // std::cout << "  l: " << label.from << ", j-f:" << jmp.target.from
+  // std::cerr << "  l: " << label.from << ", j-f:" << jmp.target.from
   //           << std::endl;
   assert(label.from == jmp.target.from);
   buildJmpOp(cur_label.from, jmp);
@@ -80,75 +80,75 @@ void Deserialize::createBinaryOp(Bin bin) {
   }
   switch (bin.op) {
   case Op::MOV:
-    // std::cout << "move";
+    // std::cerr << "move";
     res = buildBinaryOp<ebpf::MoveOp>(lhs, rhs);
     break;
   case Op::MOVSX8:
-    // std::cout << "s8";
+    // std::cerr << "s8";
     res = buildBinaryOp<ebpf::Move8Op>(lhs, rhs);
     break;
   case Op::MOVSX16:
-    // std::cout << "s16";
+    // std::cerr << "s16";
     res = buildBinaryOp<ebpf::Move16Op>(lhs, rhs);
     break;
   case Op::MOVSX32:
-    // std::cout << "s32";
+    // std::cerr << "s32";
     res = buildBinaryOp<ebpf::Move32Op>(lhs, rhs);
     break;
   case Op::ADD:
-    // std::cout << "+";
+    // std::cerr << "+";
     res = buildBinaryOp<ebpf::AddOp>(lhs, rhs);
     break;
   case Op::SUB:
-    // std::cout << "-";
+    // std::cerr << "-";
     res = buildBinaryOp<ebpf::SubOp>(lhs, rhs);
     break;
   case Op::MUL:
-    // std::cout << "*";
+    // std::cerr << "*";
     res = buildBinaryOp<ebpf::MulOp>(lhs, rhs);
     break;
   case Op::UDIV:
-    // std::cout << "/";
+    // std::cerr << "/";
     res = buildBinaryOp<ebpf::UDivOp>(lhs, rhs);
     break;
   case Op::SDIV:
-    // std::cout << "s/";
+    // std::cerr << "s/";
     res = buildBinaryOp<ebpf::SDivOp>(lhs, rhs);
     break;
   case Op::UMOD:
-    // std::cout << "%";
+    // std::cerr << "%";
     res = buildBinaryOp<ebpf::UModOp>(lhs, rhs);
     break;
   case Op::SMOD:
-    // std::cout << "s%";
+    // std::cerr << "s%";
     res = buildBinaryOp<ebpf::SModOp>(lhs, rhs);
     break;
   case Op::OR:
-    // std::cout << "|";
+    // std::cerr << "|";
     res = buildBinaryOp<ebpf::OrOp>(lhs, rhs);
     break;
   case Op::AND:
-    // std::cout << "&";
+    // std::cerr << "&";
     res = buildBinaryOp<ebpf::AndOp>(lhs, rhs);
     break;
   case Op::LSH:
-    // std::cout << "<<";
+    // std::cerr << "<<";
     res = buildBinaryOp<ebpf::LSHOp>(lhs, rhs);
     break;
   case Op::RSH:
-    // std::cout << ">>";
+    // std::cerr << ">>";
     res = buildBinaryOp<ebpf::RSHOp>(lhs, rhs);
     break;
   case Op::ARSH:
-    // std::cout << ">>>";
+    // std::cerr << ">>>";
     res = buildBinaryOp<ebpf::ShiftRAOp>(lhs, rhs);
     break;
   case Op::XOR:
-    // std::cout << "^";
+    // std::cerr << "^";
     res = buildBinaryOp<ebpf::XOrOp>(lhs, rhs);
     break;
   }
-  // std::cout << std::endl;
+  // std::cerr << std::endl;
   m_registers.at(bin.dst.v) = res;
   return;
 }
@@ -200,75 +200,75 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
 }
 
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
-  std::cout << cur_label.from << " ";
+  std::cerr << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
-    // std::cout << "undefined" << std::endl;
+    // std::cerr << "undefined" << std::endl;
     return;
   } else if (std::holds_alternative<Bin>(ins)) {
     auto binOp = std::get<Bin>(ins);
-    // std::cout << "bin: ";
+    // std::cerr << "bin: ";
     createBinaryOp(binOp);
     return;
   } else if (std::holds_alternative<Un>(ins)) {
     auto unOp = std::get<Un>(ins);
-    // std::cout << "unary" << std::endl;
+    // std::cerr << "unary" << std::endl;
     createUnaryOp(unOp);
     return;
   } else if (std::holds_alternative<LoadMapFd>(ins)) {
     auto mapOp = std::get<LoadMapFd>(ins);
-    // std::cout << "LoadMapFd" << std::endl;
+    // std::cerr << "LoadMapFd" << std::endl;
     createLoadMapOp(mapOp);
     return;
   } else if (std::holds_alternative<Call>(ins)) {
-    std::cout << "Call" << std::endl;
+    std::cerr << "Call" << std::endl;
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
-    std::cout << "Callx" << std::endl;
+    std::cerr << "Callx" << std::endl;
     return;
   } else if (std::holds_alternative<Exit>(ins)) {
-    // std::cout << "Exit" << std::endl;
+    // std::cerr << "Exit" << std::endl;
     return;
   } else if (std::holds_alternative<Jmp>(ins)) {
     auto jmpOp = std::get<Jmp>(ins);
-    // std::cout << "Jmp: ";
+    // std::cerr << "Jmp: ";
     createJmpOp(jmpOp, cur_label);
     return;
   } else if (std::holds_alternative<Mem>(ins)) {
     auto memOp = std::get<Mem>(ins);
-    // std::cout << "Mem" << std::endl;
+    // std::cerr << "Mem" << std::endl;
     createMemOp(memOp);
     return;
   } else if (std::holds_alternative<Packet>(ins)) {
-    std::cout << "Packet" << std::endl;
+    std::cerr << "Packet" << std::endl;
     return;
   } else if (std::holds_alternative<Assume>(ins)) {
-    std::cout << "Assume" << std::endl;
+    std::cerr << "Assume" << std::endl;
     return;
   } else if (std::holds_alternative<Atomic>(ins)) {
-    std::cout << "Atomic" << std::endl;
+    std::cerr << "Atomic" << std::endl;
     return;
   } else if (std::holds_alternative<Assert>(ins)) {
-    std::cout << "Assert" << std::endl;
+    std::cerr << "Assert" << std::endl;
     return;
   } else if (std::holds_alternative<IncrementLoopCounter>(ins)) {
-    std::cout << "IncrementLoopCounter" << std::endl;
+    std::cerr << "IncrementLoopCounter" << std::endl;
     return;
   }
-  std::cout << "unknown" << std::endl;
+  std::cerr << "unknown" << std::endl;
 }
 
 void Deserialize::buildFunctionBody() {
   // get first section
   InstructionSeq prog = m_sections.front();
   collectBlocks();
-  std::cout << prog.size() << " instructions" << std::endl;
+  std::cerr << prog.size() << " instructions" << std::endl;
   size_t cur_op = 0;
   for (const size_t next : m_startOfNextBlock) {
     assert(m_jumpBlocks.contains(cur_op));
     Block *curBlock = m_jumpBlocks.at(cur_op);
     m_builder.setInsertionPointToEnd(curBlock);
-    std::cout << "NEW block at: " << cur_op << std::endl;
-    std::cout << "  next: " << next << std::endl;
+    std::cerr << "NEW block at: " << cur_op << std::endl;
+    std::cerr << "  next: " << next << std::endl;
     // setup registers to match block arguments
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
       m_registers.at(i) = curBlock->getArgument(i);
@@ -284,7 +284,7 @@ void Deserialize::buildFunctionBody() {
       m_builder.setInsertionPointToEnd(curBlock);
       m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
                                  m_registers);
-      std::cout << "/**/ cpp block at: " << next << std::endl;
+      std::cerr << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
     }
   }
@@ -324,7 +324,7 @@ void Deserialize::collectBlocks() {
   }
   assert(m_numBlocks == m_startOfNextBlock.size());
   std::sort(m_startOfNextBlock.begin(), m_startOfNextBlock.end());
-  std::cout << "we need " << m_numBlocks << " blocks" << std::endl;
+  std::cerr << "we need " << m_numBlocks << " blocks" << std::endl;
 }
 
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
@@ -374,16 +374,16 @@ bool Deserialize::parseModelIsSuccessful() {
     std::variant<InstructionSeq, std::string> prog_or_error =
         unmarshal(raw_prog);
     if (std::holds_alternative<std::string>(prog_or_error)) {
-      std::cout << "unmarshaling error at "
+      std::cerr << "unmarshaling error at "
                 << std::get<std::string>(prog_or_error) << "\n";
       continue;
     }
     auto &prog = std::get<InstructionSeq>(prog_or_error);
     m_sections.push_back(prog);
-    print(prog, std::cout, {});
+    print(prog, std::cerr, {});
     // // Convert the instruction sequence to a control-flow graph.
     // cfg_t cfg = prepare_cfg(prog, raw_prog.info,
-    // !ebpf_verifier_options.no_simplify); print_dot(cfg, std::cout);
+    // !ebpf_verifier_options.no_simplify); print_dot(cfg, std::cerr);
   }
   return !m_sections.empty();
 }

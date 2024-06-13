@@ -182,7 +182,7 @@ private:
             m_builder.createBlock(curBlock->getParent(), {},
                                   {curBlock->getArgumentTypes()}, {returnLocs});
         updateBlocksMap(condBlock, from + 1);
-        std::cout << "*** create condBlock at: " << from + 1 << std::endl;
+        std::cerr << "*** create condBlock at: " << from + 1 << std::endl;
       } else {
         condBlock = m_jumpBlocks.at(from + 1);
       }
@@ -193,7 +193,7 @@ private:
           m_builder.createBlock(curBlock->getParent(), {},
                                 {curBlock->getArgumentTypes()}, {returnLocs});
       updateBlocksMap(toBlock, to);
-      std::cout << "*** create toBlock at: " << to << std::endl;
+      std::cerr << "*** create toBlock at: " << to << std::endl;
     } else {
       toBlock = m_jumpBlocks.at(to);
     }
@@ -217,7 +217,7 @@ private:
     } else {
       m_builder.create<BranchOp>(m_unknownLoc, condBlock, m_registers);
     }
-    std::cout << "/**/ end block at: " << from << std::endl;
+    std::cerr << "/**/ end block at: " << from << std::endl;
     m_lastBlock = condBlock;
     return;
   }
@@ -226,7 +226,7 @@ private:
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
         m_unknownLoc, type, m_builder.getIntegerAttr(type, imm.v));
-    std::cout << "--created imm const: " << imm.v << std::endl;
+    std::cerr << "--created imm const: " << imm.v << std::endl;
     return immVal;
   }
 
@@ -234,7 +234,7 @@ private:
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
         m_unknownLoc, type, m_builder.getIntegerAttr(type, value));
-    std::cout << "--created val const: " << value << std::endl;
+    std::cerr << "--created val const: " << value << std::endl;
     return immVal;
   }
 
