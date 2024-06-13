@@ -20,6 +20,10 @@ namespace btor {
 class BtorDialect;
 } // end namespace btor
 
+namespace ebpf {
+class ebpfDialect;
+} // end namespace ebpf
+
 namespace LLVM {
 class LLVMDialect;
 } // end namespace LLVM

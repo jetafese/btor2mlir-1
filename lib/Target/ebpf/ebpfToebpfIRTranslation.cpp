@@ -226,7 +226,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     std::cout << "Callx" << std::endl;
     return;
   } else if (std::holds_alternative<Exit>(ins)) {
-    std::cout << "Exit" << std::endl;
+    // std::cout << "Exit" << std::endl;
     return;
   } else if (std::holds_alternative<Jmp>(ins)) {
     auto jmpOp = std::get<Jmp>(ins);

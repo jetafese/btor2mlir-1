@@ -69,7 +69,7 @@ private:
   std::ifstream m_modelFile;
   StringAttr m_sourceFile = nullptr;
   const size_t m_ebpfRegisters = 11;
-  const size_t m_xdpParameters = 2;
+  // const size_t m_xdpParameters = 2;
 
   enum REG : size_t {
     R0_RETURN_VALUE = 0,

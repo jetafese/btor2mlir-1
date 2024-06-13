@@ -4,6 +4,21 @@
 include "mlir/Pass/PassBase.td"
 
 //===----------------------------------------------------------------------===//
+// ebpfToLLVM
+//===----------------------------------------------------------------------===//
+
+def ConvertebpfToLLVM : Pass<"convert-ebpf-to-llvm", "ModuleOp"> {
+  let summary = "Convert ebpf Dialect to LLVM dialect";
+  // clang-format off
+  let description = [{
+    Convert ebpf operations into LLVM instructions
+  }];
+  // clang-format on
+  let constructor = "mlir::ebpf::createLowerToLLVMPass()";
+  let dependentDialects = ["LLVM::LLVMDialect"];
+}
+
+//===----------------------------------------------------------------------===//
 // BtorToArithmetic
 //===----------------------------------------------------------------------===//
 
