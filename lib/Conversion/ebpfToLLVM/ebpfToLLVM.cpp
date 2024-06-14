@@ -24,19 +24,19 @@ namespace {
 #define CONVERT_OP(EBPF, LLVM) mlir::VectorConvertToLLVMPattern<EBPF, LLVM>
 
 /** division operations will need to abort when dividing by zero **/
-using AddOpLowering = CONVERT_OP(ebpf::AddOp, LLVM::AddOp);
-using SubOpLowering = CONVERT_OP(ebpf::SubOp, LLVM::SubOp);
-using MulOpLowering = CONVERT_OP(ebpf::MulOp, LLVM::MulOp);
 using SDivOpLowering = CONVERT_OP(ebpf::SDivOp, LLVM::SDivOp);
 using UDivOpLowering = CONVERT_OP(ebpf::UDivOp, LLVM::UDivOp);
 using SModOpLowering = CONVERT_OP(ebpf::SModOp, LLVM::SRemOp);
 using UModOpLowering = CONVERT_OP(ebpf::UModOp, LLVM::URemOp);
+
+using AddOpLowering = CONVERT_OP(ebpf::AddOp, LLVM::AddOp);
+using SubOpLowering = CONVERT_OP(ebpf::SubOp, LLVM::SubOp);
+using MulOpLowering = CONVERT_OP(ebpf::MulOp, LLVM::MulOp);
 using OrOpLowering = CONVERT_OP(ebpf::OrOp, LLVM::OrOp);
 using XOrOpLowering = CONVERT_OP(ebpf::XOrOp, LLVM::XOrOp);
 using ShiftLLOpLowering = CONVERT_OP(ebpf::LSHOp, LLVM::ShlOp);
 using ShiftRLOpLowering = CONVERT_OP(ebpf::RSHOp, LLVM::LShrOp);
 using ShiftRAOpLowering = CONVERT_OP(ebpf::ShiftRAOp, LLVM::AShrOp);
-
 using AndOpLowering = CONVERT_OP(ebpf::AndOp, LLVM::AndOp);
 
 //===----------------------------------------------------------------------===//
@@ -52,8 +52,9 @@ static LLVM::ICmpPredicate convertCmpPredicate(ebpf::ebpfPredicate pred) {
 
 struct CmpOpLowering : public ConvertOpToLLVMPattern<ebpf::CmpOp> {
   using ConvertOpToLLVMPattern<ebpf::CmpOp>::ConvertOpToLLVMPattern;
-  LogicalResult matchAndRewrite(ebpf::CmpOp op, OpAdaptor adaptor,
-                                ConversionPatternRewriter &rewriter) const {
+  LogicalResult
+  matchAndRewrite(ebpf::CmpOp op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
     auto resultType = op.getResult().getType();
 
     rewriter.replaceOpWithNewOp<LLVM::ICmpOp>(
@@ -77,8 +78,9 @@ struct ConstantOpLowering : public ConvertOpToLLVMPattern<ebpf::ConstantOp> {
 
 struct NegOpLowering : public ConvertOpToLLVMPattern<ebpf::NegOp> {
   using ConvertOpToLLVMPattern<ebpf::NegOp>::ConvertOpToLLVMPattern;
-  LogicalResult matchAndRewrite(ebpf::NegOp negOp, OpAdaptor adaptor,
-                                ConversionPatternRewriter &rewriter) const {
+  LogicalResult
+  matchAndRewrite(ebpf::NegOp negOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
     Value operand = adaptor.operand();
     Type opType = operand.getType();
 
@@ -89,35 +91,73 @@ struct NegOpLowering : public ConvertOpToLLVMPattern<ebpf::NegOp> {
   }
 };
 
-// struct SModOpLowering : public ConvertOpToLLVMPattern<ebpf::SModOp> {
-//   using ConvertOpToLLVMPattern<ebpf::SModOp>::ConvertOpToLLVMPattern;
-//   LogicalResult matchAndRewrite(ebpf::SModOp smodOp, OpAdaptor adaptor,
-//                                 ConversionPatternRewriter &rewriter) const {
-//     // since srem(a, b) = sign_of(a) * smod(a, b),
-//     // we have smod(a, b) =  sign_of(b) * |srem(a, b)|
-//     auto loc = smodOp.getLoc();
-//     auto rhs = adaptor.rhs(), lhs = adaptor.lhs();
-//     auto opType = rhs.getType();
+struct StoreOpLowering : public ConvertOpToLLVMPattern<ebpf::StoreOp> {
+  using ConvertOpToLLVMPattern<ebpf::StoreOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::StoreOp storeOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = storeOp.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.offset();
+    auto val = adaptor.rhs();
 
-//     Value zeroConst = rewriter.create<LLVM::ConstantOp>(
-//         loc, opType, rewriter.getIntegerAttr(opType, 0));
-//     Value srem = rewriter.create<btor::SRemOp>(loc, lhs, rhs);
-//     Value remLessThanZero = rewriter.create<LLVM::ICmpOp>(
-//         loc, LLVM::ICmpPredicate::slt, srem, zeroConst);
-//     Value rhsLessThanZero = rewriter.create<LLVM::ICmpOp>(
-//         loc, LLVM::ICmpPredicate::slt, rhs, zeroConst);
-//     Value rhsIsNotZero = rewriter.create<LLVM::ICmpOp>(
-//         loc, LLVM::ICmpPredicate::ne, rhs, zeroConst);
-//     Value xorOp =
-//         rewriter.create<LLVM::XOrOp>(loc, remLessThanZero, rhsLessThanZero);
-//     Value needsNegationAndRhsNotZero =
-//         rewriter.create<LLVM::AndOp>(loc, xorOp, rhsIsNotZero);
-//     Value negOp = rewriter.create<btor::NegOp>(loc, srem);
-//     rewriter.replaceOpWithNewOp<LLVM::SelectOp>(
-//         smodOp, needsNegationAndRhsNotZero, negOp, srem);
-//     return success();
-//   }
-// };
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, reg);
+    return success();
+  }
+};
+
+struct Store8OpLowering : public ConvertOpToLLVMPattern<ebpf::Store8Op> {
+  using ConvertOpToLLVMPattern<ebpf::Store8Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Store8Op store8Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = store8Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.offset();
+    auto val = adaptor.rhs();
+    /* mask to isolate the 8bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(255));
+    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
+    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store8Op, base, offset, newVal);
+    return success();
+  }
+};
+
+struct Store16OpLowering : public ConvertOpToLLVMPattern<ebpf::Store16Op> {
+  using ConvertOpToLLVMPattern<ebpf::Store16Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Store16Op store16Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = store16Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.offset();
+    auto val = adaptor.rhs();
+    /* mask to isolate the 16bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(65535));
+    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
+    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store16Op, base, offset, newVal);
+    return success();
+  }
+};
+
+struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
+  using ConvertOpToLLVMPattern<ebpf::Store32Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Store32Op store32Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = store32Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.offset();
+    auto val = adaptor.rhs();
+    /* mask to isolate the 32bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(4294967295));
+    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
+    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store32Op, base, offset, newVal);
+    return success();
+  }
+};
 
 } // end anonymous namespace
 
@@ -167,6 +207,8 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
   // ebpf::LoadMapOp>();
 
   /// ternary operators
+  target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
+                      ebpf::Store8Op>();
   // target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
   //                     ebpf::Store8Op, ebpf::LoadOp, ebpf::Load32Op,
   //                     ebpf::Load16Op, ebpf::Load8Op>();
@@ -187,7 +229,8 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
                UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
                NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
                ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering,
-               ConstantOpLowering>(converter);
+               ConstantOpLowering, StoreOpLowering, Store8OpLowering,
+               Store16OpLowering, Store32OpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations
