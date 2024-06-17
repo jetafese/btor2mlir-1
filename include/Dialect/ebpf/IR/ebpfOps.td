@@ -635,6 +635,24 @@ def SWAP64 : ebpfUnaryOp<"swap64"> {
   // clang-format on
 }
 
+def AllocaOp : ebpf_Op<"alloca"> {
+  let summary = "alloca op";
+  // clang-format off
+  let description = [{
+    The `alloca` operation takes nothing returns a 64bit 
+    int to use as a pointer.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.alloca %s : i64
+    ```
+  }];
+  let results = (outs SignlessIntegerLike : $result);
+  let assemblyFormat = " attr-dict `:` type($result)";
+  // clang-format on
+}
+
 def NDOp : ebpf_Op<"nd"> {
   let summary = "integer non-deterministic value";
   // clang-format off
