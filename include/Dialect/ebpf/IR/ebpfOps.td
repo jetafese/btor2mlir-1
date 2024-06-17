@@ -635,6 +635,24 @@ def SWAP64 : ebpfUnaryOp<"swap64"> {
   // clang-format on
 }
 
+def NDOp : ebpf_Op<"nd"> {
+  let summary = "integer non-deterministic value";
+  // clang-format off
+  let description = [{
+    The `nd` operation takes no operands and returns a 64bit 
+    non-deterministic integer.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.nd : i64
+    ```
+  }];
+  let results = (outs SignlessIntegerLike : $result);
+  let assemblyFormat = " attr-dict `:` type($result)";
+  // clang-format on
+}
+
 
 def ConstantOp : ebpf_Op<"constant", [ConstantLike, NoSideEffect]> {
   let summary = "integer constant";
