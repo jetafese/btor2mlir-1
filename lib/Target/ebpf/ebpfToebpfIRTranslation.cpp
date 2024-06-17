@@ -80,7 +80,6 @@ void Deserialize::createBinaryOp(Bin bin) {
   }
   switch (bin.op) {
   case Op::MOV:
-    // std::cerr << "move";
     res = buildBinaryOp<ebpf::MoveOp>(lhs, rhs);
     break;
   case Op::MOVSX8:
@@ -199,6 +198,11 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
   m_registers.at(dst) = res;
 }
 
+void Deserialize::createMapLookUp(Call callOp) {
+  Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
+  m_registers.at(0) = res;
+}
+
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cerr << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -220,7 +224,15 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     createLoadMapOp(mapOp);
     return;
   } else if (std::holds_alternative<Call>(ins)) {
-    std::cerr << "Call" << std::endl;
+    auto callOp = std::get<Call>(ins);
+    std::cerr << "-- call: " << callOp.func + 0 << std::endl;
+    if (callOp.is_map_lookup) {
+      std::cerr << "Map Lookup" << std::endl;
+      createMapLookUp(callOp);
+      return;
+    }
+    std::cerr << "Other Call" << std::endl;
+    assert(false);
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
     std::cerr << "Callx" << std::endl;
@@ -240,21 +252,26 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<Packet>(ins)) {
     std::cerr << "Packet" << std::endl;
+    assert(false);
     return;
   } else if (std::holds_alternative<Assume>(ins)) {
     std::cerr << "Assume" << std::endl;
+    assert(false);
     return;
   } else if (std::holds_alternative<Atomic>(ins)) {
     std::cerr << "Atomic" << std::endl;
+    assert(false);
     return;
   } else if (std::holds_alternative<Assert>(ins)) {
     std::cerr << "Assert" << std::endl;
+    assert(false);
     return;
   } else if (std::holds_alternative<IncrementLoopCounter>(ins)) {
     std::cerr << "IncrementLoopCounter" << std::endl;
+    assert(false);
     return;
   }
-  std::cerr << "unknown" << std::endl;
+  assert(false && "unknown");
 }
 
 void Deserialize::buildFunctionBody() {
