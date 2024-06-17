@@ -232,7 +232,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       return;
     }
     std::cerr << "Other Call" << std::endl;
-    assert(false);
+    // assert(false);
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
     std::cerr << "Callx" << std::endl;
@@ -286,9 +286,11 @@ void Deserialize::buildFunctionBody() {
     m_builder.setInsertionPointToEnd(curBlock);
     std::cerr << "NEW block at: " << cur_op << std::endl;
     std::cerr << "  next: " << next << std::endl;
-    // setup registers to match block arguments
-    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      m_registers.at(i) = curBlock->getArgument(i);
+    if (m_ssa) {
+      // setup registers to match block arguments
+      for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+        m_registers.at(i) = curBlock->getArgument(i);
+      }
     }
     for (; cur_op < next; ++cur_op) {
       const LabeledInstruction &labeled_inst = prog.at(cur_op);
@@ -299,17 +301,23 @@ void Deserialize::buildFunctionBody() {
         !curBlock->back().mightHaveTrait<OpTrait::IsTerminator>()) {
       assert(m_jumpBlocks.contains(next));
       m_builder.setInsertionPointToEnd(curBlock);
-      m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
-                                 m_registers);
+      if (m_ssa) {
+        m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
+                                   m_registers);
+      } else {
+        m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next));
+      }
       std::cerr << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
     }
   }
   if (cur_op < prog.size()) {
     m_builder.setInsertionPointToEnd(m_lastBlock);
-    // setup registers to match block arguments
-    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      m_registers.at(i) = m_lastBlock->getArgument(i);
+    if (m_ssa) {
+      // setup registers to match block arguments
+      for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+        m_registers.at(i) = m_lastBlock->getArgument(i);
+      }
     }
   }
   for (; cur_op < prog.size(); ++cur_op) {
@@ -363,7 +371,15 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   // setup registers
   m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
   for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-    m_registers.at(i) = body->getArgument(i);
+    if (m_ssa) {
+      m_registers.at(i) = body->getArgument(i);
+    } else {
+      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
+                                                   m_builder.getI64Type());
+      m_registers.at(i) = reg;
+      // m_builder.create<ebpf::StoreOp>(m_unknownLoc, reg, zero_offset,
+      // body->getArgument(i));
+    }
   }
   // m_registers.at(REG::R1_ARG) = body->getArguments().front();
   // m_registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
@@ -371,7 +387,9 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   buildFunctionBody();
   // add return statement at final block
   m_builder.setInsertionPointToEnd(m_lastBlock);
-  m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
+  if (m_ssa) {
+    m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
+  }
   assert(m_registers.at(REG::R0_RETURN_VALUE) != nullptr);
   m_builder.create<ReturnOp>(m_unknownLoc,
                              m_registers.at(REG::R0_RETURN_VALUE));
@@ -406,13 +424,13 @@ bool Deserialize::parseModelIsSuccessful() {
 }
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
-                                               MLIRContext *context) {
+                                               MLIRContext *context, bool ssa) {
   context->loadDialect<ebpf::ebpfDialect, StandardOpsDialect>();
 
   OwningOpRef<ModuleOp> owningModule(ModuleOp::create(FileLineColLoc::get(
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
-  Deserialize deserialize(context, input->getBufferIdentifier().str());
+  Deserialize deserialize(context, input->getBufferIdentifier().str(), ssa);
   if (deserialize.parseModelIsSuccessful()) {
     OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
     if (!XDPFunc)
@@ -432,7 +450,19 @@ void registerebpfTranslation() {
         // get section name
         assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
         return deserializeModule(
-            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context);
+            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
+            true);
+      });
+}
+
+void registerebpfMemTranslation() {
+  TranslateToMLIRRegistration fromEBPF(
+      "import-ebpf-mem", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
+        // get section name
+        assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
+        return deserializeModule(
+            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
+            false);
       });
 }
 } // namespace ebpf

@@ -39,9 +39,9 @@ public:
   /// Constructors and Destructors
   ///===----------------------------------------------------------------------===//
 
-  Deserialize(MLIRContext *context, const std::string &s)
+  Deserialize(MLIRContext *context, const std::string &s, bool ssa)
       : m_context(context), m_builder(OpBuilder(m_context)),
-        m_unknownLoc(UnknownLoc::get(m_context)) {
+        m_unknownLoc(UnknownLoc::get(m_context)), m_ssa(ssa) {
     m_modelFile.open(s.c_str());
     m_sourceFile = m_builder.getStringAttr(s);
   }
@@ -113,6 +113,7 @@ private:
   MLIRContext *m_context;
   OpBuilder m_builder;
   Location m_unknownLoc;
+  bool m_ssa;
 
   std::vector<Block *> m_blocks;
   Block *m_lastBlock = nullptr;
@@ -179,9 +180,13 @@ private:
     if (isConditional) {
       if (!m_jumpBlocks.contains(from + 1)) {
         // create the another block for the next operation
-        condBlock =
-            m_builder.createBlock(curBlock->getParent(), {},
-                                  {curBlock->getArgumentTypes()}, {returnLocs});
+        if (m_ssa) {
+          condBlock = m_builder.createBlock(curBlock->getParent(), {},
+                                            {curBlock->getArgumentTypes()},
+                                            {returnLocs});
+        } else {
+          condBlock = m_builder.createBlock(curBlock->getParent(), {});
+        }
         updateBlocksMap(condBlock, from + 1);
         std::cerr << "*** create condBlock at: " << from + 1 << std::endl;
       } else {
@@ -190,9 +195,13 @@ private:
     }
     if (!m_jumpBlocks.contains(to)) {
       // create the to block
-      toBlock =
-          m_builder.createBlock(curBlock->getParent(), {},
-                                {curBlock->getArgumentTypes()}, {returnLocs});
+      if (m_ssa) {
+        toBlock =
+            m_builder.createBlock(curBlock->getParent(), {},
+                                  {curBlock->getArgumentTypes()}, {returnLocs});
+      } else {
+        toBlock = m_builder.createBlock(curBlock->getParent(), {});
+      }
       updateBlocksMap(toBlock, to);
       std::cerr << "*** create toBlock at: " << to << std::endl;
     } else {
@@ -213,10 +222,18 @@ private:
       }
       auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, getPred(cond.op),
                                            m_registers.at(lhsId), rhs);
-      m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock, m_registers,
-                                     condBlock, m_registers);
+      if (m_ssa) {
+        m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock,
+                                       m_registers, condBlock, m_registers);
+      } else {
+        m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock, condBlock);
+      }
     } else {
-      m_builder.create<BranchOp>(m_unknownLoc, condBlock, m_registers);
+      if (m_ssa) {
+        m_builder.create<BranchOp>(m_unknownLoc, condBlock, m_registers);
+      } else {
+        m_builder.create<BranchOp>(m_unknownLoc, condBlock);
+      }
     }
     std::cerr << "/**/ end block at: " << from << std::endl;
     m_lastBlock = condBlock;
@@ -257,8 +274,7 @@ private:
     return writeVal;
   }
 
-  template <typename ebpfOp>
-  mlir::Value buildUnaryOp(const Value &op) {
+  template <typename ebpfOp> mlir::Value buildUnaryOp(const Value &op) {
     auto res = m_builder.create<ebpfOp>(m_unknownLoc, op);
     return res;
   }
@@ -266,6 +282,7 @@ private:
 
 /// Register the ebpf translation
 void registerebpfTranslation();
+void registerebpfMemTranslation();
 
 } // namespace ebpf
 } // namespace mlir

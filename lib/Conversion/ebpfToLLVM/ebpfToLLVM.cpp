@@ -305,7 +305,6 @@ struct NDOpLowering : public ConvertOpToLLVMPattern<ebpf::NDOp> {
   matchAndRewrite(ebpf::NDOp ndOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     /* we resolve with an nd call for now*/
-    auto loc = ndOp.getLoc();
     const std::string havoc = "nd_64";
     auto module = ndOp->getParentOfType<ModuleOp>();
     auto havocFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(havoc);
@@ -317,6 +316,23 @@ struct NDOpLowering : public ConvertOpToLLVMPattern<ebpf::NDOp> {
                                                     havoc, havocFuncTy);
     }
     rewriter.replaceOpWithNewOp<LLVM::CallOp>(ndOp, havocFunc, llvm::None);
+    return success();
+  }
+};
+
+struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
+  using ConvertOpToLLVMPattern<ebpf::AllocaOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::AllocaOp allocaOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = allocaOp.getLoc();
+    auto i64Type = rewriter.getI64Type();
+    auto size = rewriter.create<LLVM::ConstantOp>(
+        loc, i64Type, rewriter.getI64IntegerAttr(1));
+    auto llvmAlloca = rewriter.create<LLVM::AllocaOp>(
+        loc, LLVM::LLVMPointerType::get(i64Type), size, 8);
+    rewriter.replaceOpWithNewOp<LLVM::PtrToIntOp>(allocaOp, i64Type,
+                                                  llvmAlloca);
     return success();
   }
 };
@@ -356,7 +372,7 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
                       ebpf::SWAP32, ebpf::SWAP64>();
 
   /// misc operators
-  target.addIllegalOp<ebpf::ConstantOp, ebpf::NDOp>();
+  target.addIllegalOp<ebpf::ConstantOp, ebpf::NDOp, ebpf::AllocaOp>();
 
   /// binary operators
   // logical
@@ -386,15 +402,15 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
 
 void mlir::ebpf::populateebpfToLLVMConversionPatterns(
     ebpfToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
-  patterns.add<AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
-               UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
-               NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
-               ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering,
-               ConstantOpLowering, StoreOpLowering, Store8OpLowering,
-               Store16OpLowering, Store32OpLowering, LoadOpLowering,
-               Load8OpLowering, Load16OpLowering, Load32OpLowering,
-               MoveOpLowering, Move8OpLowering, Move16OpLowering,
-               Move32OpLowering, LoadMapOpLowering, NDOpLowering>(converter);
+  patterns.add<
+      AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
+      UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
+      NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
+      ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering, ConstantOpLowering,
+      StoreOpLowering, Store8OpLowering, Store16OpLowering, Store32OpLowering,
+      LoadOpLowering, Load8OpLowering, Load16OpLowering, Load32OpLowering,
+      MoveOpLowering, Move8OpLowering, Move16OpLowering, Move32OpLowering,
+      LoadMapOpLowering, NDOpLowering, AllocaOpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations
