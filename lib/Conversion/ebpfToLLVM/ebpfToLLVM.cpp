@@ -159,6 +159,69 @@ struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
   }
 };
 
+struct LoadOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadOp> {
+  using ConvertOpToLLVMPattern<ebpf::LoadOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::LoadOp loadOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = loadOp.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.rhs();
+
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, reg);
+    return success();
+  }
+};
+
+struct Load8OpLowering : public ConvertOpToLLVMPattern<ebpf::Load8Op> {
+  using ConvertOpToLLVMPattern<ebpf::Load8Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Load8Op load8Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = load8Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.rhs();
+    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
+    /* mask to isolate the 8bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(255));
+    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load8Op, val, mask);
+    return success();
+  }
+};
+
+struct Load16OpLowering : public ConvertOpToLLVMPattern<ebpf::Load16Op> {
+  using ConvertOpToLLVMPattern<ebpf::Load16Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Load16Op load16Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = load16Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.rhs();
+    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
+    /* mask to isolate the 16bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(65535));
+    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load16Op, val, mask);
+    return success();
+  }
+};
+
+struct Load32OpLowering : public ConvertOpToLLVMPattern<ebpf::Load32Op> {
+  using ConvertOpToLLVMPattern<ebpf::Load32Op>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::Load32Op load32Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = load32Op.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.rhs();
+    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
+    /* mask to isolate the 32bits*/
+    auto mask = rewriter.create<LLVM::ConstantOp>(
+        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(4294967295));
+    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load32Op, val, mask);
+    return success();
+  }
+};
 } // end anonymous namespace
 
 //===----------------------------------------------------------------------===//
@@ -208,10 +271,8 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
 
   /// ternary operators
   target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
-                      ebpf::Store8Op>();
-  // target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
-  //                     ebpf::Store8Op, ebpf::LoadOp, ebpf::Load32Op,
-  //                     ebpf::Load16Op, ebpf::Load8Op>();
+                      ebpf::Store8Op, ebpf::LoadOp, ebpf::Load32Op,
+                      ebpf::Load16Op, ebpf::Load8Op>();
 
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
@@ -230,7 +291,8 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
                NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
                ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering,
                ConstantOpLowering, StoreOpLowering, Store8OpLowering,
-               Store16OpLowering, Store32OpLowering>(converter);
+               Store16OpLowering, Store32OpLowering, LoadOpLowering,
+               Load8OpLowering, Load16OpLowering, Load32OpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations
