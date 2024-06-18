@@ -232,10 +232,10 @@ struct MoveOpLowering : public ConvertOpToLLVMPattern<ebpf::MoveOp> {
   matchAndRewrite(ebpf::MoveOp moveOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = moveOp.getLoc();
-    auto val = adaptor.rhs();
+    auto dst = adaptor.lhs(), val = adaptor.rhs();
     auto zero = rewriter.create<LLVM::ConstantOp>(
         loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(0));
-    rewriter.replaceOpWithNewOp<LLVM::AddOp>(moveOp, val, zero);
+    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(moveOp, dst, zero, val);
     return success();
   }
 };
