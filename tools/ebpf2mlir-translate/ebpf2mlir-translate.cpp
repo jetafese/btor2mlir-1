@@ -17,7 +17,6 @@
 
 #include "Dialect/ebpf/IR/ebpf.h"
 #include "Target/ebpf/ebpfToebpfIRTranslation.h"
-#include "Target/ebpf/ebpfToebpfMemIRTranslation.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllTranslations();
