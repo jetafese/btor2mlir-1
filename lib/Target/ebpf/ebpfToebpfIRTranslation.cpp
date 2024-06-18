@@ -17,6 +17,10 @@
 using namespace mlir;
 using namespace mlir::ebpf;
 
+#define MINUS1_32 4294967295
+#define MINUS1_16 65535
+#define MINUS1_8 255
+
 void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
   // std::cerr << " --> f:" << jmp.target.from;
   // std::cerr << ", t: " << jmp.target.to << std::endl;
@@ -33,7 +37,7 @@ void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
 void Deserialize::createUnaryOp(Un un) {
   using Op = Un::Op;
   Value rhs, res;
-  rhs = m_registers.at(un.dst.v);
+  rhs = getRegister(un.dst.v);
   switch (un.op) {
   case Op::BE16:
     res = buildUnaryOp<ebpf::BE16>(rhs);
@@ -66,89 +70,78 @@ void Deserialize::createUnaryOp(Un un) {
     res = buildUnaryOp<ebpf::NegOp>(rhs);
     break;
   }
-  m_registers.at(un.dst.v) = res;
+  setRegister(un.dst.v, res);
 }
 
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
   Value rhs, lhs, res;
-  lhs = m_registers.at(bin.dst.v);
+  lhs = getRegister(bin.dst.v);
   if (std::holds_alternative<Imm>(bin.v)) {
     rhs = buildConstantOp(std::get<Imm>(bin.v));
   } else {
-    rhs = m_registers.at(std::get<Reg>(bin.v).v);
+    rhs = getRegister(std::get<Reg>(bin.v).v);
   }
   switch (bin.op) {
   case Op::MOV:
-    res = buildBinaryOp<ebpf::MoveOp>(lhs, rhs);
+    res = rhs;
     break;
   case Op::MOVSX8:
-    // std::cerr << "s8";
-    res = buildBinaryOp<ebpf::Move8Op>(lhs, rhs);
+    /* mask to isolate the 8bits*/
+    res = m_builder.create<ebpf::AndOp>(m_unknownLoc, rhs,
+                                        buildConstantOp(MINUS1_8));
     break;
   case Op::MOVSX16:
-    // std::cerr << "s16";
-    res = buildBinaryOp<ebpf::Move16Op>(lhs, rhs);
+    /* mask to isolate the 16bits*/
+    res = m_builder.create<ebpf::AndOp>(m_unknownLoc, rhs,
+                                        buildConstantOp(MINUS1_16));
     break;
   case Op::MOVSX32:
-    // std::cerr << "s32";
-    res = buildBinaryOp<ebpf::Move32Op>(lhs, rhs);
+    /* mask to isolate the 32bits*/
+    res = m_builder.create<ebpf::AndOp>(m_unknownLoc, rhs,
+                                        buildConstantOp(MINUS1_32));
     break;
   case Op::ADD:
-    // std::cerr << "+";
     res = buildBinaryOp<ebpf::AddOp>(lhs, rhs);
     break;
   case Op::SUB:
-    // std::cerr << "-";
     res = buildBinaryOp<ebpf::SubOp>(lhs, rhs);
     break;
   case Op::MUL:
-    // std::cerr << "*";
     res = buildBinaryOp<ebpf::MulOp>(lhs, rhs);
     break;
   case Op::UDIV:
-    // std::cerr << "/";
     res = buildBinaryOp<ebpf::UDivOp>(lhs, rhs);
     break;
   case Op::SDIV:
-    // std::cerr << "s/";
     res = buildBinaryOp<ebpf::SDivOp>(lhs, rhs);
     break;
   case Op::UMOD:
-    // std::cerr << "%";
     res = buildBinaryOp<ebpf::UModOp>(lhs, rhs);
     break;
   case Op::SMOD:
-    // std::cerr << "s%";
     res = buildBinaryOp<ebpf::SModOp>(lhs, rhs);
     break;
   case Op::OR:
-    // std::cerr << "|";
     res = buildBinaryOp<ebpf::OrOp>(lhs, rhs);
     break;
   case Op::AND:
-    // std::cerr << "&";
     res = buildBinaryOp<ebpf::AndOp>(lhs, rhs);
     break;
   case Op::LSH:
-    // std::cerr << "<<";
     res = buildBinaryOp<ebpf::LSHOp>(lhs, rhs);
     break;
   case Op::RSH:
-    // std::cerr << ">>";
     res = buildBinaryOp<ebpf::RSHOp>(lhs, rhs);
     break;
   case Op::ARSH:
-    // std::cerr << ">>>";
     res = buildBinaryOp<ebpf::ShiftRAOp>(lhs, rhs);
     break;
   case Op::XOR:
-    // std::cerr << "^";
     res = buildBinaryOp<ebpf::XOrOp>(lhs, rhs);
     break;
   }
-  // std::cerr << std::endl;
-  m_registers.at(bin.dst.v) = res;
+  setRegister(bin.dst.v, res);
   return;
 }
 
@@ -158,35 +151,36 @@ void Deserialize::createMemOp(Mem mem) {
   switch (mem.access.width) {
   case 1:
     res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load8Op>(
-                    m_registers.at(mem.access.basereg.v), offset)
-              : buildStoreOp<ebpf::Store8Op>(
-                    m_registers.at(mem.access.basereg.v), offset, mem);
+              ? buildBinaryOp<ebpf::Load8Op>(getRegister(mem.access.basereg.v),
+                                             offset)
+              : buildStoreOp<ebpf::Store8Op>(getRegister(mem.access.basereg.v),
+                                             offset, mem);
     break;
   case 2:
     res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load16Op>(
-                    m_registers.at(mem.access.basereg.v), offset)
-              : buildStoreOp<ebpf::Store16Op>(
-                    m_registers.at(mem.access.basereg.v), offset, mem);
+              ? buildBinaryOp<ebpf::Load16Op>(getRegister(mem.access.basereg.v),
+                                              offset)
+              : buildStoreOp<ebpf::Store16Op>(getRegister(mem.access.basereg.v),
+                                              offset, mem);
     break;
   case 4:
     res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load32Op>(
-                    m_registers.at(mem.access.basereg.v), offset)
-              : buildStoreOp<ebpf::Store32Op>(
-                    m_registers.at(mem.access.basereg.v), offset, mem);
+              ? buildBinaryOp<ebpf::Load32Op>(getRegister(mem.access.basereg.v),
+                                              offset)
+              : buildStoreOp<ebpf::Store32Op>(getRegister(mem.access.basereg.v),
+                                              offset, mem);
     break;
   case 8:
     res = (mem.is_load)
-              ? buildBinaryOp<ebpf::LoadOp>(
-                    m_registers.at(mem.access.basereg.v), offset)
-              : buildStoreOp<ebpf::StoreOp>(
-                    m_registers.at(mem.access.basereg.v), offset, mem);
+              ? buildBinaryOp<ebpf::LoadOp>(getRegister(mem.access.basereg.v),
+                                            offset)
+              : buildStoreOp<ebpf::StoreOp>(getRegister(mem.access.basereg.v),
+                                            offset, mem);
     break;
   }
   if (mem.is_load) {
-    m_registers.at(std::get<Reg>(mem.value).v) = res;
+    setRegister(std::get<Reg>(mem.value).v, res);
+    // m_registers.at(std::get<Reg>(mem.value).v) = res;
   }
 }
 
@@ -194,13 +188,15 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
   Value res, map;
   auto dst = loadMap.dst.v;
   map = buildConstantOp(loadMap.mapfd);
-  res = buildBinaryOp<ebpf::LoadMapOp>(m_registers.at(dst), map);
-  m_registers.at(dst) = res;
+  res = buildBinaryOp<ebpf::LoadMapOp>(getRegister(dst), map);
+  setRegister(dst, res);
+  // m_registers.at(dst) = res;
 }
 
 void Deserialize::createMapLookUp(Call callOp) {
   Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
-  m_registers.at(0) = res;
+  setRegister(0, res);
+  // m_registers.at(0) = res;
 }
 
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
@@ -288,7 +284,8 @@ void Deserialize::buildSSAFunctionBody() {
     std::cerr << "  next: " << next << std::endl;
     // setup registers to match block arguments
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      m_registers.at(i) = curBlock->getArgument(i);
+      setRegister(i, curBlock->getArgument(i));
+      // m_registers.at(i) = curBlock->getArgument(i);
     }
     for (; cur_op < next; ++cur_op) {
       const LabeledInstruction &labeled_inst = prog.at(cur_op);
@@ -309,7 +306,8 @@ void Deserialize::buildSSAFunctionBody() {
     m_builder.setInsertionPointToEnd(m_lastBlock);
     // setup registers to match block arguments
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      m_registers.at(i) = m_lastBlock->getArgument(i);
+      setRegister(i, m_lastBlock->getArgument(i));
+      // m_registers.at(i) = m_lastBlock->getArgument(i);
     }
   }
   for (; cur_op < prog.size(); ++cur_op) {
@@ -399,10 +397,12 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   Value zero_offset = buildConstantOp(0);
   for (size_t i = 0; i < m_ebpfRegisters; ++i) {
     if (m_ssa) {
-      m_registers.at(i) = body->getArgument(i);
+      setRegister(i, body->getArgument(i));
+      // m_registers.at(i) = body->getArgument(i);
     } else {
       Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
                                                    m_builder.getI64Type());
+      // setRegister(i, reg);
       m_registers.at(i) = reg;
       m_builder.create<ebpf::StoreOp>(m_unknownLoc, reg, zero_offset,
                                       body->getArgument(i));
@@ -412,13 +412,14 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   // build function body
   if (m_ssa) {
     buildSSAFunctionBody();
-    m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
+    setRegister(REG::R0_RETURN_VALUE, m_lastBlock->getArguments().front());
+    // m_registers.at(REG::R0_RETURN_VALUE) =
+    // m_lastBlock->getArguments().front();
   } else {
     buildMemFunctionBody();
   }
-  assert(m_registers.at(REG::R0_RETURN_VALUE) != nullptr);
-  m_builder.create<ReturnOp>(m_unknownLoc,
-                             m_registers.at(REG::R0_RETURN_VALUE));
+  assert(getRegister(REG::R0_RETURN_VALUE) != nullptr);
+  m_builder.create<ReturnOp>(m_unknownLoc, getRegister(REG::R0_RETURN_VALUE));
   return funcOp;
 }
 

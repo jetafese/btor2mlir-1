@@ -134,6 +134,26 @@ private:
     m_jumpBlocks[firstOp] = block;
   }
 
+  void setRegister(const uint8_t idx, const mlir::Value &value) {
+    if (m_ssa) {
+      m_registers.at(idx) = value;
+      return;
+    }
+    auto zero = buildConstantOp(0);
+    auto addr = m_registers.at(idx);
+    m_builder.create<ebpf::StoreOp>(m_unknownLoc, addr, zero, value);
+  }
+
+  mlir::Value getRegister(const uint8_t idx) {
+    auto reg = m_registers.at(idx);
+    if (m_ssa) {
+      return reg;
+    }
+    auto zero = buildConstantOp(0);
+    auto val = m_builder.create<ebpf::LoadOp>(m_unknownLoc, reg, zero);
+    return val;
+  }
+
   ebpf::ebpfPredicate getPred(Condition::Op op) {
     using Op = Condition::Op;
     switch (op) {
@@ -219,10 +239,10 @@ private:
         rhs = buildConstantOp(std::get<Imm>(cond.right));
       } else {
         auto rhsId = std::get<Reg>(cond.right).v;
-        rhs = m_registers.at(rhsId);
+        rhs = getRegister(rhsId);
       }
       auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, getPred(cond.op),
-                                           m_registers.at(lhsId), rhs);
+                                           getRegister(lhsId), rhs);
       if (m_ssa) {
         m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock,
                                        m_registers, condBlock, m_registers);
@@ -249,7 +269,7 @@ private:
     return immVal;
   }
 
-  mlir::Value buildConstantOp(int32_t value) {
+  mlir::Value buildConstantOp(int64_t value) {
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
         m_unknownLoc, type, m_builder.getIntegerAttr(type, value));
@@ -269,7 +289,7 @@ private:
     if (std::holds_alternative<Imm>(mem.value)) {
       writeVal = buildConstantOp(std::get<Imm>(mem.value));
     } else {
-      writeVal = m_registers.at(std::get<Reg>(mem.value).v);
+      writeVal = getRegister(std::get<Reg>(mem.value).v);
     }
     m_builder.create<ebpfOp>(m_unknownLoc, base, offset, writeVal);
     return writeVal;
