@@ -293,8 +293,20 @@ struct LoadMapOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadMapOp> {
   LogicalResult
   matchAndRewrite(ebpf::LoadMapOp loadMapOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
-    /* we resolve with an nd call for now*/
-    rewriter.replaceOpWithNewOp<ebpf::NDOp>(loadMapOp, rewriter.getI64Type());
+    const std::string map = "BPF_LD_MAP_FD";
+    auto mapDescriptor = adaptor.rhs();
+    auto module = loadMapOp->getParentOfType<ModuleOp>();
+    auto mapFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(map);
+    if (!mapFunc) {
+      OpBuilder::InsertionGuard guard(rewriter);
+      rewriter.setInsertionPointToStart(module.getBody());
+      auto mapFuncTy = LLVM::LLVMFunctionType::get(rewriter.getI64Type(),
+                                                   {rewriter.getI64Type()});
+      mapFunc = rewriter.create<LLVM::LLVMFuncOp>(rewriter.getUnknownLoc(), map,
+                                                  mapFuncTy);
+    }
+    rewriter.replaceOpWithNewOp<LLVM::CallOp>(loadMapOp, mapFunc,
+                                              mapDescriptor);
     return success();
   }
 };

@@ -126,7 +126,7 @@ private:
   void createUnaryOp(Un un);
   void createMemOp(Mem mem);
   void createLoadMapOp(LoadMapFd loadMap);
-  void createMapLookUp(Call call);
+  void createNDOp();
   void collectBlocks();
 
   void updateBlocksMap(Block *block, size_t firstOp) {

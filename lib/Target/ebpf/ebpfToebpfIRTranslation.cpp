@@ -180,7 +180,6 @@ void Deserialize::createMemOp(Mem mem) {
   }
   if (mem.is_load) {
     setRegister(std::get<Reg>(mem.value).v, res);
-    // m_registers.at(std::get<Reg>(mem.value).v) = res;
   }
 }
 
@@ -190,13 +189,11 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
   map = buildConstantOp(loadMap.mapfd);
   res = buildBinaryOp<ebpf::LoadMapOp>(getRegister(dst), map);
   setRegister(dst, res);
-  // m_registers.at(dst) = res;
 }
 
-void Deserialize::createMapLookUp(Call callOp) {
+void Deserialize::createNDOp() {
   Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
   setRegister(0, res);
-  // m_registers.at(0) = res;
 }
 
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
@@ -216,15 +213,15 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<LoadMapFd>(ins)) {
     auto mapOp = std::get<LoadMapFd>(ins);
-    // std::cerr << "LoadMapFd" << std::endl;
+    std::cerr << "LoadMapFd" << std::endl;
     createLoadMapOp(mapOp);
     return;
   } else if (std::holds_alternative<Call>(ins)) {
     auto callOp = std::get<Call>(ins);
     std::cerr << "-- call: " << callOp.func + 0 << std::endl;
+    createNDOp();
     if (callOp.is_map_lookup) {
       std::cerr << "Map Lookup" << std::endl;
-      createMapLookUp(callOp);
       return;
     }
     std::cerr << "Other Call" << std::endl;
@@ -232,6 +229,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
     std::cerr << "Callx" << std::endl;
+    createNDOp();
     return;
   } else if (std::holds_alternative<Exit>(ins)) {
     // std::cerr << "Exit" << std::endl;
