@@ -59,7 +59,8 @@ public:
   ///===----------------------------------------------------------------------===//
 
   OwningOpRef<mlir::FuncOp> buildXDPFunction();
-  void buildFunctionBody();
+  void buildMemFunctionBody();
+  void buildSSAFunctionBody();
 
 private:
   ///===----------------------------------------------------------------------===//

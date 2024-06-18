@@ -274,7 +274,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   assert(false && "unknown");
 }
 
-void Deserialize::buildFunctionBody() {
+void Deserialize::buildSSAFunctionBody() {
   // get first section
   InstructionSeq prog = m_sections.front();
   collectBlocks();
@@ -286,11 +286,9 @@ void Deserialize::buildFunctionBody() {
     m_builder.setInsertionPointToEnd(curBlock);
     std::cerr << "NEW block at: " << cur_op << std::endl;
     std::cerr << "  next: " << next << std::endl;
-    if (m_ssa) {
-      // setup registers to match block arguments
-      for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-        m_registers.at(i) = curBlock->getArgument(i);
-      }
+    // setup registers to match block arguments
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      m_registers.at(i) = curBlock->getArgument(i);
     }
     for (; cur_op < next; ++cur_op) {
       const LabeledInstruction &labeled_inst = prog.at(cur_op);
@@ -301,23 +299,17 @@ void Deserialize::buildFunctionBody() {
         !curBlock->back().mightHaveTrait<OpTrait::IsTerminator>()) {
       assert(m_jumpBlocks.contains(next));
       m_builder.setInsertionPointToEnd(curBlock);
-      if (m_ssa) {
-        m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
-                                   m_registers);
-      } else {
-        m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next));
-      }
+      m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next),
+                                 m_registers);
       std::cerr << "/**/ cpp block at: " << next << std::endl;
       m_lastBlock = m_jumpBlocks.at(next);
     }
   }
   if (cur_op < prog.size()) {
     m_builder.setInsertionPointToEnd(m_lastBlock);
-    if (m_ssa) {
-      // setup registers to match block arguments
-      for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-        m_registers.at(i) = m_lastBlock->getArgument(i);
-      }
+    // setup registers to match block arguments
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      m_registers.at(i) = m_lastBlock->getArgument(i);
     }
   }
   for (; cur_op < prog.size(); ++cur_op) {
@@ -325,10 +317,44 @@ void Deserialize::buildFunctionBody() {
     const auto &[label, ins, _] = labeled_inst;
     createMLIR(ins, label);
   }
-  // for (const LabeledInstruction& labeled_inst : prog) {
-  //   const auto& [label, ins, line_info] = labeled_inst;
-  //   createMLIR(ins, label);
-  // }
+  m_builder.setInsertionPointToEnd(m_lastBlock);
+}
+
+void Deserialize::buildMemFunctionBody() {
+  // get first section
+  InstructionSeq prog = m_sections.front();
+  collectBlocks();
+  std::cerr << prog.size() << " instructions" << std::endl;
+  size_t cur_op = 0;
+  for (const size_t next : m_startOfNextBlock) {
+    assert(m_jumpBlocks.contains(cur_op));
+    Block *curBlock = m_jumpBlocks.at(cur_op);
+    m_builder.setInsertionPointToEnd(curBlock);
+    std::cerr << "NEW block at: " << cur_op << std::endl;
+    std::cerr << "  next: " << next << std::endl;
+    for (; cur_op < next; ++cur_op) {
+      const LabeledInstruction &labeled_inst = prog.at(cur_op);
+      const auto &[label, ins, _] = labeled_inst;
+      createMLIR(ins, label);
+    }
+    if (curBlock->empty() ||
+        !curBlock->back().mightHaveTrait<OpTrait::IsTerminator>()) {
+      assert(m_jumpBlocks.contains(next));
+      m_builder.setInsertionPointToEnd(curBlock);
+      m_builder.create<BranchOp>(m_unknownLoc, m_jumpBlocks.at(next));
+      std::cerr << "/**/ cpp block at: " << next << std::endl;
+      m_lastBlock = m_jumpBlocks.at(next);
+    }
+  }
+  if (cur_op < prog.size()) {
+    m_builder.setInsertionPointToEnd(m_lastBlock);
+  }
+  for (; cur_op < prog.size(); ++cur_op) {
+    const LabeledInstruction &labeled_inst = prog.at(cur_op);
+    const auto &[label, ins, _] = labeled_inst;
+    createMLIR(ins, label);
+  }
+  m_builder.setInsertionPointToEnd(m_lastBlock);
 }
 
 void Deserialize::collectBlocks() {
@@ -370,6 +396,7 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   m_lastBlock = body;
   // setup registers
   m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
+  Value zero_offset = buildConstantOp(0);
   for (size_t i = 0; i < m_ebpfRegisters; ++i) {
     if (m_ssa) {
       m_registers.at(i) = body->getArgument(i);
@@ -377,18 +404,17 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
       Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
                                                    m_builder.getI64Type());
       m_registers.at(i) = reg;
-      // m_builder.create<ebpf::StoreOp>(m_unknownLoc, reg, zero_offset,
-      // body->getArgument(i));
+      m_builder.create<ebpf::StoreOp>(m_unknownLoc, reg, zero_offset,
+                                      body->getArgument(i));
     }
   }
-  // m_registers.at(REG::R1_ARG) = body->getArguments().front();
-  // m_registers.at(REG::R10_STACK_POINTER) = body->getArguments().back();
+
   // build function body
-  buildFunctionBody();
-  // add return statement at final block
-  m_builder.setInsertionPointToEnd(m_lastBlock);
   if (m_ssa) {
+    buildSSAFunctionBody();
     m_registers.at(REG::R0_RETURN_VALUE) = m_lastBlock->getArguments().front();
+  } else {
+    buildMemFunctionBody();
   }
   assert(m_registers.at(REG::R0_RETURN_VALUE) != nullptr);
   m_builder.create<ReturnOp>(m_unknownLoc,
