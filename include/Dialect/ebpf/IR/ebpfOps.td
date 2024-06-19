@@ -693,6 +693,25 @@ def ConstantOp : ebpf_Op<"constant", [ConstantLike, NoSideEffect]> {
   // clang-format on
 }
 
+def AssertOp : ebpf_Op<"assertt"> {
+  let summary = "ebpf assertion";
+  // clang-format off
+  let description = [{
+    This operation takes one boolean argument and terminates
+    the program if the condition does not hold.
+
+    Example :
+    
+    ```mlir
+    // Apply the assert operation to %0
+    ebpf.assert(%0)
+    ```
+  }];
+  let arguments = (ins I1 : $arg);
+  let assemblyFormat = "`(` $arg `)` attr-dict `,` type($arg)";
+  // clang-format on
+}
+
 // This operation takes three operands and returns no result,
 // each operand is required to be of the same type.
 //  The custom assembly form of the operation is as follows
