@@ -348,6 +348,45 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
     return success();
   }
 };
+
+struct AssertOpLowering : public ConvertOpToLLVMPattern<ebpf::AssertOp> {
+  using ConvertOpToLLVMPattern<ebpf::AssertOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::AssertOp assertOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = assertOp.getLoc();
+    // Insert the `__VERIFIER_error` declaration if necessary.
+    auto module = assertOp->getParentOfType<ModuleOp>();
+    auto verifierError = "__VERIFIER_error";
+    auto verifierErrorFunc =
+        module.lookupSymbol<LLVM::LLVMFuncOp>(verifierError);
+    if (!verifierErrorFunc) {
+      OpBuilder::InsertionGuard guard(rewriter);
+      rewriter.setInsertionPointToStart(module.getBody());
+      auto voidNoArgFuncTy = LLVM::LLVMFunctionType::get(
+          LLVM::LLVMVoidType::get(getContext()), {});
+      verifierErrorFunc = rewriter.create<LLVM::LLVMFuncOp>(
+          rewriter.getUnknownLoc(), verifierError, voidNoArgFuncTy);
+    }
+
+    // Split block at `assert` operation.
+    Block *opBlock = rewriter.getInsertionBlock();
+    auto opPosition = rewriter.getInsertionPoint();
+    Block *continuationBlock = rewriter.splitBlock(opBlock, opPosition);
+
+    // Generate IR to call `abort`.
+    Block *failureBlock = rewriter.createBlock(opBlock->getParent());
+    rewriter.create<LLVM::CallOp>(loc, verifierErrorFunc, llvm::None);
+    rewriter.create<LLVM::UnreachableOp>(loc);
+
+    // Generate assertion test.
+    rewriter.setInsertionPointToEnd(opBlock);
+    rewriter.replaceOpWithNewOp<LLVM::CondBrOp>(
+        assertOp, adaptor.arg(), continuationBlock, failureBlock);
+
+    return success();
+  }
+};
 } // end anonymous namespace
 
 //===----------------------------------------------------------------------===//
@@ -384,7 +423,8 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
                       ebpf::SWAP32, ebpf::SWAP64>();
 
   /// misc operators
-  target.addIllegalOp<ebpf::ConstantOp, ebpf::NDOp, ebpf::AllocaOp>();
+  target.addIllegalOp<ebpf::ConstantOp, ebpf::NDOp, ebpf::AllocaOp,
+                      ebpf::AssertOp>();
 
   /// binary operators
   // logical
@@ -422,7 +462,8 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
       StoreOpLowering, Store8OpLowering, Store16OpLowering, Store32OpLowering,
       LoadOpLowering, Load8OpLowering, Load16OpLowering, Load32OpLowering,
       MoveOpLowering, Move8OpLowering, Move16OpLowering, Move32OpLowering,
-      LoadMapOpLowering, NDOpLowering, AllocaOpLowering>(converter);
+      LoadMapOpLowering, NDOpLowering, AllocaOpLowering, AssertOpLowering>(
+      converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations

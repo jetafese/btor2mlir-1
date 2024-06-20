@@ -693,7 +693,7 @@ def ConstantOp : ebpf_Op<"constant", [ConstantLike, NoSideEffect]> {
   // clang-format on
 }
 
-def AssertOp : ebpf_Op<"assertt"> {
+def AssertOp : ebpf_Op<"assert"> {
   let summary = "ebpf assertion";
   // clang-format off
   let description = [{
@@ -708,7 +708,7 @@ def AssertOp : ebpf_Op<"assertt"> {
     ```
   }];
   let arguments = (ins I1 : $arg);
-  let assemblyFormat = "`(` $arg `)` attr-dict `,` type($arg)";
+  let assemblyFormat = "`(` $arg `)` attr-dict";
   // clang-format on
 }
 
