@@ -196,6 +196,13 @@ void Deserialize::createNDOp() {
   setRegister(0, res);
 }
 
+void Deserialize::createAssertOp() {
+  auto type = m_builder.getI1Type();
+  auto falseVal = m_builder.create<ebpf::ConstantOp>(
+      m_unknownLoc, type, m_builder.getIntegerAttr(type, 0));
+  m_builder.create<ebpf::AssertOp>(m_unknownLoc, falseVal);
+}
+
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cerr << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -219,6 +226,12 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   } else if (std::holds_alternative<Call>(ins)) {
     auto callOp = std::get<Call>(ins);
     std::cerr << "-- call: " << callOp.func + 0 << std::endl;
+    std::size_t found = callOp.name.find("get_prandom");
+    if (found != std::string::npos) {
+      createAssertOp();
+      return;
+    }
+
     createNDOp();
     if (callOp.is_map_lookup) {
       std::cerr << "Map Lookup" << std::endl;

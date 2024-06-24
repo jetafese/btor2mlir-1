@@ -128,6 +128,7 @@ private:
   void createLoadMapOp(LoadMapFd loadMap);
   void createNDOp();
   void collectBlocks();
+  void createAssertOp();
 
   void updateBlocksMap(Block *block, size_t firstOp) {
     m_blocks.push_back(block);
