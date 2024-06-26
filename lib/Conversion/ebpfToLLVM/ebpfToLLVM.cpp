@@ -119,11 +119,12 @@ struct Store8OpLowering : public ConvertOpToLLVMPattern<ebpf::Store8Op> {
     auto loc = store8Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    /* mask to isolate the 8bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_8));
-    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
-    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store8Op, base, offset, newVal);
+    auto newVal =
+        rewriter.create<LLVM::TruncOp>(loc, rewriter.getI8Type(), val);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store8Op, newVal, reg);
     return success();
   }
 };
@@ -136,11 +137,12 @@ struct Store16OpLowering : public ConvertOpToLLVMPattern<ebpf::Store16Op> {
     auto loc = store16Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    /* mask to isolate the 16bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_16));
-    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
-    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store16Op, base, offset, newVal);
+    auto newVal =
+        rewriter.create<LLVM::TruncOp>(loc, rewriter.getIntegerType(16), val);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store16Op, newVal, reg);
     return success();
   }
 };
@@ -153,11 +155,12 @@ struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
     auto loc = store32Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    /* mask to isolate the 32bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_32));
-    auto newVal = rewriter.create<LLVM::AndOp>(loc, val, mask);
-    rewriter.replaceOpWithNewOp<ebpf::StoreOp>(store32Op, base, offset, newVal);
+    auto newVal =
+        rewriter.create<LLVM::TruncOp>(loc, rewriter.getI32Type(), val);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, reg);
     return success();
   }
 };
