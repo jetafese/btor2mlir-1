@@ -386,15 +386,40 @@ void Deserialize::collectBlocks() {
   std::cerr << "we need " << m_numBlocks << " blocks" << std::endl;
 }
 
+void Deserialize::setupRegisters(Block *body) {
+  m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
+  if (m_ssa) {
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      setRegister(i, body->getArgument(i));
+    }
+  } else {
+    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
+                                                   m_builder.getI64Type());
+      m_registers.at(i) = reg;
+    }
+    /* r1 and r10 are pointers to ctx and stack respectively*/
+    Value zero_offset = buildConstantOp(0);
+    m_builder.create<ebpf::StoreOp>(m_unknownLoc, m_registers.at(REG::R1_ARG),
+                                    zero_offset, body->getArgument(0));
+    m_builder.create<ebpf::StoreOp>(m_unknownLoc,
+                                    m_registers.at(REG::R10_STACK_POINTER),
+                                    zero_offset, body->getArgument(1));
+  }
+}
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   auto regType = m_builder.getI64Type();
-  std::vector<Type> argTypes(m_ebpfRegisters, regType);
-  // create xdp_entry function with two pointer parameters
+  std::vector<Type> argTypes =
+      m_ssa ? std::vector<Type>(m_ebpfRegisters, regType)
+            : std::vector<Type>(m_xdpParameters, regType);
+  // create xdp_entry function with parameters
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
   FuncOp::build(m_builder, state, "xdp_entry",
                 FunctionType::get(m_context, {argTypes}, {regType}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
-  std::vector<Location> argLocs(m_ebpfRegisters, funcOp->getLoc());
+  std::vector<Location> argLocs =
+      m_ssa ? std::vector<Location>(m_ebpfRegisters, funcOp->getLoc())
+            : std::vector<Location>(m_xdpParameters, funcOp->getLoc());
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
   auto *body = m_builder.createBlock(&region, {}, {argTypes}, {argLocs});
@@ -403,28 +428,11 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   updateBlocksMap(body, 0);
   m_lastBlock = body;
   // setup registers
-  m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
-  Value zero_offset = buildConstantOp(0);
-  for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-    if (m_ssa) {
-      setRegister(i, body->getArgument(i));
-      // m_registers.at(i) = body->getArgument(i);
-    } else {
-      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
-                                                   m_builder.getI64Type());
-      // setRegister(i, reg);
-      m_registers.at(i) = reg;
-      m_builder.create<ebpf::StoreOp>(m_unknownLoc, reg, zero_offset,
-                                      body->getArgument(i));
-    }
-  }
-
+  setupRegisters(body);
   // build function body
   if (m_ssa) {
     buildSSAFunctionBody();
     setRegister(REG::R0_RETURN_VALUE, m_lastBlock->getArguments().front());
-    // m_registers.at(REG::R0_RETURN_VALUE) =
-    // m_lastBlock->getArguments().front();
   } else {
     buildMemFunctionBody();
   }

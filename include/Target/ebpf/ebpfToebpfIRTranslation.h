@@ -70,7 +70,7 @@ private:
   std::ifstream m_modelFile;
   StringAttr m_sourceFile = nullptr;
   const size_t m_ebpfRegisters = 11;
-  // const size_t m_xdpParameters = 2;
+  const size_t m_xdpParameters = 2;
 
   enum REG : size_t {
     R0_RETURN_VALUE = 0,
@@ -120,6 +120,7 @@ private:
   Block *m_lastBlock = nullptr;
   std::map<size_t, Block *> m_jumpBlocks;
 
+  void setupRegisters(Block *block);
   void createMLIR(Instruction ins, label_t cur_label);
   void createJmpOp(Jmp jmp, label_t cur_label);
   void createBinaryOp(Bin bin);
