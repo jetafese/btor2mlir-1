@@ -75,8 +75,7 @@ void Deserialize::createUnaryOp(Un un) {
 
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
-  Value rhs, lhs, res;
-  lhs = getRegister(bin.dst.v);
+  Value rhs, res;
   if (std::holds_alternative<Imm>(bin.v)) {
     rhs = buildConstantOp(std::get<Imm>(bin.v));
   } else {
@@ -102,43 +101,43 @@ void Deserialize::createBinaryOp(Bin bin) {
                                         buildConstantOp(MINUS1_32));
     break;
   case Op::ADD:
-    res = buildBinaryOp<ebpf::AddOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::AddOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::SUB:
-    res = buildBinaryOp<ebpf::SubOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::SubOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::MUL:
-    res = buildBinaryOp<ebpf::MulOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::MulOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::UDIV:
-    res = buildBinaryOp<ebpf::UDivOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::UDivOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::SDIV:
-    res = buildBinaryOp<ebpf::SDivOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::SDivOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::UMOD:
-    res = buildBinaryOp<ebpf::UModOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::UModOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::SMOD:
-    res = buildBinaryOp<ebpf::SModOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::SModOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::OR:
-    res = buildBinaryOp<ebpf::OrOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::OrOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::AND:
-    res = buildBinaryOp<ebpf::AndOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::AndOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::LSH:
-    res = buildBinaryOp<ebpf::LSHOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::LSHOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::RSH:
-    res = buildBinaryOp<ebpf::RSHOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::RSHOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::ARSH:
-    res = buildBinaryOp<ebpf::ShiftRAOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::ShiftRAOp>(getRegister(bin.dst.v), rhs);
     break;
   case Op::XOR:
-    res = buildBinaryOp<ebpf::XOrOp>(lhs, rhs);
+    res = buildBinaryOp<ebpf::XOrOp>(getRegister(bin.dst.v), rhs);
     break;
   }
   setRegister(bin.dst.v, res);
