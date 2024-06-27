@@ -414,7 +414,7 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
             : std::vector<Type>(m_xdpParameters, regType);
   // create xdp_entry function with parameters
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
-  FuncOp::build(m_builder, state, "xdp_entry",
+  FuncOp::build(m_builder, state, m_xdp_entry,
                 FunctionType::get(m_context, {argTypes}, {regType}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
   std::vector<Location> argLocs =
@@ -438,6 +438,23 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   }
   assert(getRegister(REG::R0_RETURN_VALUE) != nullptr);
   m_builder.create<ReturnOp>(m_unknownLoc, getRegister(REG::R0_RETURN_VALUE));
+  return funcOp;
+}
+
+OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
+  OperationState state(m_unknownLoc, FuncOp::getOperationName());
+  FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {}));
+  OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
+  Region &region = funcOp->getBody();
+  OpBuilder::InsertionGuard guard(m_builder);
+  auto *body = m_builder.createBlock(&region, {}, {}, {});
+  m_builder.setInsertionPointToStart(body);
+  /* setup constants*/
+  Value val = buildConstantOp(10);
+  auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
+  assert(xdpEntryFunc);
+  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc, ValueRange({val, val}));
+  m_builder.create<ReturnOp>(m_unknownLoc);
   return funcOp;
 }
 
@@ -478,10 +495,17 @@ static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
   Deserialize deserialize(context, input->getBufferIdentifier().str(), ssa);
   if (deserialize.parseModelIsSuccessful()) {
     OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
-    if (!XDPFunc)
+    if (!XDPFunc) {
       return owningModule;
-
+    }
     owningModule->getBody()->push_back(XDPFunc.release());
+
+    OwningOpRef<FuncOp> mainFunc =
+        deserialize.buildMainFunction(owningModule.get());
+    if (!mainFunc) {
+      return owningModule;
+    }
+    owningModule->getBody()->push_back(mainFunc.release());
   }
 
   return owningModule;

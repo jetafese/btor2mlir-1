@@ -20,6 +20,7 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <string>
 
 #include "ebpf_verifier.hpp"
 
@@ -59,6 +60,7 @@ public:
   ///===----------------------------------------------------------------------===//
 
   OwningOpRef<mlir::FuncOp> buildXDPFunction();
+  OwningOpRef<mlir::FuncOp> buildMainFunction(mlir::ModuleOp module);
   void buildMemFunctionBody();
   void buildSSAFunctionBody();
 
@@ -71,6 +73,7 @@ private:
   StringAttr m_sourceFile = nullptr;
   const size_t m_ebpfRegisters = 11;
   const size_t m_xdpParameters = 2;
+  const std::string m_xdp_entry = "xdp_entry";
 
   enum REG : size_t {
     R0_RETURN_VALUE = 0,
