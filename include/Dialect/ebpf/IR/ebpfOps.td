@@ -635,12 +635,11 @@ def SWAP64 : ebpfUnaryOp<"swap64"> {
   // clang-format on
 }
 
-def AllocaOp : ebpf_Op<"alloca"> {
+def AllocaOp : ebpfUnaryOp<"alloca"> {
   let summary = "alloca op";
   // clang-format off
   let description = [{
-    The `alloca` operation takes nothing returns a 64bit 
-    int to use as a pointer.
+    The `alloca` operation takes a size and returns a 64bit integer.
 
     Example:
 
@@ -648,8 +647,6 @@ def AllocaOp : ebpf_Op<"alloca"> {
     %a = ebpf.alloca %s : i64
     ```
   }];
-  let results = (outs SignlessIntegerLike : $result);
-  let assemblyFormat = " attr-dict `:` type($result)";
   // clang-format on
 }
 

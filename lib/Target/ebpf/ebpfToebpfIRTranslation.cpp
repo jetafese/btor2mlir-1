@@ -393,9 +393,9 @@ void Deserialize::setupRegisters(Block *body) {
       setRegister(i, body->getArgument(i));
     }
   } else {
+    Value allocaSize = buildConstantOp(1);
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc,
-                                                   m_builder.getI64Type());
+      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, allocaSize);
       m_registers.at(i) = reg;
     }
     /* r1 and r10 are pointers to ctx and stack respectively*/
@@ -449,11 +449,16 @@ OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   OpBuilder::InsertionGuard guard(m_builder);
   auto *body = m_builder.createBlock(&region, {}, {}, {});
   m_builder.setInsertionPointToStart(body);
-  /* setup constants*/
-  Value val = buildConstantOp(10);
+  /* setup ctx, stack*/
+  Value ctx = buildConstantOp(m_xdp_ctx);
+  Value stack = buildConstantOp(m_ebpf_stack);
+  auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
+  auto stackPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
+  /* call xdp_entry*/
   auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
   assert(xdpEntryFunc);
-  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc, ValueRange({val, val}));
+  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
+                           ValueRange({ctxPtr, stackPtr}));
   m_builder.create<ReturnOp>(m_unknownLoc);
   return funcOp;
 }

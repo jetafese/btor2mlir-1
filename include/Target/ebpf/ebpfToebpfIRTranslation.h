@@ -72,7 +72,9 @@ private:
   std::ifstream m_modelFile;
   StringAttr m_sourceFile = nullptr;
   const size_t m_ebpfRegisters = 11;
+  const size_t m_ebpf_stack = 512;
   const size_t m_xdpParameters = 2;
+  const size_t m_xdp_ctx = 4096;
   const std::string m_xdp_entry = "xdp_entry";
 
   enum REG : size_t {

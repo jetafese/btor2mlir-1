@@ -345,8 +345,7 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = allocaOp.getLoc();
     auto i64Type = rewriter.getI64Type();
-    auto size = rewriter.create<LLVM::ConstantOp>(
-        loc, i64Type, rewriter.getI64IntegerAttr(1));
+    auto size = adaptor.operand();
     auto llvmAlloca = rewriter.create<LLVM::AllocaOp>(
         loc, LLVM::LLVMPointerType::get(i64Type), size, 8);
     rewriter.replaceOpWithNewOp<LLVM::PtrToIntOp>(allocaOp, i64Type,
