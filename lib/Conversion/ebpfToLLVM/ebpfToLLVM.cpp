@@ -123,7 +123,7 @@ struct Store8OpLowering : public ConvertOpToLLVMPattern<ebpf::Store8Op> {
         rewriter.create<LLVM::TruncOp>(loc, rewriter.getI8Type(), val);
     Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
     auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+        loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), addr);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store8Op, newVal, reg);
     return success();
   }
@@ -141,7 +141,7 @@ struct Store16OpLowering : public ConvertOpToLLVMPattern<ebpf::Store16Op> {
         rewriter.create<LLVM::TruncOp>(loc, rewriter.getIntegerType(16), val);
     Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
     auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+        loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), addr);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store16Op, newVal, reg);
     return success();
   }
@@ -159,7 +159,7 @@ struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
         rewriter.create<LLVM::TruncOp>(loc, rewriter.getI32Type(), val);
     Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
     auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, reg);
     return success();
   }
