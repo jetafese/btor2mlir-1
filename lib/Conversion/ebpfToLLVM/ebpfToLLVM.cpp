@@ -188,11 +188,12 @@ struct Load8OpLowering : public ConvertOpToLLVMPattern<ebpf::Load8Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load8Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
-    /* mask to isolate the 8bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_8));
-    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load8Op, val, mask);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), addr);
+    auto val = rewriter.create<LLVM::LoadOp>(loc, reg);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load8Op, rewriter.getI64Type(),
+                                              val);
     return success();
   }
 };
@@ -204,11 +205,12 @@ struct Load16OpLowering : public ConvertOpToLLVMPattern<ebpf::Load16Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load16Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
-    /* mask to isolate the 16bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_16));
-    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load16Op, val, mask);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), addr);
+    auto val = rewriter.create<LLVM::LoadOp>(loc, reg);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load16Op, rewriter.getI64Type(),
+                                              val);
     return success();
   }
 };
@@ -220,11 +222,12 @@ struct Load32OpLowering : public ConvertOpToLLVMPattern<ebpf::Load32Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load32Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    auto val = rewriter.create<ebpf::LoadOp>(loc, base, offset);
-    /* mask to isolate the 32bits*/
-    auto mask = rewriter.create<LLVM::ConstantOp>(
-        loc, rewriter.getI64Type(), rewriter.getI64IntegerAttr(MINUS1_32));
-    rewriter.replaceOpWithNewOp<LLVM::AndOp>(load32Op, val, mask);
+    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    auto reg = rewriter.create<LLVM::IntToPtrOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
+    auto val = rewriter.create<LLVM::LoadOp>(loc, reg);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load32Op, rewriter.getI64Type(),
+                                              val);
     return success();
   }
 };
