@@ -10,6 +10,7 @@
 #define EBPF_OPS
 
 include "ebpfBase.td"
+include "Dialect/ebpf/IR/ebpfTypes.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/OpAsmInterface.td"

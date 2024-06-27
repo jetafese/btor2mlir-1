@@ -1,6 +1,7 @@
 add_mlir_dialect_library(MLIRebpf
         IR/ebpfDialect.cpp
         IR/ebpfOps.cpp
+        IR/ebpfTypes.cpp
 
         ADDITIONAL_HEADER_DIRS
         ${PROJECT_SOURCE_DIR}/include/Dialect/ebpf

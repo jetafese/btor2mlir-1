@@ -43,6 +43,12 @@ def ebpf_Dialect : Dialect {
     let name = "ebpf";
     let summary = "An EBPF MLIR dialect";
     let cppNamespace = "::mlir::ebpf";
+    let extraClassDeclaration = [{
+    private:
+            // Register the custom ebpf Types.
+            void registerTypes();
+    public:
+    }];
 }
 
 #endif // EBPF_DIALECT
