@@ -11,6 +11,8 @@
 
 include "ebpfBase.td"
 include "Dialect/ebpf/IR/ebpfTypes.td"
+include "Dialect/ebpf/IR/ebpfAttributes.td"
+
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/OpAsmInterface.td"

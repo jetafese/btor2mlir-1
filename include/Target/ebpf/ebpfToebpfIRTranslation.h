@@ -8,6 +8,7 @@
 #define TARGET_EBPF_EBPFTOEBPFIRTRANSLATION_H
 
 #include "Dialect/ebpf/IR/ebpf.h"
+#include "Dialect/ebpf/IR/ebpfTypes.h"
 
 #include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
