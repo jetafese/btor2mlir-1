@@ -712,6 +712,25 @@ def AssertOp : ebpf_Op<"assert"> {
   // clang-format on
 }
 
+def MemOp : ebpf_Op<"mem"> {
+  let summary = "ebpf memory havoc operation";
+  // clang-format off
+  let description = [{
+    This operation takes no argument and returns a pointer
+    to a memory location of specified size.
+
+    Example :
+    
+    ```mlir
+    %1 = ebpf.mem : <4096>
+    ```
+  }];
+  // let arguments = (ins I1 : $arg);
+  let results = (outs ebpf_mem : $result);
+  let assemblyFormat = " attr-dict `:` type($result)";
+  // clang-format on
+}
+
 // This operation takes three operands and returns no result,
 // each operand is required to be of the same type.
 //  The custom assembly form of the operation is as follows

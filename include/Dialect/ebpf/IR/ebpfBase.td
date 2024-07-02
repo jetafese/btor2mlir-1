@@ -30,4 +30,13 @@ def ebpf_Dialect : Dialect {
     }];
 }
 
+//===----------------------------------------------------------------------===//
+// ebpf type constraints.
+//===----------------------------------------------------------------------===//
+
+// Type constraint accepting any LLVM non-aggregate type, i.e. not structure or
+// array.
+def ebpf_RegType : Type<CPred<"!$_self.isa<::mlir::ebpf::ebpf_memType, "
+                         "::mlir::SignlessIntegerLine>()">>;
+
 #endif // EBPF_DIALECT

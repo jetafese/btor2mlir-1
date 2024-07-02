@@ -21,6 +21,8 @@ using namespace mlir::ebpf;
 //===----------------------------------------------------------------------===//
 
 void ebpfDialect::initialize() {
+  registerTypes();
+  registerAttrs();
   addOperations<
 #define GET_OP_LIST
 #include "Dialect/ebpf/IR/ebpfOps.cpp.inc"
