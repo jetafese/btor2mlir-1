@@ -449,16 +449,23 @@ OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   OpBuilder::InsertionGuard guard(m_builder);
   auto *body = m_builder.createBlock(&region, {}, {}, {});
   m_builder.setInsertionPointToStart(body);
-  /* setup ctx, stack*/
-  Value ctx = buildConstantOp(m_xdp_ctx);
+  /* setup ctx, stack, packet*/
+  Value ctx = buildConstantOp(2);
+  Value pkt = buildConstantOp(m_xdp_pkt);
   Value stack = buildConstantOp(m_ebpf_stack);
+  auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
+  /* TODO: initialize packet */
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
-  auto stackPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
-  /* call xdp_entry*/
+  /* TODO: initialize ctx so that data begin/end point to pkt begin/end */
+  auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
+  /* TODO: initialzie stack; stack ptr should point to end of stack*/
+  // auto stackPtr = m_builder.create<ebpf::AddOp>(
+  //     m_unknownLoc, stackBlock, buildConstantOp(m_ebpf_stack - 8));
+  /* call xdp_entry */
   auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
   assert(xdpEntryFunc);
   m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
-                           ValueRange({ctxPtr, stackPtr}));
+                           ValueRange({ctxPtr, stackBlock}));
   m_builder.create<ReturnOp>(m_unknownLoc);
   return funcOp;
 }

@@ -103,10 +103,18 @@ struct StoreOpLowering : public ConvertOpToLLVMPattern<ebpf::StoreOp> {
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
 
-    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
-    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, reg);
+    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
+    //     loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, reg);
+    auto reg =
+        rewriter
+            .create<UnrealizedConversionCastOp>(
+                loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), base)
+            .getResult(0);
+    auto gep = rewriter.create<LLVM::GEPOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), reg, offset);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, gep);
     return success();
   }
 };
@@ -157,10 +165,18 @@ struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
     auto val = adaptor.rhs();
     auto newVal =
         rewriter.create<LLVM::TruncOp>(loc, rewriter.getI32Type(), val);
-    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
-    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, reg);
+    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
+    //     loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
+    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, reg);
+    auto reg =
+        rewriter
+            .create<UnrealizedConversionCastOp>(
+                loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), base)
+            .getResult(0);
+    auto gep = rewriter.create<LLVM::GEPOp>(
+        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), reg, offset);
+    rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, gep);
     return success();
   }
 };
@@ -173,9 +189,15 @@ struct LoadOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadOp> {
     auto loc = loadOp.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
 
-    Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    auto reg = rewriter.create<LLVM::IntToPtrOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
+    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
+    //     loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
+    // rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, reg);
+    auto reg =
+        rewriter
+            .create<UnrealizedConversionCastOp>(
+                loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), base)
+            .getResult(0);
     rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, reg);
     return success();
   }
@@ -346,10 +368,12 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
     auto loc = allocaOp.getLoc();
     auto i64Type = rewriter.getI64Type();
     auto size = adaptor.operand();
-    auto llvmAlloca = rewriter.create<LLVM::AllocaOp>(
-        loc, LLVM::LLVMPointerType::get(i64Type), size, 8);
-    rewriter.replaceOpWithNewOp<LLVM::PtrToIntOp>(allocaOp, i64Type,
-                                                  llvmAlloca);
+    // auto llvmAlloca = rewriter.create<LLVM::AllocaOp>(
+    //     loc, LLVM::LLVMPointerType::get(i64Type), size, 8);
+    rewriter.replaceOpWithNewOp<LLVM::AllocaOp>(
+        allocaOp, LLVM::LLVMPointerType::get(i64Type), size, 8);
+    // rewriter.replaceOpWithNewOp<LLVM::PtrToIntOp>(allocaOp, i64Type,
+    //                                               llvmAlloca);
     return success();
   }
 };
