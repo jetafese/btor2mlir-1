@@ -126,6 +126,7 @@ private:
   Block *m_lastBlock = nullptr;
   std::map<size_t, Block *> m_jumpBlocks;
 
+  void setupXDPEntry(mlir::ModuleOp module);
   void setupRegisters(Block *block);
   void createMLIR(Instruction ins, label_t cur_label);
   void createJmpOp(Jmp jmp, label_t cur_label);

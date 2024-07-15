@@ -441,6 +441,31 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   return funcOp;
 }
 
+void Deserialize::setupXDPEntry(ModuleOp module) {
+  /* setup packet, ctx */
+  Value pkt = buildConstantOp(m_xdp_pkt);
+  auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
+  m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, pktPtr, pkt);
+  Value endOfPkt = buildConstantOp(m_ebpf_stack-1);
+  auto endPktPtr = m_builder.create<ebpf::LoadOp>(m_unknownLoc, pktPtr, endOfPkt);
+  /* initialize ctx so that data begin/end point to pkt begin/end */
+  Value ctx = buildConstantOp(2);
+  auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
+  m_builder.create<ebpf::StoreOp>(m_unknownLoc, ctxPtr, buildConstantOp(0), pktPtr);
+  m_builder.create<ebpf::StoreOp>(m_unknownLoc, ctxPtr, buildConstantOp(1), endPktPtr);
+  /* initialzie stack; stack ptr should point to end of stack*/
+  Value stack = buildConstantOp(m_ebpf_stack);
+  auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
+  m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, stackBlock, stack);
+  Value endOfStack = buildConstantOp(m_ebpf_stack-8);
+  auto stackPtr = m_builder.create<ebpf::LoadOp>(m_unknownLoc, stackBlock, endOfStack);
+  /* call xdp_entry */
+  auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
+  assert(xdpEntryFunc);
+  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
+                           ValueRange({ctxPtr, stackPtr}));
+}
+
 OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
   FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {}));
@@ -450,22 +475,7 @@ OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   auto *body = m_builder.createBlock(&region, {}, {}, {});
   m_builder.setInsertionPointToStart(body);
   /* setup ctx, stack, packet*/
-  Value ctx = buildConstantOp(2);
-  Value pkt = buildConstantOp(m_xdp_pkt);
-  Value stack = buildConstantOp(m_ebpf_stack);
-  auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
-  /* TODO: initialize packet */
-  auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
-  /* TODO: initialize ctx so that data begin/end point to pkt begin/end */
-  auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
-  /* TODO: initialzie stack; stack ptr should point to end of stack*/
-  // auto stackPtr = m_builder.create<ebpf::AddOp>(
-  //     m_unknownLoc, stackBlock, buildConstantOp(m_ebpf_stack - 8));
-  /* call xdp_entry */
-  auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
-  assert(xdpEntryFunc);
-  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
-                           ValueRange({ctxPtr, stackBlock}));
+  setupXDPEntry(module);
   m_builder.create<ReturnOp>(m_unknownLoc);
   return funcOp;
 }

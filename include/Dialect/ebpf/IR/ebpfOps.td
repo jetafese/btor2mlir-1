@@ -712,22 +712,21 @@ def AssertOp : ebpf_Op<"assert"> {
   // clang-format on
 }
 
-def MemOp : ebpf_Op<"mem"> {
+def MemHavocOp : ebpf_Op<"memhavoc", [SameTypeOperands]> {
   let summary = "ebpf memory havoc operation";
   // clang-format off
   let description = [{
-    This operation takes no argument and returns a pointer
-    to a memory location of specified size.
+    This operation takes a pointer to memory, and a size argument
+    and returns nothing.
 
     Example :
     
     ```mlir
-    %1 = ebpf.mem : <4096>
+    ebpf.mem %0, %1 : i64
     ```
   }];
-  // let arguments = (ins I1 : $arg);
-  let results = (outs ebpf_mem : $result);
-  let assemblyFormat = " attr-dict `:` type($result)";
+  let arguments = (ins SignlessIntegerLike : $ptr, SignlessIntegerLike : $size);
+  let assemblyFormat = "$ptr `,` $size attr-dict `:` type($size)";
   // clang-format on
 }
 
