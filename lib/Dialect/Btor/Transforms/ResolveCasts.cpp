@@ -91,32 +91,3 @@ struct ResolveCastsPass : public ResolveCastsBase<ResolveCastsPass> {
 std::unique_ptr<mlir::Pass> mlir::btor::resolveCasts() {
   return std::make_unique<ResolveCastsPass>();
 }
-
-// /// @brief Determine if a writeOp is used by non-branch operations
-// /// @param Btor WriteOp
-// /// @return success/failure wrapped in LogicalResult
-// LogicalResult mlir::btor::resultIsLiveAfter(btor::WriteOp &op) {
-//   auto opPtr = op.getOperation();
-//   auto blockPtr = opPtr->getBlock();
-//   Value resValue = op.result();
-//   if (resValue.use_empty()) {
-//     return failure();
-//   }
-
-//   assert(opPtr != nullptr);
-//   assert(blockPtr != nullptr);
-//   assert(!resValue.isUsedOutsideOfBlock(blockPtr));
-//   assert(resValue.hasOneUse());
-//   if (!resValue.hasOneUse()) {
-//     return failure();
-//   }
-//   auto use = resValue.user_begin();
-//   auto useOp = use.getCurrent().getUser();
-//   LogicalResult status =
-//       llvm::TypeSwitch<Operation *, LogicalResult>(useOp)
-//           .Case<mlir::BranchOp>(
-//               [&](auto brOp) { return usedInWritePattern(op); })
-//           .Case<btor::IteOp>([&](auto op) { return usedInITEPattern(op); })
-//           .Default([&](Operation *) { return failure(); });
-//   return status;
-// }
