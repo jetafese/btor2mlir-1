@@ -11,9 +11,6 @@
 #include "PassDetail.h"
 
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
-// #include "mlir/Dialect/StandardOps/IR/Ops.h"
-// #include "mlir/Transforms/DialectConversion.h"
-// #include "llvm/ADT/TypeSwitch.h"
 
 using namespace mlir;
 using namespace btor;
