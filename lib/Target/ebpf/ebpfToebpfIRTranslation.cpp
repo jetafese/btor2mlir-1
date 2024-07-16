@@ -436,8 +436,9 @@ OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   } else {
     buildMemFunctionBody();
   }
-  assert(getRegister(REG::R0_RETURN_VALUE) != nullptr);
-  m_builder.create<ReturnOp>(m_unknownLoc, getRegister(REG::R0_RETURN_VALUE));
+  Value ret = getRegister(REG::R0_RETURN_VALUE);
+  assert(ret != nullptr);
+  m_builder.create<ReturnOp>(m_unknownLoc, ret);
   return funcOp;
 }
 
