@@ -21,10 +21,12 @@
 
 #include "Conversion/Passes.h"
 #include "Dialect/ebpf/IR/ebpf.h"
+#include "Dialect/ebpf/Transforms/Passes.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
   mlir::ebpf::registerConvertebpfToLLVMPass();
+  mlir::ebpf::registerebpfTransformPasses();
 
   mlir::DialectRegistry registry;
   registry.insert<mlir::ebpf::ebpfDialect>();

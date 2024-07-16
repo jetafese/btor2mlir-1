@@ -393,6 +393,22 @@ def LoadOp : ebpfBinaryOp<"load"> {
   // clang-format on
 }
 
+def LoadAddrOp : ebpfBinaryOp<"loadAddr"> {
+  let summary = "memory load address operation";
+  // clang-format off
+  let description = [{
+    The `load` operation loads a 64bit value to a register.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.load %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 def Load32Op : ebpfBinaryOp<"load32"> {
   let summary = "memory load32 operation";
   // clang-format off
