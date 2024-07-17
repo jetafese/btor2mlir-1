@@ -18,27 +18,13 @@ using namespace mlir;
 using namespace ebpf;
 
 namespace {
-// bool isCastOp(Operation &op) {
-//   return isa<mlir::UnrealizedConversionCastOp>(op);
-// }
-
-// bool isCastOp(Operation *op) {
-//   return isa<mlir::UnrealizedConversionCastOp>(op);
-// }
-
-// bool usedByCastOp(Value &use) {
-//   auto user = use.getUses().begin().getUser();
-//   assert(user->getResults().size() == 1);
-//   return isCastOp(user);
-// }
-
 /// @brief Resolve ebpf memory loads when loading an address
 /// @param root
 /// @return LogicalResult
 template <typename loadOp>
 LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   bool expectAddr = false, expectInt = false;
-  bool replaceWithMem = true;
+  bool replaceWithMem = true, keepAsIs = true;
   for (auto &use : op.getResult().getUses()) {
     expectAddr = false, expectInt = false;
     if (isa<ebpf::StoreOp>(use.getOwner())) {
@@ -86,10 +72,10 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
         std::cerr << "xxxxxxxxxxxx" << std::endl;
     }
     assert ((expectAddr && !expectInt) || (!expectAddr && expectInt));
-    replaceWithMem &= expectAddr;
+    replaceWithMem &= expectAddr; keepAsIs &= expectInt;
     assert ((replaceWithMem && !expectInt) || (!replaceWithMem && expectInt));
   }
-  if (!replaceWithMem) { return failure(); }
+  if (keepAsIs) { return failure(); }
   if (isa<ebpf::LoadOp>(op)) {
     ebpf::LoadOp temp = cast<ebpf::LoadOp>(op);
     auto opPtr = temp.getOperation();
@@ -101,40 +87,11 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
         temp.getLoc(), temp.getType(), temp.lhs(), temp.rhs());
     opResult.replaceAllUsesWith(loadAddr);
     assert(opResult.use_empty());
-    // opPtr->erase();
-    // assert(opPtr->use_empty());
   }
   return success();
 }
 
 struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
-  //   void runOnOperation() override {
-  //     Operation *rootOp = getOperation();
-  //     auto module = rootOp->getParentOfType<ModuleOp>();
-  //     auto xdpEntryFunc = module.lookupSymbol<FuncOp>("xdp_entry");
-  //     assert(xdpEntryFunc);
-  // auto module_regions = module->getRegions();
-  // std::cerr << "there are " << module_regions.size() << " module regions"
-  //           << std::endl;
-  // assert(module_regions.size() == 1 && "there isn't only one module region");
-  // auto &blocks = module_regions.front().getBlocks();
-  // auto &funcOp = blocks.front().getOperations().back();
-  // std::cerr << "there are " << funcOp.getRegions().size() << " regions"
-  //           << std::endl;
-  // auto &regions = funcOp.getRegion(0);
-  // std::cerr << "there are " << regions.getBlocks().size()
-  //           << " blocks in first function" << std::endl;
-  // //     auto &regions = funcOp.getRegion(1);
-  // // std::cerr << "there are " <<regions.getBlocks().size() << " blocks in
-  // // second function" << std::endl; assert(regions.getBlocks().size() == 2);
-  // // assert(module_regions.size() == 1 && "there isn't only one region");
-  // for (auto &block : regions.getBlocks()) {
-  //   for (Operation &op : block.getOperations()) {
-  //     op.dump();
-  //   }
-  // }
-  // std::cerr << "did something with a function" << std::endl;
-  //   }
   void runOnOperation() override {
     Operation *rootOp = getOperation();
     auto module_regions = rootOp->getRegions();
@@ -148,10 +105,6 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
     auto &regions = funcOp.getRegion(0);
     std::cerr << "there are " << regions.getBlocks().size()
               << " blocks in first function" << std::endl;
-    //     auto &regions = funcOp.getRegion(1);
-    // std::cerr << "there are " <<regions.getBlocks().size() << " blocks in
-    // second function" << std::endl; assert(regions.getBlocks().size() == 2);
-    // assert(module_regions.size() == 1 && "there isn't only one region");
     auto rescanAfterChanges = 1;
     for (auto i = 0; i < rescanAfterChanges; ++i) {
       for (auto &block : regions.getBlocks()) {
@@ -170,7 +123,7 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
                       [&](auto op) { return replaceLoadWithLoadAddress(op); })
                   .Default([&](Operation *) { return failure(); });
           if (status.succeeded()) {
-            // rescanAfterChanges++;
+            rescanAfterChanges++;
           }
         }
       }

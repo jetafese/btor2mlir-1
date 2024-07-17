@@ -102,18 +102,13 @@ struct StoreOpLowering : public ConvertOpToLLVMPattern<ebpf::StoreOp> {
     auto loc = storeOp.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
 
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
-    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, reg);
     auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), base)
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), reg, offset);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i64PtrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeOp, val, gep);
     return success();
   }
@@ -127,19 +122,17 @@ struct Store8OpLowering : public ConvertOpToLLVMPattern<ebpf::Store8Op> {
     auto loc = store8Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    auto newVal =
-        rewriter.create<LLVM::TruncOp>(loc, rewriter.getI8Type(), val);
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), addr);
-    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store8Op, newVal, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), base)
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i8Type = rewriter.getI8Type();
+    Type i8PtrType = LLVM::LLVMPointerType::get(i8Type);
+
+    auto newVal = rewriter.create<LLVM::TruncOp>(loc, i8Type, val);
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), reg, offset);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i8PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i8PtrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store8Op, newVal, gep);
     return success();
   }
@@ -153,21 +146,18 @@ struct Store16OpLowering : public ConvertOpToLLVMPattern<ebpf::Store16Op> {
     auto loc = store16Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    auto newVal =
-        rewriter.create<LLVM::TruncOp>(loc, rewriter.getIntegerType(16), val);
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), addr);
-    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store16Op, newVal, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)),
-                base)
-            .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), reg,
-        offset);
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i16Type = rewriter.getIntegerType(16);
+    Type i16PtrType = LLVM::LLVMPointerType::get(i16Type);
+    auto newVal = rewriter.create<LLVM::TruncOp>(loc, i16Type, val);
+
+    auto reg2 = rewriter
+                    .create<UnrealizedConversionCastOp>(
+                        loc, LLVM::LLVMPointerType::get(base.getType()), base)
+                    .getResult(0);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i16PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i16PtrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store16Op, newVal, gep);
     return success();
   }
@@ -181,20 +171,38 @@ struct Store32OpLowering : public ConvertOpToLLVMPattern<ebpf::Store32Op> {
     auto loc = store32Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val = adaptor.rhs();
-    auto newVal =
-        rewriter.create<LLVM::TruncOp>(loc, rewriter.getI32Type(), val);
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
-    // rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), base)
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i32Type = rewriter.getI32Type();
+    Type i32PtrType = LLVM::LLVMPointerType::get(i32Type);
+
+    auto newVal = rewriter.create<LLVM::TruncOp>(loc, i32Type, val);
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), reg, offset);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i32PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i32PtrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store32Op, newVal, gep);
+    return success();
+  }
+};
+
+struct LoadAddrOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadAddrOp> {
+  using ConvertOpToLLVMPattern<ebpf::LoadAddrOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::LoadAddrOp loadAddrOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    auto loc = loadAddrOp.getLoc();
+    auto base = adaptor.lhs(), offset = adaptor.rhs();
+    // need a ptr to a ptr since we are loading an address
+    Type i64PtrType = LLVM::LLVMPointerType::get(rewriter.getI64Type());
+    Type ptrType = LLVM::LLVMPointerType::get(i64PtrType);
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
+            .getResult(0);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, ptrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, ptrType, reg, offset);
+    rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadAddrOp, gep);
     return success();
   }
 };
@@ -204,20 +212,17 @@ struct LoadOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadOp> {
   LogicalResult
   matchAndRewrite(ebpf::LoadOp loadOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
+    if (loadOp.use_empty()) {
+      loadOp.erase();
+      return success();
+    }
     auto loc = loadOp.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), addr);
-    // rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), base)
-            .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI64Type()), reg, offset);
+    Type i64Type = rewriter.getI64Type();
+    Type ptrType = LLVM::LLVMPointerType::get(i64Type);
+    auto reg = rewriter.create<UnrealizedConversionCastOp>(loc, ptrType, base)
+                   .getResult(0);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, ptrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, gep);
     return success();
   }
@@ -230,20 +235,18 @@ struct Load8OpLowering : public ConvertOpToLLVMPattern<ebpf::Load8Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load8Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), addr);
-    // auto val = rewriter.create<LLVM::LoadOp>(loc, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), base)
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i8Type = rewriter.getI8Type();
+    Type i8PtrType = LLVM::LLVMPointerType::get(i8Type);
+
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI8Type()), reg, offset);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i8PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i8PtrType, reg, offset);
     auto val = rewriter.create<LLVM::LoadOp>(loc, gep);
-    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load8Op, rewriter.getI64Type(),
-                                              val);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load8Op, i64Type, val);
     return success();
   }
 };
@@ -255,22 +258,18 @@ struct Load16OpLowering : public ConvertOpToLLVMPattern<ebpf::Load16Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load16Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), addr);
-    // auto val = rewriter.create<LLVM::LoadOp>(loc, reg);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)),
-                base)
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i16Type = rewriter.getIntegerType(16);
+    Type i16PtrType = LLVM::LLVMPointerType::get(i16Type);
+
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getIntegerType(16)), reg,
-        offset);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i16PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i16PtrType, reg, offset);
     auto val = rewriter.create<LLVM::LoadOp>(loc, gep);
-    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load16Op, rewriter.getI64Type(),
-                                              val);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load16Op, i64Type, val);
     return success();
   }
 };
@@ -282,19 +281,18 @@ struct Load32OpLowering : public ConvertOpToLLVMPattern<ebpf::Load32Op> {
                   ConversionPatternRewriter &rewriter) const override {
     auto loc = load32Op.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.rhs();
-    // Value addr = rewriter.create<LLVM::AddOp>(loc, base, offset);
-    // auto reg = rewriter.create<LLVM::IntToPtrOp>(
-    //     loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), addr);
-    auto reg =
-        rewriter
-            .create<UnrealizedConversionCastOp>(
-                loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), base)
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type i32Type = rewriter.getI32Type();
+    Type i32PtrType = LLVM::LLVMPointerType::get(i32Type);
+
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
             .getResult(0);
-    auto gep = rewriter.create<LLVM::GEPOp>(
-        loc, LLVM::LLVMPointerType::get(rewriter.getI32Type()), reg, offset);
+    auto reg = rewriter.create<LLVM::BitcastOp>(loc, i32PtrType, reg2);
+    auto gep = rewriter.create<LLVM::GEPOp>(loc, i32PtrType, reg, offset);
     auto val = rewriter.create<LLVM::LoadOp>(loc, gep);
-    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load32Op, rewriter.getI64Type(),
-                                              val);
+    rewriter.replaceOpWithNewOp<LLVM::ZExtOp>(load32Op, i64Type, val);
     return success();
   }
 };
@@ -411,12 +409,15 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
   matchAndRewrite(ebpf::AllocaOp allocaOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     // auto loc = allocaOp.getLoc();
-    auto i8Type = rewriter.getI8Type();
+    auto i64Type = rewriter.getI64Type();
+    // auto i8Type = rewriter.getI8Type();
     auto size = adaptor.operand();
     // auto llvmAlloca = rewriter.create<LLVM::AllocaOp>(
     //     loc, LLVM::LLVMPointerType::get(i8Type), size, 8);
     rewriter.replaceOpWithNewOp<LLVM::AllocaOp>(
-        allocaOp, LLVM::LLVMPointerType::get(i8Type), size, 8);
+        allocaOp, LLVM::LLVMPointerType::get(i64Type), size, 64);
+    // rewriter.replaceOpWithNewOp<LLVM::AllocaOp>(
+    //     allocaOp, LLVM::LLVMPointerType::get(i8Type), size, 8);
     // rewriter.replaceOpWithNewOp<LLVM::PtrToIntOp>(allocaOp, i8Type,
     //                                               llvmAlloca);
     return success();
@@ -546,7 +547,7 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
   /// ternary operators
   target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
                       ebpf::Store8Op, ebpf::LoadOp, ebpf::Load32Op,
-                      ebpf::Load16Op, ebpf::Load8Op>();
+                      ebpf::Load16Op, ebpf::Load8Op, ebpf::LoadAddrOp>();
 
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
@@ -560,17 +561,16 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
 
 void mlir::ebpf::populateebpfToLLVMConversionPatterns(
     ebpfToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
-  patterns.add<AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
-               UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
-               NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
-               ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering,
-               ConstantOpLowering, StoreOpLowering, Store8OpLowering,
-               Store16OpLowering, Store32OpLowering, LoadOpLowering,
-               Load8OpLowering, Load16OpLowering, Load32OpLowering,
-               MoveOpLowering, Move8OpLowering, Move16OpLowering,
-               Move32OpLowering, LoadMapOpLowering, NDOpLowering,
-               AllocaOpLowering, AssertOpLowering, MemHavocOpLowering>(
-      converter);
+  patterns.add<
+      AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
+      UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
+      NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
+      ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering, ConstantOpLowering,
+      StoreOpLowering, Store8OpLowering, Store16OpLowering, Store32OpLowering,
+      LoadOpLowering, Load8OpLowering, Load16OpLowering, Load32OpLowering,
+      MoveOpLowering, Move8OpLowering, Move16OpLowering, Move32OpLowering,
+      LoadMapOpLowering, NDOpLowering, AllocaOpLowering, AssertOpLowering,
+      MemHavocOpLowering, LoadAddrOpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations
