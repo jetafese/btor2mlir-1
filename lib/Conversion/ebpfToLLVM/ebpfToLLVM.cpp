@@ -152,10 +152,9 @@ struct Store16OpLowering : public ConvertOpToLLVMPattern<ebpf::Store16Op> {
     Type i16PtrType = LLVM::LLVMPointerType::get(i16Type);
     auto newVal = rewriter.create<LLVM::TruncOp>(loc, i16Type, val);
 
-    auto reg2 = rewriter
-                    .create<UnrealizedConversionCastOp>(
-                        loc, LLVM::LLVMPointerType::get(base.getType()), base)
-                    .getResult(0);
+    auto reg2 =
+        rewriter.create<UnrealizedConversionCastOp>(loc, i64PtrType, base)
+            .getResult(0);
     auto reg = rewriter.create<LLVM::BitcastOp>(loc, i16PtrType, reg2);
     auto gep = rewriter.create<LLVM::GEPOp>(loc, i16PtrType, reg, offset);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(store16Op, newVal, gep);
