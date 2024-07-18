@@ -72,7 +72,7 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
         std::cerr << "xxxxxxxxxxxx" << std::endl;
     }
     assert ((expectAddr && !expectInt) || (!expectAddr && expectInt));
-    replaceWithMem &= expectAddr; keepAsIs &= expectInt;
+    replaceWithMem = expectAddr && replaceWithMem; keepAsIs = expectInt || keepAsIs;
     assert ((replaceWithMem && !expectInt) || (!replaceWithMem && expectInt));
   }
   if (keepAsIs) { return failure(); }
