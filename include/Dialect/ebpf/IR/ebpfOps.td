@@ -381,7 +381,7 @@ def LoadOp : ebpfBinaryOp<"load"> {
   let summary = "memory load operation";
   // clang-format off
   let description = [{
-    The `load` operation loads a 64bit value to a register.
+    The `load` operation loads a 64bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
@@ -397,13 +397,30 @@ def LoadAddrOp : ebpfBinaryOp<"loadAddr"> {
   let summary = "memory load address operation";
   // clang-format off
   let description = [{
-    The `load` operation loads a 64bit value to a register.
+    The `load` operation loads a 64bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
 
     ```mlir
-    %a = ebpf.load %b, %c : i64
+    %a = ebpf.loadAddr %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def GetAddrOp : ebpfBinaryOp<"gep"> {
+  let summary = "get memory address operation";
+  // clang-format off
+  let description = [{
+    The `gep` operation loads a 64bit value from memory that represents
+    a location in memory from a specified offset.
+    First operand is the base register, second operand is the offset
+
+    Example:
+
+    ```mlir
+    %a = ebpf.gep %b, %c : i64
     ```
   }];
   // clang-format on
@@ -413,7 +430,7 @@ def Load32Op : ebpfBinaryOp<"load32"> {
   let summary = "memory load32 operation";
   // clang-format off
   let description = [{
-    The `load32` operation loads a 32bit value to a register.
+    The `load32` operation loads a 32bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
@@ -429,7 +446,7 @@ def Load16Op : ebpfBinaryOp<"load16"> {
   let summary = "memory load16 operation";
   // clang-format off
   let description = [{
-    The `load16` operation loads a 16bit value to a register.
+    The `load16` operation loads a 16bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
@@ -445,7 +462,7 @@ def Load8Op : ebpfBinaryOp<"load8"> {
   let summary = "memory load8 operation";
   // clang-format off
   let description = [{
-    The `load8` operation loads a 8bit value to a register.
+    The `load8` operation loads a 8bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
@@ -461,7 +478,7 @@ def LoadMapOp : ebpfBinaryOp<"loadMap"> {
   let summary = "load map operation";
   // clang-format off
   let description = [{
-    The `loadMap` operation loads a value to a register.
+    The `loadMap` operation loads a value from shared memory.
     First operand is the target register, second operand is the map
 
     Example:
@@ -767,7 +784,7 @@ def StoreOp : ebpfTernaryOp<"store"> {
   let summary = "memory store operation";
   // clang-format off
   let description = [{
-    The `store` operation stores a 64bit value to a register.
+    The `store` operation stores a 64bit value to memory.
     First operand is the base register, second operand is the offset.
     Third operand is the value/register to be written.
 
@@ -780,11 +797,28 @@ def StoreOp : ebpfTernaryOp<"store"> {
   // clang-format on
 }
 
+def StoreAddrOp : ebpfTernaryOp<"storeAddr"> {
+  let summary = "memory store address operation";
+  // clang-format off
+  let description = [{
+    The `store` operation stores a 64bit value (address) to memory.
+    First operand is the base register, second operand is the offset.
+    Third operand is the address to be written.
+
+    Example:
+
+    ```mlir
+    ebpf.storeAddr %a, %b, %c : i64
+    ```
+  }];
+  // clang-format on
+}
+
 def Store32Op : ebpfTernaryOp<"store32"> {
   let summary = "memory store32 operation";
   // clang-format off
   let description = [{
-    The `store32` operation stores a 32bit value to a register.
+    The `store32` operation stores a 32bit value to memory.
     First operand is the base register, second operand is the offset.
     Third operand is the value/register to be written.
 
@@ -801,7 +835,7 @@ def Store16Op : ebpfTernaryOp<"store16"> {
   let summary = "memory store16 operation";
   // clang-format off
   let description = [{
-    The `store16` operation stores a 16bit value to a register.
+    The `store16` operation stores a 16bit value to memory.
     First operand is the base register, second operand is the offset.
     Third operand is the value/register to be written.
 
@@ -818,7 +852,7 @@ def Store8Op : ebpfTernaryOp<"store8"> {
   let summary = "memory store8 operation";
   // clang-format off
   let description = [{
-    The `store8` operation stores a 8bit value to a register.
+    The `store8` operation stores a 8bit value to memory.
     First operand is the base register, second operand is the offset.
     Third operand is the value/register to be written.
 
