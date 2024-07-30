@@ -19,9 +19,9 @@
 
 #include <fstream>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
-#include <string>
 
 #include "ebpf_verifier.hpp"
 
@@ -262,9 +262,9 @@ private:
       }
     } else {
       if (m_ssa) {
-        m_builder.create<BranchOp>(m_unknownLoc, condBlock, m_registers);
+        m_builder.create<BranchOp>(m_unknownLoc, toBlock, m_registers);
       } else {
-        m_builder.create<BranchOp>(m_unknownLoc, condBlock);
+        m_builder.create<BranchOp>(m_unknownLoc, toBlock);
       }
     }
     std::cerr << "/**/ end block at: " << from << std::endl;
