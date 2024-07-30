@@ -145,40 +145,24 @@ void Deserialize::createBinaryOp(Bin bin) {
 }
 
 void Deserialize::createMemOp(Mem mem) {
-  Value res;
   auto offset = buildConstantOp(mem.access.offset);
   switch (mem.access.width) {
   case 1:
-    res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load8Op>(getRegister(mem.access.basereg.v),
-                                             offset)
-              : buildStoreOp<ebpf::Store8Op>(getRegister(mem.access.basereg.v),
-                                             offset, mem);
+    if (mem.is_load) { buildLoadOp<ebpf::Load8Op>(offset, mem); }
+    else { buildStoreOp<ebpf::Store8Op>(offset, mem); }
     break;
   case 2:
-    res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load16Op>(getRegister(mem.access.basereg.v),
-                                              offset)
-              : buildStoreOp<ebpf::Store16Op>(getRegister(mem.access.basereg.v),
-                                              offset, mem);
+    if (mem.is_load) { buildLoadOp<ebpf::Load16Op>(offset, mem); }
+    else { buildStoreOp<ebpf::Store16Op>(offset, mem); }
     break;
   case 4:
-    res = (mem.is_load)
-              ? buildBinaryOp<ebpf::Load32Op>(getRegister(mem.access.basereg.v),
-                                              offset)
-              : buildStoreOp<ebpf::Store32Op>(getRegister(mem.access.basereg.v),
-                                              offset, mem);
+    if (mem.is_load) { buildLoadOp<ebpf::Load32Op>(offset, mem); }
+    else { buildStoreOp<ebpf::Store32Op>(offset, mem); }
     break;
   case 8:
-    res = (mem.is_load)
-              ? buildBinaryOp<ebpf::LoadOp>(getRegister(mem.access.basereg.v),
-                                            offset)
-              : buildStoreOp<ebpf::StoreOp>(getRegister(mem.access.basereg.v),
-                                            offset, mem);
+    if (mem.is_load) { buildLoadOp<ebpf::LoadOp>(offset, mem); }
+    else { buildStoreOp<ebpf::StoreOp>(offset, mem); }
     break;
-  }
-  if (mem.is_load) {
-    setRegister(std::get<Reg>(mem.value).v, res);
   }
 }
 
@@ -190,8 +174,9 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
   setRegister(dst, res);
 }
 
-void Deserialize::createNDOp() {
+void Deserialize::createNDOp(bool isMapLoad = false) {
   Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
+  m_regIsMapElement.at(0) = isMapLoad;
   setRegister(0, res);
 }
 
@@ -227,21 +212,27 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     std::cerr << "-- call: " << callOp.func + 0 << std::endl;
     std::size_t found = callOp.name.find("get_prandom");
     if (found != std::string::npos) {
+      std::cerr << "Call get_prandom" << std::endl;
       createAssertOp();
       return;
     }
-
-    createNDOp();
     if (callOp.is_map_lookup) {
       std::cerr << "Map Lookup" << std::endl;
+      createNDOp(true);
+      return;
+    }
+    found = callOp.name.find("redirect_map");
+    if (found != std::string::npos) {
+      std::cerr << "Call redirect_map" << std::endl;
+      createNDOp();
       return;
     }
     std::cerr << "Other Call" << std::endl;
-    // assert(false);
+    assert(false);
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
     std::cerr << "Callx" << std::endl;
-    createNDOp();
+    assert(false);
     return;
   } else if (std::holds_alternative<Exit>(ins)) {
     // std::cerr << "Exit" << std::endl;

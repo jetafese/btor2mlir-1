@@ -125,6 +125,8 @@ private:
   std::vector<Block *> m_blocks;
   Block *m_lastBlock = nullptr;
   std::map<size_t, Block *> m_jumpBlocks;
+  std::vector<bool> m_regIsMapElement =
+      std::vector<bool>(m_ebpfRegisters, false);
 
   void setupXDPEntry(mlir::ModuleOp module);
   void setupRegisters(Block *block);
@@ -134,7 +136,7 @@ private:
   void createUnaryOp(Un un);
   void createMemOp(Mem mem);
   void createLoadMapOp(LoadMapFd loadMap);
-  void createNDOp();
+  void createNDOp(bool isMapLoad);
   void collectBlocks();
   void createAssertOp();
 
@@ -293,15 +295,29 @@ private:
   }
 
   template <typename ebpfOp>
-  mlir::Value buildStoreOp(const Value &base, const Value &offset, Mem mem) {
+  void buildLoadOp(const Value &offset, Mem mem) {
+    auto src = getRegister(mem.access.basereg.v);
+    Value res;
+    if (m_regIsMapElement.at(mem.access.basereg.v)) {
+      // TODO: use width specific move operations
+      res = src;
+    } else {
+      res = m_builder.create<ebpfOp>(m_unknownLoc, src, offset);
+    }
+    setRegister(std::get<Reg>(mem.value).v, res);
+  }
+
+  template <typename ebpfOp>
+  void buildStoreOp(const Value &offset, Mem mem) {
     Value writeVal;
+    auto base = getRegister(mem.access.basereg.v);
     if (std::holds_alternative<Imm>(mem.value)) {
       writeVal = buildConstantOp(std::get<Imm>(mem.value));
     } else {
       writeVal = getRegister(std::get<Reg>(mem.value).v);
     }
+    m_regIsMapElement.at(mem.access.basereg.v) = false;
     m_builder.create<ebpfOp>(m_unknownLoc, base, offset, writeVal);
-    return writeVal;
   }
 
   template <typename ebpfOp> mlir::Value buildUnaryOp(const Value &op) {
