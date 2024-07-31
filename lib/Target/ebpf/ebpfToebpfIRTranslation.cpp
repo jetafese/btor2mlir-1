@@ -226,7 +226,31 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
-    std::cerr << "Other Call" << std::endl;
+    found = callOp.name.find("perf_event_output");
+    if (found != std::string::npos) {
+      std::cerr << "Call perf_event_output" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_hash_recalc");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_hash_recalc" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("skb_");
+    if (found != std::string::npos) {
+      std::cerr << "Call skb_*" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("tail_call");
+    if (found != std::string::npos) {
+      std::cerr << "Call tail_call" << std::endl;
+      createNDOp();
+      return;
+    }
+    std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);
     return;
   } else if (std::holds_alternative<Callx>(ins)) {
