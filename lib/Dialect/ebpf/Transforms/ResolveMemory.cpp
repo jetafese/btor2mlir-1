@@ -32,46 +32,46 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
       auto temp = cast<ebpf::StoreOp>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Store32Op>(use.getOwner())) {
       auto temp = cast<ebpf::Store32Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Store16Op>(use.getOwner())) {
       auto temp = cast<ebpf::Store16Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Store8Op>(use.getOwner())) {
       auto temp = cast<ebpf::Store8Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::LoadOp>(use.getOwner())) {
       auto temp = cast<ebpf::LoadOp>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Load32Op>(use.getOwner())) {
       auto temp = cast<ebpf::Load32Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Load16Op>(use.getOwner())) {
       auto temp = cast<ebpf::Load16Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else if (isa<ebpf::Load8Op>(use.getOwner())) {
       auto temp = cast<ebpf::Load8Op>(use.getOwner());
       expectAddr = (temp.lhs() == op.getResult());
       expectInt = (temp.lhs() != op.getResult());
-      std::cerr << "************" << std::endl;
+      // std::cerr << "************" << std::endl;
     } else {
       expectInt = true;
       expectAddr = false;
-      std::cerr << "xxxxxxxxxxxx" << std::endl;
+      // std::cerr << "xxxxxxxxxxxx" << std::endl;
     }
     assert((expectAddr && !expectInt) || (!expectAddr && expectInt));
     replaceWithMem = expectAddr && replaceWithMem;
@@ -97,25 +97,25 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
 }
 
 struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
+  // expects to receive a file with xdp_entry inlined into main
   void runOnOperation() override {
-    Operation *rootOp = getOperation();
-    auto module_regions = rootOp->getRegions();
-    rootOp->dump();
-    std::cerr << "there are " << module_regions.size() << " module regions"
-              << std::endl;
-    assert(module_regions.size() == 1 && "there isn't only one module region");
-    auto &blocks = module_regions.front().getBlocks();
-    auto &funcOp = blocks.front().getOperations().back();
-    std::cerr << "there are " << funcOp.getRegions().size() << " regions"
-              << std::endl;
+    assert(isa<mlir::ModuleOp>(getOperation()));
+    mlir::ModuleOp rootOp = getOperation();
+    auto &topBlock = rootOp.body().getBlocks().front();
+    assert(topBlock.getOperations().size() == 2 && "there are more than 2 functions");
+    assert(isa<mlir::FuncOp>(topBlock.getOperations().front())); // xdp_entry
+    assert(isa<mlir::FuncOp>(topBlock.getOperations().back())); // main
+    // remove xdp_entry
+    auto &xdpEntryFunc = topBlock.getOperations().front();
+    xdpEntryFunc.erase();
+    // process main
+    auto &funcOp = topBlock.getOperations().back();
     auto &regions = funcOp.getRegion(0);
-    std::cerr << "there are " << regions.getBlocks().size()
-              << " blocks in first function" << std::endl;
-    auto rescanAfterChanges = 1;
-    // for (auto i = 0; i < rescanAfterChanges; ++i) {
+    // std::cerr << "there are " << regions.getBlocks().size()
+    //           << " blocks in first function" << std::endl;
     for (auto &block : regions.getBlocks()) {
       for (Operation &op : block.getOperations()) {
-        op.dump();
+        // op.dump();
         LogicalResult status =
             llvm::TypeSwitch<Operation *, LogicalResult>(&op)
                 // ebpf ops.
@@ -128,13 +128,8 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
                 .Case<ebpf::Load8Op>(
                     [&](auto op) { return replaceLoadWithLoadAddress(op); })
                 .Default([&](Operation *) { return failure(); });
-        // if (status.succeeded()) {
-        //   rescanAfterChanges++;
-        // }
-        // }
       }
     }
-    std::cerr << "did something with a function" << std::endl;
   }
 };
 } // namespace
