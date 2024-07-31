@@ -176,8 +176,7 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
 
 void Deserialize::createNDOp(bool isMapLoad = false) {
   Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
-  m_regIsMapElement.at(0) = isMapLoad;
-  setRegister(0, res);
+  setRegister(0, res, isMapLoad);
 }
 
 void Deserialize::createAssertOp() {
@@ -459,13 +458,14 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   /* call xdp_entry */
   auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
   assert(xdpEntryFunc);
-  m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
-                           ValueRange({ctxPtr, stackPtr}));
+  auto callXDP = m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
+                           ValueRange({ctxPtr, stackPtr})).getResult(0);
+  m_builder.create<ReturnOp>(m_unknownLoc, callXDP);
 }
 
 OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
-  FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {}));
+  FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {m_builder.getI64Type()}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
@@ -473,7 +473,6 @@ OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   m_builder.setInsertionPointToStart(body);
   /* setup ctx, stack, packet*/
   setupXDPEntry(module);
-  m_builder.create<ReturnOp>(m_unknownLoc);
   return funcOp;
 }
 

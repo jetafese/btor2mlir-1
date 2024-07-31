@@ -145,11 +145,13 @@ private:
     m_jumpBlocks[firstOp] = block;
   }
 
-  void setRegister(const uint8_t idx, const mlir::Value &value) {
+  void setRegister(const uint8_t idx, const mlir::Value &value,
+                   bool isMapLoad = false) {
     if (m_ssa) {
       m_registers.at(idx) = value;
       return;
     }
+    m_regIsMapElement.at(idx) = isMapLoad;
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
     m_builder.create<ebpf::StoreOp>(m_unknownLoc, addr, zero, value);
@@ -294,8 +296,7 @@ private:
     return res;
   }
 
-  template <typename ebpfOp>
-  void buildLoadOp(const Value &offset, Mem mem) {
+  template <typename ebpfOp> void buildLoadOp(const Value &offset, Mem mem) {
     auto src = getRegister(mem.access.basereg.v);
     Value res;
     if (m_regIsMapElement.at(mem.access.basereg.v)) {
@@ -307,16 +308,20 @@ private:
     setRegister(std::get<Reg>(mem.value).v, res);
   }
 
-  template <typename ebpfOp>
-  void buildStoreOp(const Value &offset, Mem mem) {
+  template <typename ebpfOp> void buildStoreOp(const Value &offset, Mem mem) {
     Value writeVal;
-    auto base = getRegister(mem.access.basereg.v);
+    auto baseReg = mem.access.basereg.v;
     if (std::holds_alternative<Imm>(mem.value)) {
       writeVal = buildConstantOp(std::get<Imm>(mem.value));
     } else {
       writeVal = getRegister(std::get<Reg>(mem.value).v);
     }
-    m_regIsMapElement.at(mem.access.basereg.v) = false;
+    // m_regIsMapElement.at(mem.access.basereg.v) = false;
+    if (m_regIsMapElement.at(baseReg)) {
+      setRegister(baseReg, writeVal);
+      return;
+    }
+    auto base = getRegister(baseReg);
     m_builder.create<ebpfOp>(m_unknownLoc, base, offset, writeVal);
   }
 
