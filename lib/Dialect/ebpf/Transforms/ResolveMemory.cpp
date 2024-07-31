@@ -25,7 +25,7 @@ template <typename loadOp>
 LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   bool expectAddr = false, expectInt = false;
   bool replaceWithMem = true, keepAsIs = false;
-  assert (!op.getResult().use_empty());
+  assert(!op.getResult().use_empty());
   for (auto &use : op.getResult().getUses()) {
     expectAddr = false, expectInt = false;
     if (isa<ebpf::StoreOp>(use.getOwner())) {
@@ -102,9 +102,10 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
     assert(isa<mlir::ModuleOp>(getOperation()));
     mlir::ModuleOp rootOp = getOperation();
     auto &topBlock = rootOp.body().getBlocks().front();
-    assert(topBlock.getOperations().size() == 2 && "there are more than 2 functions");
+    assert(topBlock.getOperations().size() == 2 &&
+           "there are more than 2 functions");
     assert(isa<mlir::FuncOp>(topBlock.getOperations().front())); // xdp_entry
-    assert(isa<mlir::FuncOp>(topBlock.getOperations().back())); // main
+    assert(isa<mlir::FuncOp>(topBlock.getOperations().back()));  // main
     // remove xdp_entry
     auto &xdpEntryFunc = topBlock.getOperations().front();
     xdpEntryFunc.erase();

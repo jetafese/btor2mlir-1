@@ -525,6 +525,9 @@ struct MemHavocOpLowering : public ConvertOpToLLVMPattern<ebpf::MemHavocOp> {
                                       {i8PtrType, rewriter.getI64Type()});
       memhavocFunc = rewriter.create<LLVM::LLVMFuncOp>(
           rewriter.getUnknownLoc(), memhavoc, memhavocFuncTy);
+      auto ctx = memhavocOp.getContext();
+      memhavocFunc.setPassthroughAttr(
+          ArrayAttr::get(ctx, mlir::StringAttr::get(ctx, "mustprogress")));
     }
     auto memPtr = rewriter
                       .create<UnrealizedConversionCastOp>(
