@@ -198,6 +198,55 @@ void Deserialize::createAssertOp() {
   m_builder.create<ebpf::AssertOp>(m_unknownLoc, falseVal);
 }
 
+void Deserialize::createAtomicOp(Atomic atomicOp) {
+  Value lhs, base, offset, rhs, res;
+  base = getRegister(atomicOp.access.basereg.v);
+  offset = buildConstantOp(atomicOp.access.offset);
+  rhs = getRegister(atomicOp.valreg.v);
+  switch (atomicOp.access.width) {
+  case 1:
+    lhs = m_builder.create<ebpf::Load8Op>(m_unknownLoc, base, offset);
+    break;
+  case 2:
+    lhs = m_builder.create<ebpf::Load16Op>(m_unknownLoc, base, offset);
+    break;
+  case 4:
+    lhs = m_builder.create<ebpf::Load32Op>(m_unknownLoc, base, offset);
+    break;
+  case 8:
+    lhs = m_builder.create<ebpf::LoadOp>(m_unknownLoc, base, offset);
+    break;
+  }
+  using Op = Atomic::Op;
+  switch (atomicOp.op) {
+  case Op::ADD:
+    std::cerr << "add" << std::endl;
+    res = buildBinaryOp<ebpf::AddOp>(lhs, rhs);
+    break;
+  case Op::AND:
+    std::cerr << "and" << std::endl;
+    res = buildBinaryOp<ebpf::AndOp>(lhs, rhs);
+    break;
+  case Op::OR:
+    std::cerr << "or" << std::endl;
+    res = buildBinaryOp<ebpf::OrOp>(lhs, rhs);
+    break;
+  case Op::XOR:
+    std::cerr << "xor" << std::endl;
+    res = buildBinaryOp<ebpf::XOrOp>(lhs, rhs);
+    break;
+  case Op::XCHG:
+    std::cerr << "xchg" << std::endl;
+    assert(false);
+    break;
+  case Op::CMPXCHG:
+    std::cerr << "cmpxchg" << std::endl;
+    assert(false);
+    break;
+  }
+  setRegister(atomicOp.access.basereg.v, res);
+}
+
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cerr << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -271,6 +320,24 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     found = callOp.name.find("tail_call");
     if (found != std::string::npos) {
       std::cerr << "Call tail_call" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("map_update_elem");
+    if (found != std::string::npos) {
+      std::cerr << "Call map_update_elem" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("jiffies64");
+    if (found != std::string::npos) {
+      std::cerr << "Call jiffies64" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("map_delete_elem");
+    if (found != std::string::npos) {
+      std::cerr << "Call map_delete_elem" << std::endl;
       createNDOp();
       return;
     }

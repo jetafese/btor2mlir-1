@@ -137,6 +137,7 @@ private:
   void createMemOp(Mem mem);
   void createLoadMapOp(LoadMapFd loadMap);
   void createNDOp(bool isMapLoad);
+  void createAtomicOp(Atomic atomic);
   void collectBlocks();
   void createAssertOp();
 
