@@ -148,20 +148,32 @@ void Deserialize::createMemOp(Mem mem) {
   auto offset = buildConstantOp(mem.access.offset);
   switch (mem.access.width) {
   case 1:
-    if (mem.is_load) { buildLoadOp<ebpf::Load8Op>(offset, mem); }
-    else { buildStoreOp<ebpf::Store8Op>(offset, mem); }
+    if (mem.is_load) {
+      buildLoadOp<ebpf::Load8Op>(offset, mem);
+    } else {
+      buildStoreOp<ebpf::Store8Op>(offset, mem);
+    }
     break;
   case 2:
-    if (mem.is_load) { buildLoadOp<ebpf::Load16Op>(offset, mem); }
-    else { buildStoreOp<ebpf::Store16Op>(offset, mem); }
+    if (mem.is_load) {
+      buildLoadOp<ebpf::Load16Op>(offset, mem);
+    } else {
+      buildStoreOp<ebpf::Store16Op>(offset, mem);
+    }
     break;
   case 4:
-    if (mem.is_load) { buildLoadOp<ebpf::Load32Op>(offset, mem); }
-    else { buildStoreOp<ebpf::Store32Op>(offset, mem); }
+    if (mem.is_load) {
+      buildLoadOp<ebpf::Load32Op>(offset, mem);
+    } else {
+      buildStoreOp<ebpf::Store32Op>(offset, mem);
+    }
     break;
   case 8:
-    if (mem.is_load) { buildLoadOp<ebpf::LoadOp>(offset, mem); }
-    else { buildStoreOp<ebpf::StoreOp>(offset, mem); }
+    if (mem.is_load) {
+      buildLoadOp<ebpf::LoadOp>(offset, mem);
+    } else {
+      buildStoreOp<ebpf::StoreOp>(offset, mem);
+    }
     break;
   }
 }
@@ -494,14 +506,17 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   /* call xdp_entry */
   auto xdpEntryFunc = module.lookupSymbol<FuncOp>(m_xdp_entry);
   assert(xdpEntryFunc);
-  auto callXDP = m_builder.create<CallOp>(m_unknownLoc, xdpEntryFunc,
-                           ValueRange({ctxPtr, stackPtr})).getResult(0);
+  auto callXDP = m_builder
+                     .create<CallOp>(m_unknownLoc, xdpEntryFunc,
+                                     ValueRange({ctxPtr, stackPtr}))
+                     .getResult(0);
   m_builder.create<ReturnOp>(m_unknownLoc, callXDP);
 }
 
 OwningOpRef<FuncOp> Deserialize::buildMainFunction(ModuleOp module) {
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
-  FuncOp::build(m_builder, state, "main", FunctionType::get(m_context, {}, {m_builder.getI64Type()}));
+  FuncOp::build(m_builder, state, "main",
+                FunctionType::get(m_context, {}, {m_builder.getI64Type()}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
