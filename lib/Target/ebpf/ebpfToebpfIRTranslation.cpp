@@ -244,6 +244,18 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
+    found = callOp.name.find("csum_diff");
+    if (found != std::string::npos) {
+      std::cerr << "Call csum_diff" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("l4_csum_replace");
+    if (found != std::string::npos) {
+      std::cerr << "Call l4_csum_replace" << std::endl;
+      createNDOp();
+      return;
+    }
     found = callOp.name.find("tail_call");
     if (found != std::string::npos) {
       std::cerr << "Call tail_call" << std::endl;

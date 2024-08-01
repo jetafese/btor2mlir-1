@@ -270,7 +270,11 @@ private:
       }
     }
     std::cerr << "/**/ end block at: " << from << std::endl;
-    m_lastBlock = condBlock;
+    if (condBlock) { m_lastBlock = condBlock; }
+    else {
+      assert (m_jumpBlocks.contains(from + 1));
+      m_lastBlock = m_jumpBlocks.at(from + 1);
+    }
     return;
   }
 
