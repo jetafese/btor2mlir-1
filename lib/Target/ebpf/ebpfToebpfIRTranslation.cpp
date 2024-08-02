@@ -498,7 +498,7 @@ void Deserialize::setupRegisters(Block *body) {
       setRegister(i, body->getArgument(i));
     }
   } else {
-    Value allocaSize = buildConstantOp(1);
+    Value allocaSize = buildConstantOp(8);
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
       Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, allocaSize);
       m_registers.at(i) = reg;
@@ -553,11 +553,10 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   Value pkt = buildConstantOp(m_xdp_pkt);
   auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
   m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, pktPtr, pkt);
-  Value endOfPkt = buildConstantOp(m_ebpf_stack - 1);
   auto endPktPtr =
-      m_builder.create<ebpf::GetAddrOp>(m_unknownLoc, pktPtr, endOfPkt);
+      m_builder.create<ebpf::GetAddrOp>(m_unknownLoc, pktPtr, pkt);
   /* initialize ctx so that data begin/end point to pkt begin/end */
-  Value ctx = buildConstantOp(2);
+  Value ctx = buildConstantOp(16);
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
   m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr, buildConstantOp(0),
                                       pktPtr);
