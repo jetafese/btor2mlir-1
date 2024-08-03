@@ -81,6 +81,7 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   if (keepAsIs) {
     return failure();
   }
+  assert(isa<ebpf::LoadOp>(op));
   if (isa<ebpf::LoadOp>(op)) {
     ebpf::LoadOp temp = cast<ebpf::LoadOp>(op);
     auto opPtr = temp.getOperation();

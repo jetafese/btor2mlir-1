@@ -553,8 +553,8 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   Value pkt = buildConstantOp(m_xdp_pkt);
   auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
   m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, pktPtr, pkt);
-  auto endPktPtr =
-      m_builder.create<ebpf::GetAddrOp>(m_unknownLoc, pktPtr, pkt);
+  auto endPktPtr = m_builder.create<ebpf::GetAddrOp>(
+      m_unknownLoc, pktPtr, buildConstantOp(m_xdp_pkt - 1));
   /* initialize ctx so that data begin/end point to pkt begin/end */
   Value ctx = buildConstantOp(16);
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
