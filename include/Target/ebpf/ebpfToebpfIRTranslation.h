@@ -96,6 +96,7 @@ private:
   std::vector<size_t> m_startOfNextBlock;
   std::vector<mlir::Value> m_registers;
   std::map<size_t, size_t> m_jmpTargets;
+  raw_program m_raw_prog;
 
   size_t m_numBlocks = 0;
   void incrementBlocks(size_t jmpTo) {

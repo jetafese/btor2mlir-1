@@ -370,8 +370,9 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     assert(false);
     return;
   } else if (std::holds_alternative<Atomic>(ins)) {
-    std::cerr << "Atomic" << std::endl;
-    assert(false);
+    std::cerr << "Atomic: ";
+    auto atomicOp = std::get<Atomic>(ins);
+    createAtomicOp(atomicOp);
     return;
   } else if (std::holds_alternative<Assert>(ins)) {
     std::cerr << "Assert" << std::endl;
@@ -556,12 +557,17 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   auto endPktPtr = m_builder.create<ebpf::GetAddrOp>(
       m_unknownLoc, pktPtr, buildConstantOp(m_xdp_pkt - 1));
   /* initialize ctx so that data begin/end point to pkt begin/end */
-  Value ctx = buildConstantOp(16);
+  auto ctx_size = m_raw_prog.info.type.context_descriptor->size;
+  assert(ctx_size > 0);
+  Value ctx = buildConstantOp(ctx_size);
+  auto data_begin = m_raw_prog.info.type.context_descriptor->data;
+  auto data_end = m_raw_prog.info.type.context_descriptor->end;
+  assert(((data_begin == -1) && (data_end == -1)) || (data_begin < data_end));
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
-  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr, buildConstantOp(0),
-                                      pktPtr);
-  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr, buildConstantOp(1),
-                                      endPktPtr);
+  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr,
+      buildConstantOp(data_begin == -1 ? 0 : data_begin), pktPtr);
+  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr,
+      buildConstantOp(data_end == -1 ? 4 : data_begin), endPktPtr);
   /* initialzie stack; stack ptr should point to end of stack*/
   Value stack = buildConstantOp(m_ebpf_stack);
   auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
@@ -613,10 +619,8 @@ bool Deserialize::parseModelIsSuccessful() {
     auto &prog = std::get<InstructionSeq>(prog_or_error);
     m_sections.push_back(prog);
     print(prog, std::cerr, {});
-    // // Convert the instruction sequence to a control-flow graph.
-    // cfg_t cfg = prepare_cfg(prog, raw_prog.info,
-    // !ebpf_verifier_options.no_simplify); print_dot(cfg, std::cerr);
   }
+  m_raw_prog = raw_progs.front();
   return !m_sections.empty();
 }
 
