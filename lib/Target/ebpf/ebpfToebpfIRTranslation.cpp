@@ -626,7 +626,7 @@ bool Deserialize::parseModelIsSuccessful() {
               << std::get<std::string>(prog_or_error) << "\n";
     return false;
   }
-  auto &m_section = std::get<InstructionSeq>(prog_or_error);
+  m_section = std::get<InstructionSeq>(prog_or_error);
   print(m_section, std::cerr, {});
 
   std::cerr << "**************************************\n";
@@ -643,7 +643,7 @@ bool Deserialize::parseModelIsSuccessful() {
     print(prog, std::cerr, {});
   }
 
-  return true;
+  return m_section.size() > 0;
 }
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
