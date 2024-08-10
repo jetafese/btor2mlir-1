@@ -41,9 +41,11 @@ public:
   /// Constructors and Destructors
   ///===----------------------------------------------------------------------===//
 
-  Deserialize(MLIRContext *context, const std::string &s, bool ssa)
+  Deserialize(MLIRContext *context, const std::string &s, bool ssa,
+              int sectionNumber)
       : m_context(context), m_builder(OpBuilder(m_context)),
-        m_unknownLoc(UnknownLoc::get(m_context)), m_ssa(ssa) {
+        m_unknownLoc(UnknownLoc::get(m_context)), m_ssa(ssa),
+        m_sectionNumber(sectionNumber) {
     m_modelFile.open(s.c_str());
     m_sourceFile = m_builder.getStringAttr(s);
   }
@@ -92,11 +94,11 @@ private:
     R10_STACK_POINTER = 10
   };
 
-  std::vector<InstructionSeq> m_sections;
   std::vector<size_t> m_startOfNextBlock;
   std::vector<mlir::Value> m_registers;
   std::map<size_t, size_t> m_jmpTargets;
   raw_program m_raw_prog;
+  InstructionSeq m_section;
 
   size_t m_numBlocks = 0;
   void incrementBlocks(size_t jmpTo) {
@@ -122,6 +124,7 @@ private:
   OpBuilder m_builder;
   Location m_unknownLoc;
   bool m_ssa;
+  int m_sectionNumber;
 
   std::vector<Block *> m_blocks;
   Block *m_lastBlock = nullptr;

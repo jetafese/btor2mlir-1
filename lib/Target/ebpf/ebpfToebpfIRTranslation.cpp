@@ -25,8 +25,7 @@ void Deserialize::createJmpOp(Jmp jmp, label_t cur_label) {
   // std::cerr << " --> f:" << jmp.target.from;
   // std::cerr << ", t: " << jmp.target.to << std::endl;
   assert(jmp.target.from > cur_label.from);
-  InstructionSeq prog = m_sections.front();
-  const auto &[label, ins, line_info] = prog.at(jmp.target.from);
+  const auto &[label, ins, line_info] = m_section.at(jmp.target.from);
   // std::cerr << "  l: " << label.from << ", j-f:" << jmp.target.from
   //           << std::endl;
   assert(label.from == jmp.target.from);
@@ -387,10 +386,8 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
 }
 
 void Deserialize::buildSSAFunctionBody() {
-  // get first section
-  InstructionSeq prog = m_sections.front();
   collectBlocks();
-  std::cerr << prog.size() << " instructions" << std::endl;
+  std::cerr << m_section.size() << " instructions" << std::endl;
   size_t cur_op = 0;
   for (const size_t next : m_startOfNextBlock) {
     assert(m_jumpBlocks.contains(cur_op));
@@ -404,7 +401,7 @@ void Deserialize::buildSSAFunctionBody() {
       // m_registers.at(i) = curBlock->getArgument(i);
     }
     for (; cur_op < next; ++cur_op) {
-      const LabeledInstruction &labeled_inst = prog.at(cur_op);
+      const LabeledInstruction &labeled_inst = m_section.at(cur_op);
       const auto &[label, ins, _] = labeled_inst;
       createMLIR(ins, label);
     }
@@ -418,7 +415,7 @@ void Deserialize::buildSSAFunctionBody() {
       m_lastBlock = m_jumpBlocks.at(next);
     }
   }
-  if (cur_op < prog.size()) {
+  if (cur_op < m_section.size()) {
     m_builder.setInsertionPointToEnd(m_lastBlock);
     // setup registers to match block arguments
     for (size_t i = 0; i < m_ebpfRegisters; ++i) {
@@ -426,8 +423,8 @@ void Deserialize::buildSSAFunctionBody() {
       // m_registers.at(i) = m_lastBlock->getArgument(i);
     }
   }
-  for (; cur_op < prog.size(); ++cur_op) {
-    const LabeledInstruction &labeled_inst = prog.at(cur_op);
+  for (; cur_op < m_section.size(); ++cur_op) {
+    const LabeledInstruction &labeled_inst = m_section.at(cur_op);
     const auto &[label, ins, _] = labeled_inst;
     createMLIR(ins, label);
   }
@@ -435,10 +432,8 @@ void Deserialize::buildSSAFunctionBody() {
 }
 
 void Deserialize::buildMemFunctionBody() {
-  // get first section
-  InstructionSeq prog = m_sections.front();
   collectBlocks();
-  std::cerr << prog.size() << " instructions" << std::endl;
+  std::cerr << m_section.size() << " instructions" << std::endl;
   size_t cur_op = 0;
   for (const size_t next : m_startOfNextBlock) {
     assert(m_jumpBlocks.contains(cur_op));
@@ -447,7 +442,7 @@ void Deserialize::buildMemFunctionBody() {
     std::cerr << "NEW block at: " << cur_op << std::endl;
     std::cerr << "  next: " << next << std::endl;
     for (; cur_op < next; ++cur_op) {
-      const LabeledInstruction &labeled_inst = prog.at(cur_op);
+      const LabeledInstruction &labeled_inst = m_section.at(cur_op);
       const auto &[label, ins, _] = labeled_inst;
       createMLIR(ins, label);
     }
@@ -460,11 +455,11 @@ void Deserialize::buildMemFunctionBody() {
       m_lastBlock = m_jumpBlocks.at(next);
     }
   }
-  if (cur_op < prog.size()) {
+  if (cur_op < m_section.size()) {
     m_builder.setInsertionPointToEnd(m_lastBlock);
   }
-  for (; cur_op < prog.size(); ++cur_op) {
-    const LabeledInstruction &labeled_inst = prog.at(cur_op);
+  for (; cur_op < m_section.size(); ++cur_op) {
+    const LabeledInstruction &labeled_inst = m_section.at(cur_op);
     const auto &[label, ins, _] = labeled_inst;
     createMLIR(ins, label);
   }
@@ -472,8 +467,7 @@ void Deserialize::buildMemFunctionBody() {
 }
 
 void Deserialize::collectBlocks() {
-  auto prog = m_sections.front();
-  for (const LabeledInstruction &labeled_inst : prog) {
+  for (const LabeledInstruction &labeled_inst : m_section) {
     const auto &[label, ins, line_info] = labeled_inst;
     if (std::holds_alternative<Jmp>(ins)) {
       auto jmp = std::get<Jmp>(ins);
@@ -607,6 +601,33 @@ bool Deserialize::parseModelIsSuccessful() {
   ebpf_verifier_options_t ebpf_verifier_options = ebpf_verifier_default_options;
   raw_progs = read_elf(m_modelFile, std::string(), std::string(),
                        &ebpf_verifier_options, &platform);
+  size_t sect = 0;
+  std::vector<std::string> desired_sections =
+      std::vector<std::string>(raw_progs.size());
+  if (raw_progs.size() == 1) {
+    m_sectionNumber = 0;
+  } else if ((m_sectionNumber < 0) || (m_sectionNumber >= raw_progs.size())) {
+    std::cerr << "please specify a section with: -section <int>\n";
+    std::cerr << "available sections:\n";
+    for (const raw_program &raw_prog : raw_progs) {
+      desired_sections.at(sect) = raw_prog.section;
+      std::cerr << sect++ << ": " << raw_prog.section << "\n";
+    }
+    return false;
+  }
+  m_raw_prog = raw_progs.at(m_sectionNumber);
+  // Convert the raw program section to a set of instructions.
+  std::variant<InstructionSeq, std::string> prog_or_error =
+      unmarshal(m_raw_prog);
+  if (std::holds_alternative<std::string>(prog_or_error)) {
+    std::cerr << "unmarshaling error at "
+              << std::get<std::string>(prog_or_error) << "\n";
+    return false;
+  }
+  auto &m_section = std::get<InstructionSeq>(prog_or_error);
+  print(m_section, std::cerr, {});
+
+  std::cerr << "**************************************\n";
   for (const raw_program &raw_prog : raw_progs) {
     // Convert the raw program section to a set of instructions.
     std::variant<InstructionSeq, std::string> prog_or_error =
@@ -617,21 +638,22 @@ bool Deserialize::parseModelIsSuccessful() {
       continue;
     }
     auto &prog = std::get<InstructionSeq>(prog_or_error);
-    m_sections.push_back(prog);
     print(prog, std::cerr, {});
   }
-  m_raw_prog = raw_progs.front();
-  return !m_sections.empty();
+
+  return true;
 }
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
-                                               MLIRContext *context, bool ssa) {
+                                               MLIRContext *context, bool ssa,
+                                               int sectionNumber) {
   context->loadDialect<ebpf::ebpfDialect, StandardOpsDialect>();
 
   OwningOpRef<ModuleOp> owningModule(ModuleOp::create(FileLineColLoc::get(
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
-  Deserialize deserialize(context, input->getBufferIdentifier().str(), ssa);
+  Deserialize deserialize(context, input->getBufferIdentifier().str(), ssa,
+                          sectionNumber);
   if (deserialize.parseModelIsSuccessful()) {
     OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
     if (!XDPFunc) {
@@ -650,6 +672,12 @@ static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
   return owningModule;
 }
 
+//===----------------------------------------------------------------------===//
+// Translation CommandLine Options
+//===----------------------------------------------------------------------===//
+static llvm::cl::opt<int> sectionOpt("section", llvm::cl::init(-1),
+                                     llvm::cl::desc("section number"));
+
 namespace mlir {
 namespace ebpf {
 void registerebpfTranslation() {
@@ -658,8 +686,8 @@ void registerebpfTranslation() {
         // get section name
         assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
         return deserializeModule(
-            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
-            true);
+            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context, true,
+            sectionOpt.getValue());
       });
 }
 
@@ -670,7 +698,7 @@ void registerebpfMemTranslation() {
         assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
         return deserializeModule(
             sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
-            false);
+            false, sectionOpt.getValue());
       });
 }
 } // namespace ebpf
