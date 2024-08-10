@@ -558,10 +558,12 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   auto data_end = m_raw_prog.info.type.context_descriptor->end;
   assert(((data_begin == -1) && (data_end == -1)) || (data_begin < data_end));
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
-  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr,
-      buildConstantOp(data_begin == -1 ? 0 : data_begin), pktPtr);
-  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, ctxPtr,
-      buildConstantOp(data_end == -1 ? 4 : data_begin), endPktPtr);
+  m_builder.create<ebpf::StoreAddrOp>(
+      m_unknownLoc, ctxPtr, buildConstantOp(data_begin == -1 ? 0 : data_begin),
+      pktPtr);
+  m_builder.create<ebpf::StoreAddrOp>(
+      m_unknownLoc, ctxPtr, buildConstantOp(data_end == -1 ? 4 : data_begin),
+      endPktPtr);
   /* initialzie stack; stack ptr should point to end of stack*/
   Value stack = buildConstantOp(m_ebpf_stack);
   auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
