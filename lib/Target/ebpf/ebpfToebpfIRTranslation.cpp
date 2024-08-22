@@ -558,6 +558,7 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   auto data_end = m_raw_prog.info.type.context_descriptor->end;
   assert(((data_begin == -1) && (data_end == -1)) || (data_begin < data_end));
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
+  m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, ctxPtr, ctx);
   m_builder.create<ebpf::StoreAddrOp>(
       m_unknownLoc, ctxPtr, buildConstantOp(data_begin == -1 ? 0 : data_begin),
       pktPtr);
