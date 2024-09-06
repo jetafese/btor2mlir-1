@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "crab/cfg.hpp"
 #include "ebpf_verifier.hpp"
 
 namespace mlir {
