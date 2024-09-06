@@ -349,6 +349,10 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<Exit>(ins)) {
     // std::cerr << "Exit" << std::endl;
+    if (!m_bbs.contains(-2)) {
+      auto jmpExit = Jmp{.target = label_t{-2},};
+      createJmpOp(jmpExit, cur_label);
+    }
     return;
   } else if (std::holds_alternative<Jmp>(ins)) {
     auto jmpOp = std::get<Jmp>(ins);
@@ -464,6 +468,62 @@ void Deserialize::buildMemFunctionBody() {
     createMLIR(ins, label);
   }
   m_builder.setInsertionPointToEnd(m_lastBlock);
+}
+
+void Deserialize::buildFunctionBodyFromCFG() {
+  cfg_t m_cfg = get_cfg(m_section);
+  // collect bbs in a vector
+  std::vector<label_t> bbLabels;
+  for (auto const &[this_label, _] : m_cfg) {
+    std::cerr << this_label.from << ", ";
+    bbLabels.push_back(this_label);
+  }
+  assert(bbLabels.size() == m_cfg.size() && "expect similar size");
+  // build mlir
+  size_t bbIter = 0;
+  bool terminatorSet = false;
+  for (auto const &[this_label, bb] : m_cfg) {
+    if (this_label.from == -1) {
+      // entrance block
+      updateBBMap(m_lastBlock, this_label.from);
+    }
+    terminatorSet = false;
+    assert(m_bbs.contains(this_label.from));
+    m_builder.setInsertionPointToEnd(m_bbs.at(this_label.from));
+    if (this_label.from == -2) {
+      // exit block
+      Value ret = getRegister(REG::R0_RETURN_VALUE);
+      assert(ret != nullptr);
+      m_builder.create<ReturnOp>(m_unknownLoc, ret);
+      std::cerr << "/**/ end block at: -2" << std::endl;
+      continue;
+    }
+
+    for (const auto &ins : bb) {
+      assert(!terminatorSet && "jump instruction before end of bb");
+      if (std::holds_alternative<Jmp>(ins)) {
+        std::cerr << "z-z ";
+        auto jmpOp = std::get<Jmp>(ins);
+        if (jmpOp.cond.has_value()) {
+          /* store next block when conditional*/
+          assert(bbIter+1 < bbLabels.size());
+          m_nextCondBlock[this_label.from] = bbLabels.at(bbIter+1).from;
+        }
+        createMLIR(ins, this_label);
+        terminatorSet = true;
+      } else if(std::holds_alternative<Exit>(ins)) {
+        createMLIR(ins, this_label);
+        terminatorSet = true;
+      } else {
+        createMLIR(ins, this_label);
+      }
+    }
+    if (!terminatorSet) {
+      auto jmpFallthrough = Jmp{.target = bbLabels.at(bbIter+1),};
+      createMLIR(jmpFallthrough, bbLabels.at(bbIter));
+    }
+    bbIter++;
+  }
 }
 
 void Deserialize::collectBlocks() {
