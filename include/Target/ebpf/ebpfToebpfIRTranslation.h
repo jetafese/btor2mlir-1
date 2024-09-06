@@ -284,6 +284,59 @@ private:
     return;
   }
 
+  void buildJumpCFG(Jmp jmp, label_t cur_label) {
+    OpBuilder::InsertionGuard guard(m_builder);
+    assert(m_bbs.contains(cur_label.from));
+
+    Block *curBlock = m_bbs.at(cur_label.from);
+    m_builder.setInsertionPointToEnd(curBlock);
+    auto opPosition = m_builder.getInsertionPoint();
+    // new blocks
+    Block *condBlock = nullptr, *toBlock = nullptr;
+
+    int to = jmp.target.from;
+    bool isConditional = jmp.cond.has_value();
+
+    if (isConditional) {
+      assert(m_nextCondBlock.contains(cur_label.from));
+      auto condLabel = m_nextCondBlock.at(cur_label.from);
+      if (!m_bbs.contains(condLabel)) {
+        // create the block for the next operation
+        condBlock = m_builder.createBlock(curBlock->getParent(), {});
+        updateBBMap(condBlock, condLabel);
+      } else {
+        condBlock = m_bbs.at(condLabel);
+      }
+    }
+    if (!m_bbs.contains(to)) {
+      // create the to block
+      toBlock = m_builder.createBlock(curBlock->getParent(), {});
+      updateBBMap(toBlock, to);
+    } else {
+      toBlock = m_bbs.at(to);
+    }
+    // create branch operation for original block
+    m_builder.setInsertionPoint(curBlock, opPosition);
+    if (isConditional) {
+      auto cond = jmp.cond.value();
+      auto lhsId = cond.left.v;
+      Value rhs;
+      if (std::holds_alternative<Imm>(cond.right)) {
+        // set rhs to the immediate value
+        rhs = buildConstantOp(std::get<Imm>(cond.right));
+      } else {
+        auto rhsId = std::get<Reg>(cond.right).v;
+        rhs = getRegister(rhsId);
+      }
+      auto cmpOp = m_builder.create<CmpOp>(m_unknownLoc, getPred(cond.op),
+                                           getRegister(lhsId), rhs);
+      m_builder.create<CondBranchOp>(m_unknownLoc, cmpOp, toBlock, condBlock);
+    } else {
+      m_builder.create<BranchOp>(m_unknownLoc, toBlock);
+    }
+    return;
+  }
+
   mlir::Value buildConstantOp(Imm imm) {
     auto type = m_builder.getI64Type();
     auto immVal = m_builder.create<ebpf::ConstantOp>(
