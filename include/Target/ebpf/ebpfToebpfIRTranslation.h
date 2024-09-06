@@ -67,6 +67,7 @@ public:
   OwningOpRef<mlir::FuncOp> buildMainFunction(mlir::ModuleOp module);
   void buildMemFunctionBody();
   void buildSSAFunctionBody();
+  void buildFunctionBodyFromCFG();
 
 private:
   ///===----------------------------------------------------------------------===//
@@ -100,6 +101,9 @@ private:
   std::map<size_t, size_t> m_jmpTargets;
   raw_program m_raw_prog;
   InstructionSeq m_section;
+  cfg_t m_cfg;
+  std::map<int, Block *> m_bbs;
+  std::map<int, int> m_nextCondBlock;
 
   size_t m_numBlocks = 0;
   void incrementBlocks(size_t jmpTo) {
@@ -149,6 +153,10 @@ private:
   void updateBlocksMap(Block *block, size_t firstOp) {
     m_blocks.push_back(block);
     m_jumpBlocks[firstOp] = block;
+  }
+
+  void updateBBMap(Block *block, int label) {
+    m_bbs[label] = block;
   }
 
   void setRegister(const uint8_t idx, const mlir::Value &value,
