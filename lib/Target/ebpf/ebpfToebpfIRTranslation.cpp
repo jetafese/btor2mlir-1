@@ -340,6 +340,12 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
+    found = callOp.name.find("redirect");
+    if (found != std::string::npos) {
+      std::cerr << "Call redirect" << std::endl;
+      createNDOp();
+      return;
+    }
     std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);
     return;
@@ -350,7 +356,9 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   } else if (std::holds_alternative<Exit>(ins)) {
     // std::cerr << "Exit" << std::endl;
     if (!m_bbs.contains(-2)) {
-      auto jmpExit = Jmp{.target = label_t{-2},};
+      auto jmpExit = Jmp{
+          .target = label_t{-2},
+      };
       createJmpOp(jmpExit, cur_label);
     }
     return;
@@ -506,12 +514,12 @@ void Deserialize::buildFunctionBodyFromCFG() {
         auto jmpOp = std::get<Jmp>(ins);
         if (jmpOp.cond.has_value()) {
           /* store next block when conditional*/
-          assert(bbIter+1 < bbLabels.size());
-          m_nextCondBlock[this_label.from] = bbLabels.at(bbIter+1).from;
+          assert(bbIter + 1 < bbLabels.size());
+          m_nextCondBlock[this_label.from] = bbLabels.at(bbIter + 1).from;
         }
         createMLIR(ins, this_label);
         terminatorSet = true;
-      } else if(std::holds_alternative<Exit>(ins)) {
+      } else if (std::holds_alternative<Exit>(ins)) {
         createMLIR(ins, this_label);
         terminatorSet = true;
       } else {
@@ -519,7 +527,9 @@ void Deserialize::buildFunctionBodyFromCFG() {
       }
     }
     if (!terminatorSet) {
-      auto jmpFallthrough = Jmp{.target = bbLabels.at(bbIter+1),};
+      auto jmpFallthrough = Jmp{
+          .target = bbLabels.at(bbIter + 1),
+      };
       createMLIR(jmpFallthrough, bbLabels.at(bbIter));
     }
     bbIter++;
@@ -568,6 +578,7 @@ void Deserialize::setupRegisters(Block *body) {
                                         zero_offset, body->getArgument(1));
   }
 }
+
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   auto regType = m_builder.getI64Type();
   std::vector<Type> argTypes =
