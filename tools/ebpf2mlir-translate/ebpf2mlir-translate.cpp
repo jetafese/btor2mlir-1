@@ -20,7 +20,6 @@
 
 int main(int argc, char **argv) {
   mlir::registerAllTranslations();
-  mlir::ebpf::registerebpfTranslation();
   mlir::ebpf::registerebpfMemTranslation();
 
   return failed(

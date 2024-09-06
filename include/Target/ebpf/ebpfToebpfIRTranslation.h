@@ -42,10 +42,9 @@ public:
   /// Constructors and Destructors
   ///===----------------------------------------------------------------------===//
 
-  Deserialize(MLIRContext *context, const std::string &s, bool ssa,
-              int sectionNumber)
+  Deserialize(MLIRContext *context, const std::string &s, int sectionNumber)
       : m_context(context), m_builder(OpBuilder(m_context)),
-        m_unknownLoc(UnknownLoc::get(m_context)), m_ssa(ssa),
+        m_unknownLoc(UnknownLoc::get(m_context)),
         m_sectionNumber(sectionNumber) {
     m_modelFile.open(s.c_str());
     m_sourceFile = m_builder.getStringAttr(s);
@@ -67,7 +66,7 @@ public:
   OwningOpRef<mlir::FuncOp> buildMainFunction(mlir::ModuleOp module);
   void buildMemFunctionBody();
   void buildSSAFunctionBody();
-  void buildFunctionBodyFromCFG();
+  void buildFunctionBodyFromCFG(Block *body);
 
 private:
   ///===----------------------------------------------------------------------===//
@@ -96,31 +95,13 @@ private:
     R10_STACK_POINTER = 10
   };
 
-  std::vector<size_t> m_startOfNextBlock;
   std::vector<mlir::Value> m_registers;
-  std::map<size_t, size_t> m_jmpTargets;
   raw_program m_raw_prog;
   InstructionSeq m_section;
   cfg_t m_cfg;
   std::map<int, Block *> m_bbs;
   std::map<int, int> m_nextCondBlock;
 
-  size_t m_numBlocks = 0;
-  void incrementBlocks(size_t jmpTo) {
-    if (setInsWithLabel(jmpTo)) {
-      m_startOfNextBlock.push_back(jmpTo);
-      m_numBlocks++;
-    }
-  }
-
-  size_t getInsByLabel(const size_t label) { return m_jmpTargets.at(label); }
-
-  bool setInsWithLabel(const size_t label) {
-    if (m_jmpTargets.contains(label))
-      return false;
-    m_jmpTargets[label] = label;
-    return true;
-  }
   ///===----------------------------------------------------------------------===//
   /// Create MLIR module
   ///===----------------------------------------------------------------------===//
@@ -128,12 +109,9 @@ private:
   MLIRContext *m_context;
   OpBuilder m_builder;
   Location m_unknownLoc;
-  bool m_ssa;
   int m_sectionNumber;
 
-  std::vector<Block *> m_blocks;
   Block *m_lastBlock = nullptr;
-  std::map<size_t, Block *> m_jumpBlocks;
   std::vector<bool> m_regIsMapElement =
       std::vector<bool>(m_ebpfRegisters, false);
 
@@ -147,13 +125,7 @@ private:
   void createLoadMapOp(LoadMapFd loadMap);
   void createNDOp(bool isMapLoad);
   void createAtomicOp(Atomic atomic);
-  void collectBlocks();
   void createAssertOp();
-
-  void updateBlocksMap(Block *block, size_t firstOp) {
-    m_blocks.push_back(block);
-    m_jumpBlocks[firstOp] = block;
-  }
 
   void updateBBMap(Block *block, int label) {
     m_bbs[label] = block;
@@ -161,10 +133,6 @@ private:
 
   void setRegister(const uint8_t idx, const mlir::Value &value,
                    bool isMapLoad = false) {
-    if (m_ssa) {
-      m_registers.at(idx) = value;
-      return;
-    }
     m_regIsMapElement.at(idx) = isMapLoad;
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
@@ -173,9 +141,6 @@ private:
 
   mlir::Value getRegister(const uint8_t idx) {
     auto reg = m_registers.at(idx);
-    if (m_ssa) {
-      return reg;
-    }
     auto zero = buildConstantOp(0);
     auto val = m_builder.create<ebpf::LoadOp>(m_unknownLoc, reg, zero);
     return val;

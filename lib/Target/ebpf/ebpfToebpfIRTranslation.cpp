@@ -390,7 +390,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   assert(false && "unknown");
 }
 
-void Deserialize::buildFunctionBodyFromCFG() {
+void Deserialize::buildFunctionBodyFromCFG(Block *body) {
   cfg_t m_cfg = get_cfg(m_section);
   // collect bbs in a vector
   std::vector<label_t> bbLabels;
@@ -405,7 +405,7 @@ void Deserialize::buildFunctionBodyFromCFG() {
   for (auto const &[this_label, bb] : m_cfg) {
     if (this_label.from == -1) {
       // entrance block
-      updateBBMap(m_lastBlock, this_label.from);
+      updateBBMap(body, this_label.from);
     }
     terminatorSet = false;
     assert(m_bbs.contains(this_label.from));
@@ -415,14 +415,12 @@ void Deserialize::buildFunctionBodyFromCFG() {
       Value ret = getRegister(REG::R0_RETURN_VALUE);
       assert(ret != nullptr);
       m_builder.create<ReturnOp>(m_unknownLoc, ret);
-      std::cerr << "/**/ end block at: -2" << std::endl;
       continue;
     }
 
     for (const auto &ins : bb) {
       assert(!terminatorSet && "jump instruction before end of bb");
       if (std::holds_alternative<Jmp>(ins)) {
-        std::cerr << "z-z ";
         auto jmpOp = std::get<Jmp>(ins);
         if (jmpOp.cond.has_value()) {
           /* store next block when conditional*/
@@ -448,73 +446,40 @@ void Deserialize::buildFunctionBodyFromCFG() {
   }
 }
 
-void Deserialize::collectBlocks() {
-  for (const LabeledInstruction &labeled_inst : m_section) {
-    const auto &[label, ins, line_info] = labeled_inst;
-    if (std::holds_alternative<Jmp>(ins)) {
-      auto jmp = std::get<Jmp>(ins);
-      auto jmpTo = jmp.target.from;
-      if (!m_jmpTargets.contains(jmpTo)) {
-        incrementBlocks(jmpTo);
-      }
-      if (jmp.cond.has_value()) {
-        // assume that the next instruction is defined
-        incrementBlocks(label.from + 1);
-      }
-    }
-  }
-  assert(m_numBlocks == m_startOfNextBlock.size());
-  std::sort(m_startOfNextBlock.begin(), m_startOfNextBlock.end());
-  std::cerr << "we need " << m_numBlocks << " blocks" << std::endl;
-}
-
 void Deserialize::setupRegisters(Block *body) {
   m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
-  if (m_ssa) {
-    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      setRegister(i, body->getArgument(i));
-    }
-  } else {
-    Value allocaSize = buildConstantOp(8);
-    for (size_t i = 0; i < m_ebpfRegisters; ++i) {
-      Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, allocaSize);
-      m_registers.at(i) = reg;
-    }
-    /* r1 and r10 are pointers to ctx and stack respectively*/
-    Value zero_offset = buildConstantOp(0);
-    m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc,
-                                        m_registers.at(REG::R1_ARG),
-                                        zero_offset, body->getArgument(0));
-    m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc,
-                                        m_registers.at(REG::R10_STACK_POINTER),
-                                        zero_offset, body->getArgument(1));
+  Value allocaSize = buildConstantOp(8);
+  for (size_t i = 0; i < m_ebpfRegisters; ++i) {
+    Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, allocaSize);
+    m_registers.at(i) = reg;
   }
+  /* r1 and r10 are pointers to ctx and stack respectively*/
+  Value zero_offset = buildConstantOp(0);
+  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, m_registers.at(REG::R1_ARG),
+                                      zero_offset, body->getArgument(0));
+  m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc,
+                                      m_registers.at(REG::R10_STACK_POINTER),
+                                      zero_offset, body->getArgument(1));
 }
 
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
   auto regType = m_builder.getI64Type();
-  std::vector<Type> argTypes =
-      m_ssa ? std::vector<Type>(m_ebpfRegisters, regType)
-            : std::vector<Type>(m_xdpParameters, regType);
+  std::vector<Type> argTypes = std::vector<Type>(m_xdpParameters, regType);
   // create xdp_entry function with parameters
   OperationState state(m_unknownLoc, FuncOp::getOperationName());
   FuncOp::build(m_builder, state, m_xdp_entry,
                 FunctionType::get(m_context, {argTypes}, {regType}));
   OwningOpRef<FuncOp> funcOp = cast<FuncOp>(Operation::create(state));
   std::vector<Location> argLocs =
-      m_ssa ? std::vector<Location>(m_ebpfRegisters, funcOp->getLoc())
-            : std::vector<Location>(m_xdpParameters, funcOp->getLoc());
+      std::vector<Location>(m_xdpParameters, funcOp->getLoc());
   Region &region = funcOp->getBody();
   OpBuilder::InsertionGuard guard(m_builder);
   auto *body = m_builder.createBlock(&region, {}, {argTypes}, {argLocs});
   m_builder.setInsertionPointToStart(body);
-  // book keeping for future blocks
-  updateBlocksMap(body, 0);
-  m_lastBlock = body;
   // setup registers
   setupRegisters(body);
   // build function body
-  buildFunctionBodyFromCFG();
+  buildFunctionBodyFromCFG(body);
   return funcOp;
 }
 
@@ -608,14 +573,14 @@ bool Deserialize::parseModelIsSuccessful() {
 }
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
-                                               MLIRContext *context, bool ssa,
+                                               MLIRContext *context,
                                                int sectionNumber) {
   context->loadDialect<ebpf::ebpfDialect, StandardOpsDialect>();
 
   OwningOpRef<ModuleOp> owningModule(ModuleOp::create(FileLineColLoc::get(
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
-  Deserialize deserialize(context, input->getBufferIdentifier().str(), ssa,
+  Deserialize deserialize(context, input->getBufferIdentifier().str(),
                           sectionNumber);
   if (deserialize.parseModelIsSuccessful()) {
     OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
@@ -643,17 +608,6 @@ static llvm::cl::opt<int> sectionOpt("section", llvm::cl::init(-1),
 
 namespace mlir {
 namespace ebpf {
-void registerebpfTranslation() {
-  TranslateToMLIRRegistration fromEBPF(
-      "import-ebpf", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
-        // get section name
-        assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
-        return deserializeModule(
-            sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context, true,
-            sectionOpt.getValue());
-      });
-}
-
 void registerebpfMemTranslation() {
   TranslateToMLIRRegistration fromEBPF(
       "import-ebpf-mem", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
@@ -661,7 +615,7 @@ void registerebpfMemTranslation() {
         assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
         return deserializeModule(
             sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
-            false, sectionOpt.getValue());
+            sectionOpt.getValue());
       });
 }
 } // namespace ebpf
