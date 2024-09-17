@@ -177,6 +177,9 @@ private:
     }
   }
 
+/// @brief Creates target basic blocks (if necessary) and branching instructions
+/// @tparam Jump instruction, current basic block label
+/// @return none (updates mlir)
   void buildJumpCFG(Jmp jmp, label_t cur_label) {
     OpBuilder::InsertionGuard guard(m_builder);
     assert(m_bbs.contains(cur_label.from));
@@ -272,7 +275,6 @@ private:
     } else {
       writeVal = getRegister(std::get<Reg>(mem.value).v);
     }
-    // m_regIsMapElement.at(mem.access.basereg.v) = false;
     if (m_regIsMapElement.at(baseReg)) {
       setRegister(baseReg, writeVal);
       return;

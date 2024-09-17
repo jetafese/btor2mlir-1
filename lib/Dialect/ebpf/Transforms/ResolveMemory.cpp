@@ -19,8 +19,8 @@ using namespace ebpf;
 
 namespace {
 /// @brief Resolve ebpf memory loads when loading an address
-/// @param root
-/// @return LogicalResult
+/// @param loadOp the root operation that needs to be replaced
+/// @return success if we replace a load address with loadAddr
 template <typename loadOp>
 LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   bool expectAddr = false, expectInt = false;
@@ -98,7 +98,9 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
 }
 
 struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
-  // expects to receive a file with xdp_entry inlined into main
+/// @brief Identify and replace loads of address with loadAddr
+/// @tparam expects to receive a file with xdp_entry inlined into main
+/// @return none (transformed mlir)
   void runOnOperation() override {
     assert(isa<mlir::ModuleOp>(getOperation()));
     mlir::ModuleOp rootOp = getOperation();
@@ -113,11 +115,8 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
     // process main
     auto &funcOp = topBlock.getOperations().back();
     auto &regions = funcOp.getRegion(0);
-    // std::cerr << "there are " << regions.getBlocks().size()
-    //           << " blocks in first function" << std::endl;
     for (auto &block : regions.getBlocks()) {
       for (Operation &op : block.getOperations()) {
-        // op.dump();
         LogicalResult status =
             llvm::TypeSwitch<Operation *, LogicalResult>(&op)
                 // ebpf ops.

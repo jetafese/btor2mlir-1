@@ -239,6 +239,9 @@ void Deserialize::createAtomicOp(Atomic atomicOp) {
   setRegister(atomicOp.access.basereg.v, res);
 }
 
+/// @brief Creates mlir instruction for every ebpf instruction
+/// @tparam ebpf Instruction, basis block label
+/// @return none (builds instruction in mlir basic block)
 void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   std::cerr << cur_label.from << " ";
   if (std::holds_alternative<Undefined>(ins)) {
@@ -339,6 +342,18 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
+    found = callOp.name.find("l3_csum_replace");
+    if (found != std::string::npos) {
+      std::cerr << "Call l3_csum_replace" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("fib_lookup");
+    if (found != std::string::npos) {
+      std::cerr << "Call fib_lookup" << std::endl;
+      createNDOp();
+      return;
+    }
     std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);
     return;
@@ -390,12 +405,14 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   assert(false && "unknown");
 }
 
+/// @brief Builds corresponding function from ebpf CFG
+/// @tparam Starting (entry) basic block
+/// @return none (ensures that function has been built in mlir)
 void Deserialize::buildFunctionBodyFromCFG(Block *body) {
   cfg_t m_cfg = get_cfg(m_section);
   // collect bbs in a vector
   std::vector<label_t> bbLabels;
   for (auto const &[this_label, _] : m_cfg) {
-    std::cerr << this_label.from << ", ";
     bbLabels.push_back(this_label);
   }
   assert(bbLabels.size() == m_cfg.size() && "expect similar size");
