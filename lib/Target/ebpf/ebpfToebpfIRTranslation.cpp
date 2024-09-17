@@ -415,7 +415,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
 /// @tparam Starting (entry) basic block
 /// @return none (ensures that function has been built in mlir)
 void Deserialize::buildFunctionBodyFromCFG(Block *body) {
-  cfg_t m_cfg = get_cfg(m_section);
+  cfg_t m_cfg = get_cfg(m_sectionIns);
   // collect bbs in a vector
   std::vector<label_t> bbLabels;
   for (auto const &[this_label, _] : m_cfg) {
@@ -565,23 +565,24 @@ bool Deserialize::parseModelIsSuccessful() {
   std::vector<raw_program> raw_progs;
   ebpf_platform_t platform = g_ebpf_platform_linux;
   ebpf_verifier_options_t ebpf_verifier_options = ebpf_verifier_default_options;
-  raw_progs = read_elf(m_modelFile, std::string(), std::string(),
-                       &ebpf_verifier_options, &platform);
-  size_t sect = 0;
-  std::vector<std::string> desired_sections =
-      std::vector<std::string>(raw_progs.size());
-  if (raw_progs.size() == 1) {
-    m_sectionNumber = 0;
-  } else if ((m_sectionNumber < 0) || (m_sectionNumber >= raw_progs.size())) {
-    std::cerr << "please specify a section with: -section <int>\n";
+  try {
+    raw_progs = read_elf(m_modelFile, m_sourceFile.str(), m_section,
+                         &ebpf_verifier_options, &platform);
+  } catch (std::runtime_error &e) {
+    std::cerr << "error: " << e.what() << std::endl;
+    return false;
+  }
+  if (m_section.empty()) {
+    std::cerr << "please specify a section with: -section <string>\n";
     std::cerr << "available sections:\n";
+    raw_progs = read_elf(m_modelFile, std::string(), std::string(),
+                         &ebpf_verifier_options, &platform);
     for (const raw_program &raw_prog : raw_progs) {
-      desired_sections.at(sect) = raw_prog.section;
-      std::cerr << sect++ << ": " << raw_prog.section << "\n";
+      std::cerr << raw_prog.section << "\n";
     }
     return false;
   }
-  m_raw_prog = raw_progs.at(m_sectionNumber);
+  m_raw_prog = raw_progs.back();
   // Convert the raw program section to a set of instructions.
   std::variant<InstructionSeq, std::string> prog_or_error =
       unmarshal(m_raw_prog);
@@ -590,21 +591,20 @@ bool Deserialize::parseModelIsSuccessful() {
               << std::get<std::string>(prog_or_error) << "\n";
     return false;
   }
-  m_section = std::get<InstructionSeq>(prog_or_error);
-  print(m_section, std::cerr, {});
-  return m_section.size() > 0;
+  m_sectionIns = std::get<InstructionSeq>(prog_or_error);
+  print(m_sectionIns, std::cerr, {});
+  return m_sectionIns.size() > 0;
 }
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
                                                MLIRContext *context,
-                                               int sectionNumber) {
+                                               std::string section) {
   context->loadDialect<ebpf::ebpfDialect, StandardOpsDialect>();
 
   OwningOpRef<ModuleOp> owningModule(ModuleOp::create(FileLineColLoc::get(
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
-  Deserialize deserialize(context, input->getBufferIdentifier().str(),
-                          sectionNumber);
+  Deserialize deserialize(context, input->getBufferIdentifier().str(), section);
   if (deserialize.parseModelIsSuccessful()) {
     OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
     if (!XDPFunc) {
@@ -626,8 +626,8 @@ static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
 //===----------------------------------------------------------------------===//
 // Translation CommandLine Options
 //===----------------------------------------------------------------------===//
-static llvm::cl::opt<int> sectionOpt("section", llvm::cl::init(-1),
-                                     llvm::cl::desc("section number"));
+static llvm::cl::opt<std::string> sectionOpt("section", llvm::cl::init(""),
+                                             llvm::cl::desc("section"));
 
 namespace mlir {
 namespace ebpf {

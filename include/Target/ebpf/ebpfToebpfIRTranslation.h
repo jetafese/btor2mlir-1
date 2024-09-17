@@ -42,10 +42,9 @@ public:
   /// Constructors and Destructors
   ///===----------------------------------------------------------------------===//
 
-  Deserialize(MLIRContext *context, const std::string &s, int sectionNumber)
+  Deserialize(MLIRContext *context, const std::string &s, std::string section)
       : m_context(context), m_builder(OpBuilder(m_context)),
-        m_unknownLoc(UnknownLoc::get(m_context)),
-        m_sectionNumber(sectionNumber) {
+        m_unknownLoc(UnknownLoc::get(m_context)), m_section(section) {
     m_modelFile.open(s.c_str());
     m_sourceFile = m_builder.getStringAttr(s);
   }
@@ -97,7 +96,7 @@ private:
 
   std::vector<mlir::Value> m_registers;
   raw_program m_raw_prog;
-  InstructionSeq m_section;
+  InstructionSeq m_sectionIns;
   cfg_t m_cfg;
   std::map<int, Block *> m_bbs;
   std::map<int, int> m_nextCondBlock;
@@ -109,7 +108,7 @@ private:
   MLIRContext *m_context;
   OpBuilder m_builder;
   Location m_unknownLoc;
-  int m_sectionNumber;
+  std::string m_section;
 
   Block *m_lastBlock = nullptr;
   std::vector<bool> m_regIsMapElement =
