@@ -354,6 +354,12 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
+    found = callOp.name.find("ktime_get_ns");
+    if (found != std::string::npos) {
+      std::cerr << "Call ktime_get_ns" << std::endl;
+      createNDOp();
+      return;
+    }
     std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);
     return;
@@ -382,7 +388,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     return;
   } else if (std::holds_alternative<Packet>(ins)) {
     std::cerr << "Packet" << std::endl;
-    assert(false);
+    createNDOp();
     return;
   } else if (std::holds_alternative<Assume>(ins)) {
     std::cerr << "Assume" << std::endl;
