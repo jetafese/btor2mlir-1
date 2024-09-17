@@ -605,20 +605,22 @@ static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
   Deserialize deserialize(context, input->getBufferIdentifier().str(), section);
-  if (deserialize.parseModelIsSuccessful()) {
-    OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
-    if (!XDPFunc) {
-      return owningModule;
-    }
-    owningModule->getBody()->push_back(XDPFunc.release());
-
-    OwningOpRef<FuncOp> mainFunc =
-        deserialize.buildMainFunction(owningModule.get());
-    if (!mainFunc) {
-      return owningModule;
-    }
-    owningModule->getBody()->push_back(mainFunc.release());
+  if (!deserialize.parseModelIsSuccessful()) {
+    exit(1);
   }
+
+  OwningOpRef<FuncOp> XDPFunc = deserialize.buildXDPFunction();
+  if (!XDPFunc) {
+    return owningModule;
+  }
+  owningModule->getBody()->push_back(XDPFunc.release());
+
+  OwningOpRef<FuncOp> mainFunc =
+      deserialize.buildMainFunction(owningModule.get());
+  if (!mainFunc) {
+    return owningModule;
+  }
+  owningModule->getBody()->push_back(mainFunc.release());
 
   return owningModule;
 }
