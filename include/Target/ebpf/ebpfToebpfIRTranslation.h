@@ -127,9 +127,7 @@ private:
   void createAtomicOp(Atomic atomic);
   void createAssertOp();
 
-  void updateBBMap(Block *block, int label) {
-    m_bbs[label] = block;
-  }
+  void updateBBMap(Block *block, int label) { m_bbs[label] = block; }
 
   void setRegister(const uint8_t idx, const mlir::Value &value,
                    bool isMapLoad = false) {
@@ -177,9 +175,10 @@ private:
     }
   }
 
-/// @brief Creates target basic blocks (if necessary) and branching instructions
-/// @tparam Jump instruction, current basic block label
-/// @return none (updates mlir)
+  /// @brief Creates target basic blocks (if necessary) and branching
+  /// instructions
+  /// @tparam Jump instruction, current basic block label
+  /// @return none (updates mlir)
   void buildJumpCFG(Jmp jmp, label_t cur_label) {
     OpBuilder::InsertionGuard guard(m_builder);
     assert(m_bbs.contains(cur_label.from));
