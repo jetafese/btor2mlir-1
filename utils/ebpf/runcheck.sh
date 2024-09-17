@@ -9,7 +9,7 @@ SEAHORN_ROOT=/Users/jetafese/Documents/code/seahorn
 EBPF_BENCHMARKS=${PREVAIL_ROOT}/ebpf-samples
 PREVAIL_CHECK=${PREVAIL_ROOT}/check
 
-BTOR2MLIR_DEBUG=${BTOR2MLIR_ROOT}/debug/
+BTOR2MLIR_DEBUG=${BTOR2MLIR_ROOT}/debug
 BTOR2MLIR_TRANSLATE=${BTOR2MLIR_DEBUG}/bin/ebpf2mlir-translate
 BTOR2MLIR_CHECK=${BTOR2MLIR_ROOT}/utils/ebpf/script.sh
 

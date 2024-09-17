@@ -360,6 +360,90 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       createNDOp();
       return;
     }
+    found = callOp.name.find("set_hash_invalid");
+    if (found != std::string::npos) {
+      std::cerr << "Call set_hash_invalid" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_current_comm");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_current_comm" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("sock_map_update");
+    if (found != std::string::npos) {
+      std::cerr << "Call sock_map_update" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("ringbuf_output");
+    if (found != std::string::npos) {
+      std::cerr << "Call ringbuf_output" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("xdp_adjust_head");
+    if (found != std::string::npos) {
+      std::cerr << "Call xdp_adjust_head" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("xdp_adjust_tail");
+    if (found != std::string::npos) {
+      std::cerr << "Call xdp_adjust_tail" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("xdp_adjust_meta");
+    if (found != std::string::npos) {
+      std::cerr << "Call xdp_adjust_meta" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_smp_processor_id");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_smp_processor_id" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_current_pid_tgid");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_current_pid_tgid" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("probe_read");
+    if (found != std::string::npos) {
+      std::cerr << "Call probe_read" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_stackid");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_stackid" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("get_current_uid_gid");
+    if (found != std::string::npos) {
+      std::cerr << "Call get_current_uid_gid" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("trace_printk");
+    if (found != std::string::npos) {
+      std::cerr << "Call trace_printk" << std::endl;
+      createNDOp();
+      return;
+    }
+    found = callOp.name.find("perf_event_read");
+    if (found != std::string::npos) {
+      std::cerr << "Call perf_event_read" << std::endl;
+      createNDOp();
+      return;
+    }
     std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);
     return;
