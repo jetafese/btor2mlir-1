@@ -21,33 +21,56 @@ if [ "$#" -ne 4 ]; then
     usage
 fi
 
-echo "$BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.mlir" >> $EBPF.log.txt;
-if ! $BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.mlir; then 
-    echo "error: translation failed" >> $EBPF.log.txt
+# remove non-alphanumeric text from section name
+CLEANSECTION=${SECTION//[^a-zA-Z0-9]/}
+
+echo "$BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.$CLEANSECTION.mlir";
+if ! $BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.$CLEANSECTION.mlir; then 
+    echo "error: translation failed" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.mlir;
+    exit 1;
+fi
+
+echo "$BTOR2MLIR/bin/ebpf2mlir-opt --inline --resolve-mem  $EBPF.$CLEANSECTION.mlir > $EBPF.$CLEANSECTION.mlir.res.mlir";
+if ! $BTOR2MLIR/bin/ebpf2mlir-opt --inline --resolve-mem  $EBPF.$CLEANSECTION.mlir > $EBPF.$CLEANSECTION.mlir.res.mlir; then
+    echo "error: analysis failed" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.mlir;
+    rm -f $EBPF.$CLEANSECTION.mlir.res.mlir;
+    exit 1;
+fi
+rm -f $EBPF.$CLEANSECTION.mlir;
+
+echo "$BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.$CLEANSECTION.mlir.res.mlir > $EBPF.$CLEANSECTION.mlir.opt";
+if ! $BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.$CLEANSECTION.mlir.res.mlir > $EBPF.$CLEANSECTION.mlir.opt; then
+    echo "error: llvm dialect conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.mlir.res.mlir;
+    rm -f $EBPF.$CLEANSECTION.mlir.opt;
+    exit 1;
+fi
+rm -f $EBPF.$CLEANSECTION.mlir.res.mlir;
+
+echo "$BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.$CLEANSECTION.mlir.opt > $EBPF.$CLEANSECTION.mlir.opt.ll";
+if ! $BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.$CLEANSECTION.mlir.opt > $EBPF.$CLEANSECTION.mlir.opt.ll; then
+    echo "error: llvmir conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.mlir.opt;
+    rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
     exit 1
 fi
-echo "$BTOR2MLIR/bin/ebpf2mlir-opt --inline --resolve-mem  $EBPF.mlir > $EBPF.mlir.res.mlir"  >> $EBPF.log.txt;
-if ! $BTOR2MLIR/bin/ebpf2mlir-opt --inline --resolve-mem  $EBPF.mlir > $EBPF.mlir.res.mlir; then
-    echo "error: analysis failed" >> $EBPF.log.txt
-    exit 1
+rm -f $EBPF.$CLEANSECTION.mlir.opt;
+
+echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll";
+if ! $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll 1>> $EBPF.$CLEANSECTION.sea.txt; then
+    echo "error: seahorn failed"  >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
+    rm -f $EBPF.$CLEANSECTION.sea.txt;
+    exit 1;
 fi
-echo "$BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.mlir.res.mlir > $EBPF.mlir.opt"  >> $EBPF.log.txt;
-if ! $BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.mlir.res.mlir > $EBPF.mlir.opt; then
-    echo "error: llvm dialect conversion failed" >> $EBPF.log.txt
-    exit 1
-fi
-echo "$BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.mlir.opt > $EBPF.mlir.opt.ll"  >> $EBPF.log.txt;
-if ! $BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.mlir.opt > $EBPF.mlir.opt.ll; then
-    echo "error: llvmir conversion failed" >> $EBPF.log.txt
-    exit 1
-fi
-echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.mlir.opt.ll -o$EBPF.smt2" >> $EBPF.log.txt;
-if ! $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.mlir.opt.ll -o$EBPF.smt2 1>> $EBPF.log.txt; then
-    echo "error: seahorn failed"  >> $EBPF.log.txt
+rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
+
+if ! grep "Result TRUE" $EBPF.$CLEANSECTION.sea.txt; then
+    echo "unsafe" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.sea.txt;
     exit 1
 fi
 
-if ! grep "Result TRUE" $EBPF.log.txt; then
-    echo "error: program is unsafe"
-    exit 1
-fi
+rm -f $EBPF.$CLEANSECTION.sea.txt;
