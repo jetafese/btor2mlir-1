@@ -59,7 +59,7 @@ fi
 rm -f $EBPF.$CLEANSECTION.mlir.opt;
 
 echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll";
-if ! $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll 1>> $EBPF.$CLEANSECTION.sea.txt; then
+if ! timeout 15s $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll 1>> $EBPF.$CLEANSECTION.sea.txt; then
     echo "error: seahorn failed"  >> $EBPF.$CLEANSECTION.log.txt;
     rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
     rm -f $EBPF.$CLEANSECTION.sea.txt;
