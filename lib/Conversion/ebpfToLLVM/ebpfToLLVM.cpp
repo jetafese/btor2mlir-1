@@ -466,6 +466,36 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
   }
 };
 
+struct BE16OpLowering : public ConvertOpToLLVMPattern<ebpf::BE16> {
+  using ConvertOpToLLVMPattern<ebpf::BE16>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::BE16 be16Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<LLVM::BitReverseOp>(be16Op, adaptor.operand());
+    return success();
+  }
+};
+
+struct BE32OpLowering : public ConvertOpToLLVMPattern<ebpf::BE32> {
+  using ConvertOpToLLVMPattern<ebpf::BE32>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::BE32 be32Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<LLVM::BitReverseOp>(be32Op, adaptor.operand());
+    return success();
+  }
+};
+
+struct BE64OpLowering : public ConvertOpToLLVMPattern<ebpf::BE64> {
+  using ConvertOpToLLVMPattern<ebpf::BE64>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::BE64 be64Op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    rewriter.replaceOpWithNewOp<LLVM::BitReverseOp>(be64Op, adaptor.operand());
+    return success();
+  }
+};
+
 struct AssertOpLowering : public ConvertOpToLLVMPattern<ebpf::AssertOp> {
   using ConvertOpToLLVMPattern<ebpf::AssertOp>::ConvertOpToLLVMPattern;
   LogicalResult

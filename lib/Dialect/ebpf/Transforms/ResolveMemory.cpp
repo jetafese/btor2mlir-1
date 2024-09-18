@@ -25,6 +25,7 @@ template <typename loadOp>
 LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   bool expectAddr = false, expectInt = false;
   bool replaceWithMem = true, keepAsIs = false;
+  if (op.getResult().use_empty()) { return success(); }
   assert(!op.getResult().use_empty());
   for (auto &use : op.getResult().getUses()) {
     expectAddr = false, expectInt = false;

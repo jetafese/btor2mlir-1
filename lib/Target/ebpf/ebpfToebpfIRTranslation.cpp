@@ -271,7 +271,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
       return;
     }
     std::size_t found;
-    for(const auto& fname : m_functionNames) {
+    for (const auto &fname : m_functionNames) {
       found = callOp.name.find(fname);
       if (found != std::string::npos) {
         std::cerr << "Call " << fname << std::endl;
