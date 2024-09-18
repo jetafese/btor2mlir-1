@@ -645,7 +645,8 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
                MoveOpLowering, Move8OpLowering, Move16OpLowering,
                Move32OpLowering, LoadMapOpLowering, NDOpLowering,
                AllocaOpLowering, AssertOpLowering, MemHavocOpLowering,
-               LoadAddrOpLowering, StoreAddrOpLowering, GetAddrOpLowering>(
+               LoadAddrOpLowering, StoreAddrOpLowering, GetAddrOpLowering,
+               BE16OpLowering, BE32OpLowering, BE64OpLowering>(
       converter);
 }
 
