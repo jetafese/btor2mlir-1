@@ -1,0 +1,370 @@
+File,Result
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L3.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L3.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L3.o:from-netdev, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L4.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L4.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DLB_L4.o:from-netdev, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DUNKNOWN.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DUNKNOWN.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lb-DUNKNOWN.o:from-netdev, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/3,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:2/6, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:from-container,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DDROP_ALL.o:1/0x1010, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/3,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:2/6, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:from-container, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc-DUNKNOWN.o:1/0x1010, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/3,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:2/6, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:from-container,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_lxc_jit.o:1/0xdc06, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/3,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:from-netdev, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_netdev.o:3/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/3,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:from-overlay, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/bpf_cilium_test/bpf_overlay.o:3/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/badhelpercall.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/badmapptr.o:test,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/byteswap.o:.text, error: translation failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/ctxoffset.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/exposeptr.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/exposeptr2.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/loop.o:test_md,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/map_in_map.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/map_in_map_anonymous.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/map_in_map_legacy.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/map_in_map_typedef.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/mapoverflow.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/mapunderflow.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/mapvalue-overrun.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/nullmapref.o:test,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/packet_access.o:xdp,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/packet_overflow.o:xdp,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/packet_reallocate.o:socket_filter, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/packet_start_ok.o:xdp,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/prog_array.o:.text, error: translation failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/ringbuf_uninit.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/stackok.o:.text,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/tail_call.o:xdp_prog, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/tail_call.o:xdp_prog/0, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/tail_call_bad.o:xdp_prog, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/tail_call_bad.o:xdp_prog/0, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/twomaps.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/twomaps_btf.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/twostackvars.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/twotypes.o:.text, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/build/wronghelper.o:xdp, error: translation failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lb.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lb.o:from-netdev, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/6, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:from-container, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/12, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/11, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:1/0x1010, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/8, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_lxc.o:2/9, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:2/3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:2/4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_netdev.o:from-netdev, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:2/3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:2/5, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:2/4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:2/7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_overlay.o:from-overlay, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/21, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/16, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/18, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/24, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/20, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/15, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/17, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/19, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/21, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/16, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/18, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/24, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/20, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/15, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/17, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/19, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/21, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/16, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/18, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/24, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/20, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/15, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/17, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/19, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/7, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_dsr_linux_v1_1.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/16, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/18, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/24, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/15, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/17, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/19, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/16, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/18, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/24, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/15, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/17, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/19, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:2/10, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/cilium/bpf_xdp_snat_linux_v1.o:from-netdev,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/invalid/invalid-lddw.o:.text, error: translation failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/cpustat_kern.o:tracepoint/power/cpu_idle, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/cpustat_kern.o:tracepoint/power/cpu_frequency, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/lathist_kern.o:kprobe/trace_preempt_off, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/lathist_kern.o:kprobe/trace_preempt_on, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/lwt_len_hist_kern.o:len_hist, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_getuid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_geteuid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_getgid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_getegid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_connect,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_gettid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_getpgid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/map_perf_test_kern.o:kprobe/sys_getppid,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/offwaketime_kern.o:kprobe/try_to_wake_up,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/offwaketime_kern.o:tracepoint/sched/sched_switch, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sampleip_kern.o:perf_event,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sock_flags_kern.o:cgroup/sock1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sock_flags_kern.o:cgroup/sock2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex1_kern.o:socket1, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex2_kern.o:socket2, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex3_kern.o:socket/3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex3_kern.o:socket/4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex3_kern.o:socket/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex3_kern.o:socket/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/sockex3_kern.o:socket/0,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/spin_unlock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/spin_lock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/mutex_spin_on_owner,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/rwsem_spin_on_owner,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/spin_unlock_irqrestore,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_unlock_irqrestore,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_unlock_bh,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_unlock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_lock_irqsave,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_trylock_bh,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_lock_irq,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_trylock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_lock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/_raw_spin_lock_bh,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/htab_map_update_elem,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/__htab_percpu_map_update_elem,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/spintest_kern.o:kprobe/htab_map_alloc,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/syscall_tp_kern.o:tracepoint/syscalls/sys_enter_open,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/syscall_tp_kern.o:tracepoint/syscalls/sys_exit_open,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/task_fd_query_kern.o:kprobe/blk_start_request, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/task_fd_query_kern.o:kretprobe/blk_account_io_completion, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tc_l2_redirect_kern.o:l2_to_iptun_ingress_forward, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tc_l2_redirect_kern.o:l2_to_iptun_ingress_redirect, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tc_l2_redirect_kern.o:l2_to_ip6tun_ingress_redirect, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tc_l2_redirect_kern.o:drop_non_tun_vip, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcbpf1_kern.o:classifier, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcbpf1_kern.o:redirect_xmit,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcbpf1_kern.o:redirect_recv,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcbpf1_kern.o:clone_redirect_xmit,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcbpf1_kern.o:clone_redirect_recv,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_basertt_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_bufs_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_clamp_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_cong_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_iw_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_rwnd_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tcp_synrto_kern.o:sockops,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_cgrp2_tc_kern.o:filter, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_current_task_under_cgroup_kern.o:kprobe/sys_sync,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_map_in_map_kern.o:kprobe/sys_connect, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_kprobe_kern.o:kprobe/__set_task_comm,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_kprobe_kern.o:kprobe/urandom_read, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_raw_tp_kern.o:raw_tracepoint/task_rename, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_raw_tp_kern.o:raw_tracepoint/urandom_read, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_tp_kern.o:tracepoint/task/task_rename, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_overhead_tp_kern.o:tracepoint/random/urandom_read, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/test_probe_write_user_kern.o:kprobe/sys_connect,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/trace_event_kern.o:perf_event,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/trace_output_kern.o:kprobe/sys_write,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex1_kern.o:kprobe/__netif_receive_skb_core,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex2_kern.o:kprobe/kfree_skb,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex2_kern.o:kprobe/sys_write, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex3_kern.o:kprobe/blk_start_request,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex3_kern.o:kprobe/blk_account_io_completion, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex4_kern.o:kprobe/kmem_cache_free,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex4_kern.o:kretprobe/kmem_cache_alloc_node,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex5_kern.o:kprobe/__seccomp_filter,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex5_kern.o:kprobe/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex5_kern.o:kprobe/0,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex5_kern.o:kprobe/9,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex6_kern.o:kprobe/htab_map_get_next_key,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex6_kern.o:kprobe/htab_map_lookup_elem, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/tracex7_kern.o:kprobe/open_ctree, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp1_kern.o:xdp1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp2_kern.o:xdp1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp2skb_meta_kern.o:xdp_mark, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp2skb_meta_kern.o:tc_mark, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_adjust_tail_kern.o:xdp_icmp,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_fwd_kern.o:xdp_fwd, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_fwd_kern.o:xdp_fwd_direct, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_map_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_map,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_exception,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_cpumap_enqueue, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_cpumap_kthread, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_monitor_kern.o:tracepoint/xdp/xdp_devmap_xmit, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map0, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map1_touch_data,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map2_round_robin, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map3_proto_separate, error: analysis failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map4_ddos_filter_pktgen, error: analysis failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:xdp_cpu_map5_lb_hash_ip_pairs, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_redirect_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_redirect_map_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_exception,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_cpumap_enqueue, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_cpumap_kthread, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_kern.o:xdp_redirect,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_kern.o:xdp_redirect_dummy, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_map_kern.o:xdp_redirect_map,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_redirect_map_kern.o:xdp_redirect_dummy, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_router_ipv4_kern.o:xdp_router_ipv4,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_rxq_info_kern.o:xdp_prog0, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_sample_pkts_kern.o:xdp_sample,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdp_tx_iptunnel_kern.o:xdp_tx_iptunnel, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/linux/xdpsock_kern.o:xdp_sock,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sock_flags_kern.o:cgroup/sock1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sock_flags_kern.o:cgroup/sock2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex1_kern.o:socket1, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex2_kern.o:socket2, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex3_kern.o:socket/3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex3_kern.o:socket/4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex3_kern.o:socket/1,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex3_kern.o:socket/2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/sockex3_kern.o:socket/0,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/trace_output_kern.o:kprobe/__x64_sys_write,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex1_kern.o:kprobe/__netif_receive_skb_core,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex2_kern.o:kprobe/kfree_skb,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex2_kern.o:kprobe/__x64_sys_write, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex3_kern.o:kprobe/blk_mq_start_request,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex3_kern.o:kprobe/blk_account_io_done, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex4_kern.o:kprobe/kmem_cache_free,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex4_kern.o:kretprobe/kmem_cache_alloc_node,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex6_kern.o:kprobe/htab_map_get_next_key,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex6_kern.o:kprobe/htab_map_lookup_elem, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/new_linux/tracex7_kern.o:kprobe/open_ctree, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-32, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-33, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-0,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-1, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-3, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-4, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-5, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-7, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-8, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-11, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-13, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-12, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-2, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:xdp,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:af_xdp, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:tail-35, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:ingress,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:egress,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/ovs/datapath.o:downcall, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/napi_monitor_kern.o:tracepoint/napi/napi_poll, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/napi_monitor_kern.o:tracepoint/irq/softirq_entry, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/napi_monitor_kern.o:tracepoint/irq/softirq_exit, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/napi_monitor_kern.o:tracepoint/irq/softirq_raise, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/tc_bench01_redirect_kern.o:ingress_redirect, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_bench01_mem_access_cost_kern.o:xdp_bench01,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_bench02_drop_pattern_kern.o:xdp_bench02,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_ddos01_blacklist_kern.o:.text, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_ddos01_blacklist_kern.o:xdp_prog, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_map_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_monitor_kern.o:tracepoint/xdp/xdp_redirect_map,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map0, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map1_touch_data,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map2_round_robin, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map3_proto_separate, error: analysis failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map4_ddos_filter_pktgen, error: analysis failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:xdp_cpu_map5_ip_l3_flow_hash, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_redirect_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_redirect_map_err,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_exception,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_cpumap_enqueue, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_cpu_kern.o:tracepoint/xdp/xdp_cpumap_kthread, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_err_kern.o:xdp_redirect_map,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_err_kern.o:xdp_redirect_dummy, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_redirect_err_kern.o:xdp_redirect_map_rr,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_tcpdump_kern.o:xdp_tcpdump_to_perf_ring,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_ttl_kern.o:xdp_ttl,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_vlan01_kern.o:xdp_drop_vlan_4011,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_vlan01_kern.o:xdp_vlan_change, error: llvm dialect conversion failed
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_vlan01_kern.o:xdp_vlan_remove_outer,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_vlan01_kern.o:xdp_vlan_remove_outer2,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/prototype-kernel/xdp_vlan01_kern.o:tc_vlan_push, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/suricata/bypass_filter.o:filter, 0
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/suricata/filter.o:filter,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/suricata/lb.o:loadbalancer,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/suricata/vlan_filter.o:filter,1
+/Users/jetafese/Documents/code/btor2mlir/prevail/ebpf-samples/suricata/xdp_filter.o:xdp,1

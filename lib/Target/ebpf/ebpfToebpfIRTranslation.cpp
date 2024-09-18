@@ -265,184 +265,19 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
   } else if (std::holds_alternative<Call>(ins)) {
     auto callOp = std::get<Call>(ins);
     std::cerr << "-- call: " << callOp.func + 0 << std::endl;
-    std::size_t found = callOp.name.find("get_prandom");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_prandom" << std::endl;
-      createAssertOp();
-      return;
-    }
     if (callOp.is_map_lookup) {
       std::cerr << "Map Lookup" << std::endl;
       createNDOp(true);
       return;
     }
-    found = callOp.name.find("redirect_map");
-    if (found != std::string::npos) {
-      std::cerr << "Call redirect_map" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("perf_event_output");
-    if (found != std::string::npos) {
-      std::cerr << "Call perf_event_output" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_hash_recalc");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_hash_recalc" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("skb_");
-    if (found != std::string::npos) {
-      std::cerr << "Call skb_*" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("csum_diff");
-    if (found != std::string::npos) {
-      std::cerr << "Call csum_diff" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("l4_csum_replace");
-    if (found != std::string::npos) {
-      std::cerr << "Call l4_csum_replace" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("tail_call");
-    if (found != std::string::npos) {
-      std::cerr << "Call tail_call" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("map_update_elem");
-    if (found != std::string::npos) {
-      std::cerr << "Call map_update_elem" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("jiffies64");
-    if (found != std::string::npos) {
-      std::cerr << "Call jiffies64" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("map_delete_elem");
-    if (found != std::string::npos) {
-      std::cerr << "Call map_delete_elem" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("redirect");
-    if (found != std::string::npos) {
-      std::cerr << "Call redirect" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("l3_csum_replace");
-    if (found != std::string::npos) {
-      std::cerr << "Call l3_csum_replace" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("fib_lookup");
-    if (found != std::string::npos) {
-      std::cerr << "Call fib_lookup" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("ktime_get_ns");
-    if (found != std::string::npos) {
-      std::cerr << "Call ktime_get_ns" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("set_hash_invalid");
-    if (found != std::string::npos) {
-      std::cerr << "Call set_hash_invalid" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_current_comm");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_current_comm" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("sock_map_update");
-    if (found != std::string::npos) {
-      std::cerr << "Call sock_map_update" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("ringbuf_output");
-    if (found != std::string::npos) {
-      std::cerr << "Call ringbuf_output" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("xdp_adjust_head");
-    if (found != std::string::npos) {
-      std::cerr << "Call xdp_adjust_head" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("xdp_adjust_tail");
-    if (found != std::string::npos) {
-      std::cerr << "Call xdp_adjust_tail" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("xdp_adjust_meta");
-    if (found != std::string::npos) {
-      std::cerr << "Call xdp_adjust_meta" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_smp_processor_id");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_smp_processor_id" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_current_pid_tgid");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_current_pid_tgid" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("probe_read");
-    if (found != std::string::npos) {
-      std::cerr << "Call probe_read" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_stackid");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_stackid" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("get_current_uid_gid");
-    if (found != std::string::npos) {
-      std::cerr << "Call get_current_uid_gid" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("trace_printk");
-    if (found != std::string::npos) {
-      std::cerr << "Call trace_printk" << std::endl;
-      createNDOp();
-      return;
-    }
-    found = callOp.name.find("perf_event_read");
-    if (found != std::string::npos) {
-      std::cerr << "Call perf_event_read" << std::endl;
-      createNDOp();
-      return;
+    std::size_t found;
+    for(const auto& fname : m_functionNames) {
+      found = callOp.name.find(fname);
+      if (found != std::string::npos) {
+        std::cerr << "Call " << fname << std::endl;
+        createNDOp();
+        return;
+      }
     }
     std::cerr << "Other Call: " << callOp.name << std::endl;
     assert(false);

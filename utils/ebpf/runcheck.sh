@@ -32,7 +32,7 @@ for f in ${EBPF_BENCHMARKS}/*/*.o
         if ${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s}; then
             echo -n ",1" >> ${PREFIX}.csv
         else
-            echo -n ", $(cat $f.$CLEANSECTION.log.txt)" >> ${PREFIX}.csv
+            echo -n ",$(cat $f.$CLEANSECTION.log.txt)" >> ${PREFIX}.csv
         fi
         echo 1>> ${PREFIX}.csv
         rm -f $f.$CLEANSECTION.log.txt
