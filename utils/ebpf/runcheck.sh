@@ -30,7 +30,7 @@ for f in ${EBPF_BENCHMARKS}/*/*.o
         echo "${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s}" >> ${LOG}.txt
         echo -n $f:$s 1>> ${PREFIX}.csv
         if ${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s}; then
-            echo -n ",safe" >> ${PREFIX}.csv
+            echo -n ",1" >> ${PREFIX}.csv
         else
             echo -n ", $(cat $f.$CLEANSECTION.log.txt)" >> ${PREFIX}.csv
         fi

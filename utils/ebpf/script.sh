@@ -68,9 +68,11 @@ fi
 rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
 
 if ! grep "Result TRUE" $EBPF.$CLEANSECTION.sea.txt; then
-    echo "unsafe" >> $EBPF.$CLEANSECTION.log.txt;
+    # execution reaching here means that the program is unsafe
+    echo "0" >> $EBPF.$CLEANSECTION.log.txt;
     rm -f $EBPF.$CLEANSECTION.sea.txt;
     exit 1
 fi
 
+# execution returning safely means that the program is safe
 rm -f $EBPF.$CLEANSECTION.sea.txt;
