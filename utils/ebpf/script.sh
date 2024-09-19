@@ -42,7 +42,7 @@ rm -f $EBPF.$CLEANSECTION.mlir;
 
 echo "$BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.$CLEANSECTION.mlir.res.mlir > $EBPF.$CLEANSECTION.mlir.opt";
 if ! $BTOR2MLIR/bin/ebpf2mlir-opt --convert-ebpf-to-llvm --reconcile-unrealized-casts  $EBPF.$CLEANSECTION.mlir.res.mlir > $EBPF.$CLEANSECTION.mlir.opt; then
-    echo "error: llvm dialect conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
+    echo "error: to llvm dialect conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
     rm -f $EBPF.$CLEANSECTION.mlir.res.mlir;
     rm -f $EBPF.$CLEANSECTION.mlir.opt;
     exit 1;
@@ -51,7 +51,7 @@ rm -f $EBPF.$CLEANSECTION.mlir.res.mlir;
 
 echo "$BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.$CLEANSECTION.mlir.opt > $EBPF.$CLEANSECTION.mlir.opt.ll";
 if ! $BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.$CLEANSECTION.mlir.opt > $EBPF.$CLEANSECTION.mlir.opt.ll; then
-    echo "error: llvmir conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
+    echo "error: final conversion failed" >> $EBPF.$CLEANSECTION.log.txt;
     rm -f $EBPF.$CLEANSECTION.mlir.opt;
     rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
     exit 1
@@ -59,13 +59,20 @@ fi
 rm -f $EBPF.$CLEANSECTION.mlir.opt;
 
 echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll";
-if ! timeout 15s $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll 1>> $EBPF.$CLEANSECTION.sea.txt; then
-    echo "error: seahorn failed"  >> $EBPF.$CLEANSECTION.log.txt;
+if ! timeout 15s $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll >> $EBPF.$CLEANSECTION.sea.txt 2>&1; then
+    echo "timeout: seahorn"  >> $EBPF.$CLEANSECTION.log.txt;
     rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
     rm -f $EBPF.$CLEANSECTION.sea.txt;
     exit 1;
 fi
 rm -f $EBPF.$CLEANSECTION.mlir.opt.ll;
+
+if grep "WARNING: no assertion was found" $EBPF.$CLEANSECTION.sea.txt; then
+    # trivially safe
+    echo "1" >> $EBPF.$CLEANSECTION.log.txt;
+    rm -f $EBPF.$CLEANSECTION.sea.txt;
+    exit 0
+fi
 
 if ! grep "Result TRUE" $EBPF.$CLEANSECTION.sea.txt; then
     # execution reaching here means that the program is unsafe
