@@ -18,8 +18,8 @@ PREFIX=prevail_${DATE}
 LOG=log_${DATE}
 
 rm -f ${LOG}.txt
-echo -n "Running Prevail ... "
-echo "File,Result"  1>> ${PREFIX}.csv
+echo -n "Running ebpf pipeline on 369 programs ... "
+echo "File,Result,seahorn_time,trivial,total"  1>> ${PREFIX}.csv
 for f in ${EBPF_BENCHMARKS}/*/*.o
     do
     sections=($(${PREVAIL_CHECK} $f -l 2> /dev/null))
@@ -29,12 +29,13 @@ for f in ${EBPF_BENCHMARKS}/*/*.o
         rm -f $f.$CLEANSECTION.log.txt
         echo "${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s}" >> ${LOG}.txt
         echo -n $f:$s 1>> ${PREFIX}.csv
-        if ${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s}; then
-            echo -n ",1" >> ${PREFIX}.csv
-        else
-            echo -n ",$(cat $f.$CLEANSECTION.log.txt)" >> ${PREFIX}.csv
-        fi
+        /usr/bin/time ${BTOR2MLIR_CHECK} ${f} ${BTOR2MLIR_DEBUG} ${SEAHORN_ROOT} ${s} >> $f.$CLEANSECTION.time.txt 2>&1
+        echo -n ",$(cat $f.$CLEANSECTION.log.txt)" >> ${PREFIX}.csv
+        grep "maxresident" $f.$CLEANSECTION.time.txt >> $f.$CLEANSECTION.grep.txt
+        echo -n ",$(cat $f.$CLEANSECTION.grep.txt)" >> ${PREFIX}.csv
         echo 1>> ${PREFIX}.csv
+        rm -f $f.$CLEANSECTION.grep.txt
+        rm -f $f.$CLEANSECTION.time.txt
         rm -f $f.$CLEANSECTION.log.txt
     done
 done
