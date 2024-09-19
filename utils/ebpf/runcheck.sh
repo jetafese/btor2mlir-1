@@ -19,7 +19,7 @@ LOG=log_${DATE}
 
 rm -f ${LOG}.txt
 echo -n "Running ebpf pipeline on 369 programs ... "
-echo "File,Result,seahorn_time,trivial,total"  1>> ${PREFIX}.csv
+echo "File,Result,trivial,seahorn_time,total"  1>> ${PREFIX}.csv
 for f in ${EBPF_BENCHMARKS}/*/*.o
     do
     sections=($(${PREVAIL_CHECK} $f -l 2> /dev/null))
