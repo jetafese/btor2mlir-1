@@ -461,7 +461,7 @@ struct AllocaOpLowering : public ConvertOpToLLVMPattern<ebpf::AllocaOp> {
     auto i8Type = rewriter.getI8Type();
     auto i8Ptr = LLVM::LLVMPointerType::get(i8Type);
     auto size = adaptor.operand();
-    rewriter.replaceOpWithNewOp<LLVM::AllocaOp>(allocaOp, i8Ptr, size);
+    rewriter.replaceOpWithNewOp<LLVM::AllocaOp>(allocaOp, i8Ptr, size, 8);
     return success();
   }
 };
