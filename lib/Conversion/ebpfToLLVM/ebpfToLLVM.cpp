@@ -592,6 +592,11 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
   LLVMConversionTarget target(getContext());
   RewritePatternSet patterns(&getContext());
   ebpfToLLVMTypeConverter converter(&getContext(), true);
+  // set the data-layout programmatically 
+  ModuleOp m = getOperation();
+  llvm::Twine dataLayout("e-m:e-p:64:64-i64:64-i128:128-n32:64-S128");
+  m->setAttr(LLVM::LLVMDialect::getDataLayoutAttrName(),
+             StringAttr::get(m.getContext(), dataLayout));
 
   mlir::ebpf::populateebpfToLLVMConversionPatterns(converter, patterns);
   mlir::populateStdToLLVMConversionPatterns(converter, patterns);

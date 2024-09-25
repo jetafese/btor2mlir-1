@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-fexceptions)
 
 find_package(MLIR REQUIRED CONFIG)
+find_package(yaml-cpp REQUIRED)
+find_package(Boost REQUIRED)
 
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
