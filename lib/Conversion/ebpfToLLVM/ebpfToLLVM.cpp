@@ -643,15 +643,13 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
   patterns.add<AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
                UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
                NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
-               ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering,
-               ConstantOpLowering, StoreOpLowering, Store8OpLowering,
-               Store16OpLowering, Store32OpLowering, LoadOpLowering,
-               Load8OpLowering, Load16OpLowering, Load32OpLowering,
-               MoveOpLowering, Move8OpLowering, Move16OpLowering,
-               Move32OpLowering, LoadMapOpLowering, NDOpLowering,
-               AllocaOpLowering, AssertOpLowering, MemHavocOpLowering,
-               LoadAddrOpLowering, StoreAddrOpLowering, GetAddrOpLowering,
-               BE16OpLowering, BE32OpLowering, BE64OpLowering>(
+      ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering, ConstantOpLowering,
+      StoreOpLowering, Store8OpLowering, Store16OpLowering, Store32OpLowering,
+      LoadOpLowering, Load8OpLowering, Load16OpLowering, Load32OpLowering,
+      MoveOpLowering, Move8OpLowering, Move16OpLowering, Move32OpLowering,
+      LoadMapOpLowering, NDOpLowering, AllocaOpLowering, AssertOpLowering,
+      MemHavocOpLowering, LoadAddrOpLowering, StoreAddrOpLowering,
+      GetAddrOpLowering, BE16OpLowering, BE32OpLowering, BE64OpLowering>(
       converter);
 }
 
