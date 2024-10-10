@@ -397,7 +397,7 @@ def LoadAddrOp : ebpfBinaryOp<"loadAddr"> {
   let summary = "memory load address operation";
   // clang-format off
   let description = [{
-    The `load` operation loads a 64bit value from memory.
+    The `loadAddr` operation loads a 64bit value from memory.
     First operand is the base register, second operand is the offset
 
     Example:
@@ -681,6 +681,22 @@ def AllocaOp : ebpfUnaryOp<"alloca"> {
 
     ```mlir
     %a = ebpf.alloca %s : i64
+    ```
+  }];
+  // clang-format on
+}
+
+def LoadPktPtrOp : ebpfUnaryOp<"loadPktPtr"> {
+  let summary = "memory load packet pointer operation";
+  // clang-format off
+  let description = [{
+    The `loadPktPtr` operation loads a 32bit value from the context.
+    This value serves as an offset for getting the packet pointer.
+
+    Example:
+
+    ```mlir
+    %a = ebpf.loadPktPtr %b : i64
     ```
   }];
   // clang-format on

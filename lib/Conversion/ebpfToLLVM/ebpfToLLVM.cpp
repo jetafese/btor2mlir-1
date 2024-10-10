@@ -194,9 +194,9 @@ struct StoreAddrOpLowering : public ConvertOpToLLVMPattern<ebpf::StoreAddrOp> {
     auto loc = storeAddrOp.getLoc();
     auto base = adaptor.lhs(), offset = adaptor.offset();
     auto val2 = adaptor.rhs();
-    Type i32Type = rewriter.getI32Type();
-    Type i32PtrType = LLVM::LLVMPointerType::get(i32Type);
-    Type ptrType = LLVM::LLVMPointerType::get(i32PtrType);
+    Type i64Type = rewriter.getI64Type();
+    Type i64PtrType = LLVM::LLVMPointerType::get(i64Type);
+    Type ptrType = LLVM::LLVMPointerType::get(i64PtrType);
     Type i8Type = rewriter.getI8Type();
     Type i8PtrType = LLVM::LLVMPointerType::get(i8Type);
 
@@ -208,7 +208,7 @@ struct StoreAddrOpLowering : public ConvertOpToLLVMPattern<ebpf::StoreAddrOp> {
     auto val3 =
         rewriter.create<UnrealizedConversionCastOp>(loc, i8PtrType, val2)
             .getResult(0);
-    auto val = rewriter.create<LLVM::BitcastOp>(loc, i32PtrType, val3);
+    auto val = rewriter.create<LLVM::BitcastOp>(loc, i64PtrType, val3);
     rewriter.replaceOpWithNewOp<LLVM::StoreOp>(storeAddrOp, val, reg);
     return success();
   }
@@ -274,6 +274,18 @@ struct LoadOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadOp> {
     auto gep = rewriter.create<LLVM::GEPOp>(loc, i8PtrType, reg2, offset);
     auto reg = rewriter.create<LLVM::BitcastOp>(loc, i64PtrType, gep);
     rewriter.replaceOpWithNewOp<LLVM::LoadOp>(loadOp, reg);
+    return success();
+  }
+};
+
+struct LoadPktPtrOpLowering
+    : public ConvertOpToLLVMPattern<ebpf::LoadPktPtrOp> {
+  using ConvertOpToLLVMPattern<ebpf::LoadPktPtrOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::LoadPktPtrOp loadPktPtrOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    assert(loadPktPtrOp.use_empty());
+    loadPktPtrOp.erase();
     return success();
   }
 };
@@ -592,7 +604,7 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
   LLVMConversionTarget target(getContext());
   RewritePatternSet patterns(&getContext());
   ebpfToLLVMTypeConverter converter(&getContext(), true);
-  // set the data-layout programmatically 
+  // set the data-layout programmatically
   ModuleOp m = getOperation();
   llvm::Twine dataLayout("e-m:e-p:64:64-i64:64-i128:128-n32:64-S128");
   m->setAttr(LLVM::LLVMDialect::getDataLayoutAttrName(),
@@ -626,7 +638,7 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
   target.addIllegalOp<ebpf::StoreOp, ebpf::Store32Op, ebpf::Store16Op,
                       ebpf::Store8Op, ebpf::LoadOp, ebpf::Load32Op,
                       ebpf::Load16Op, ebpf::Load8Op, ebpf::LoadAddrOp,
-                      ebpf::StoreAddrOp, ebpf::GetAddrOp>();
+                      ebpf::StoreAddrOp, ebpf::GetAddrOp, ebpf::LoadPktPtrOp>();
 
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
@@ -640,17 +652,18 @@ void ebpfToLLVMLoweringPass::runOnOperation() {
 
 void mlir::ebpf::populateebpfToLLVMConversionPatterns(
     ebpfToLLVMTypeConverter &converter, RewritePatternSet &patterns) {
-  patterns.add<AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
-               UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
-               NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
+  patterns.add<
+      AddOpLowering, SubOpLowering, MulOpLowering, SModOpLowering,
+      UModOpLowering, AndOpLowering, SDivOpLowering, UDivOpLowering,
+      NegOpLowering, OrOpLowering, XOrOpLowering, ShiftLLOpLowering,
       ShiftRLOpLowering, ShiftRAOpLowering, CmpOpLowering, ConstantOpLowering,
       StoreOpLowering, Store8OpLowering, Store16OpLowering, Store32OpLowering,
       LoadOpLowering, Load8OpLowering, Load16OpLowering, Load32OpLowering,
       MoveOpLowering, Move8OpLowering, Move16OpLowering, Move32OpLowering,
       LoadMapOpLowering, NDOpLowering, AllocaOpLowering, AssertOpLowering,
       MemHavocOpLowering, LoadAddrOpLowering, StoreAddrOpLowering,
-      GetAddrOpLowering, BE16OpLowering, BE32OpLowering, BE64OpLowering>(
-      converter);
+      GetAddrOpLowering, BE16OpLowering, BE32OpLowering, BE64OpLowering,
+      LoadPktPtrOpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations

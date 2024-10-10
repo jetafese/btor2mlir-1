@@ -25,7 +25,9 @@ template <typename loadOp>
 LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   bool expectAddr = false, expectInt = false;
   bool replaceWithMem = true, keepAsIs = false;
-  if (op.getResult().use_empty()) { return success(); }
+  if (op.getResult().use_empty()) {
+    return success();
+  }
   assert(!op.getResult().use_empty());
   for (auto &use : op.getResult().getUses()) {
     expectAddr = false, expectInt = false;
@@ -98,10 +100,76 @@ LogicalResult replaceLoadWithLoadAddress(loadOp &op) {
   return success();
 }
 
-struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
 /// @brief Identify and replace loads of address with loadAddr
 /// @tparam expects to receive a file with xdp_entry inlined into main
 /// @return none (transformed mlir)
+void processLoadAddrPattern(mlir::Operation &funcOp) {
+  auto &regions = funcOp.getRegion(0);
+  for (auto &block : regions.getBlocks()) {
+    for (Operation &op : block.getOperations()) {
+      LogicalResult _ = llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+                            // ebpf ops.
+                            .Case<ebpf::LoadOp>([&](auto op) {
+                              return replaceLoadWithLoadAddress(op);
+                            })
+                            .Case<ebpf::Load32Op>([&](auto op) {
+                              return replaceLoadWithLoadAddress(op);
+                            })
+                            .Case<ebpf::Load16Op>([&](auto op) {
+                              return replaceLoadWithLoadAddress(op);
+                            })
+                            .Case<ebpf::Load8Op>([&](auto op) {
+                              return replaceLoadWithLoadAddress(op);
+                            })
+                            .Default([&](Operation *) { return failure(); });
+    }
+  }
+}
+
+/// @brief Resolve ebpf packet accesses
+/// @param op LoadPktPtrOp
+/// @param pkt allocated packet
+/// @return success if we replace a load address with loadAddr
+LogicalResult replaceLoadPktPtrWithGep(ebpf::LoadPktPtrOp &op,
+                                       ebpf::AllocaOp &pkt) {
+  if (op.getResult().use_empty()) {
+    return success();
+  }
+  ebpf::LoadPktPtrOp temp = cast<ebpf::LoadPktPtrOp>(op);
+  auto opPtr = temp.getOperation();
+  auto m_context = opPtr->getContext();
+  auto m_builder = OpBuilder(m_context);
+  auto opResult = temp.result();
+  m_builder.setInsertionPointAfterValue(opResult);
+  Value getAddr = m_builder.create<ebpf::GetAddrOp>(
+      temp.getLoc(), temp.getType(), pkt, temp.operand());
+  opResult.replaceAllUsesWith(getAddr);
+  assert(opResult.use_empty());
+  return success();
+}
+
+/// @brief Identify LoadPktPtrOp and replace with an appropriate gep
+/// @param funcOp expects to receive a file with xdp_entry inlined into main
+void adjustLoadPktPtrOps(mlir::Operation &funcOp) {
+  auto &regions = funcOp.getRegion(0);
+  // get operations of the first block in inlined main function
+  auto &firstBlockOps = regions.getBlocks().front().getOperations();
+  auto pktAllocation = firstBlockOps.front().getNextNode();
+  assert(isa<ebpf::AllocaOp>(pktAllocation));
+  ebpf::AllocaOp allocaOp = cast<ebpf::AllocaOp>(pktAllocation);
+  for (auto &block : regions.getBlocks()) {
+    for (Operation &op : block.getOperations()) {
+      LogicalResult _ = llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+                            // ebpf ops.
+                            .Case<ebpf::LoadPktPtrOp>([&](auto op) {
+                              return replaceLoadPktPtrWithGep(op, allocaOp);
+                            })
+                            .Default([&](Operation *) { return failure(); });
+    }
+  }
+}
+
+struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
   void runOnOperation() override {
     assert(isa<mlir::ModuleOp>(getOperation()));
     mlir::ModuleOp rootOp = getOperation();
@@ -115,23 +183,8 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
     xdpEntryFunc.erase();
     // process main
     auto &funcOp = topBlock.getOperations().back();
-    auto &regions = funcOp.getRegion(0);
-    for (auto &block : regions.getBlocks()) {
-      for (Operation &op : block.getOperations()) {
-        LogicalResult status =
-            llvm::TypeSwitch<Operation *, LogicalResult>(&op)
-                // ebpf ops.
-                .Case<ebpf::LoadOp>(
-                    [&](auto op) { return replaceLoadWithLoadAddress(op); })
-                .Case<ebpf::Load32Op>(
-                    [&](auto op) { return replaceLoadWithLoadAddress(op); })
-                .Case<ebpf::Load16Op>(
-                    [&](auto op) { return replaceLoadWithLoadAddress(op); })
-                .Case<ebpf::Load8Op>(
-                    [&](auto op) { return replaceLoadWithLoadAddress(op); })
-                .Default([&](Operation *) { return failure(); });
-      }
-    }
+    processLoadAddrPattern(funcOp);
+    adjustLoadPktPtrOps(funcOp);
   }
 };
 } // namespace
