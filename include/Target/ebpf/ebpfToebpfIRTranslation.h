@@ -77,7 +77,7 @@ private:
   const size_t m_ebpfRegisters = 11;
   const size_t m_ebpf_stack = 512;
   const size_t m_xdpParameters = 2;
-  const size_t m_xdp_pkt = 4096;
+  const size_t m_xdp_pkt = 65534;
   const std::string m_xdp_entry = "xdp_entry";
   const std::vector<std::string> m_functionNames = {
       "get_prandom", "redirect_map", "perf_event_output", "get_hash_recalc",
@@ -105,7 +105,16 @@ private:
     R10_STACK_POINTER = 10
   };
 
+  enum REG_TYPE : size_t {
+    NUM = 0,
+    PKT = 1,
+    CTX = 2,
+    MAP = 3,
+    STACK = 4
+  };
+
   std::vector<mlir::Value> m_registers;
+  std::vector<REG_TYPE> m_reg_types;
   raw_program m_raw_prog;
   InstructionSeq m_sectionIns;
   cfg_t m_cfg;
@@ -140,8 +149,9 @@ private:
   void updateBBMap(Block *block, int label) { m_bbs[label] = block; }
 
   void setRegister(const uint8_t idx, const mlir::Value &value,
-                   bool isMapLoad = false) {
+                   bool isMapLoad = false, REG_TYPE type = REG_TYPE::NUM) {
     m_regIsMapElement.at(idx) = isMapLoad;
+    // m_reg_types.at(idx) = type;
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
     m_builder.create<ebpf::StoreOp>(m_unknownLoc, addr, zero, value);
@@ -266,14 +276,16 @@ private:
 
   template <typename ebpfOp> void buildLoadOp(const Value &offset, Mem mem) {
     auto src = getRegister(mem.access.basereg.v);
+    bool isMapLoad = false;
     Value res;
     if (m_regIsMapElement.at(mem.access.basereg.v)) {
       // TODO: use width specific move operations
       res = src;
+      isMapLoad = true;
     } else {
       res = m_builder.create<ebpfOp>(m_unknownLoc, src, offset);
     }
-    setRegister(std::get<Reg>(mem.value).v, res);
+    setRegister(std::get<Reg>(mem.value).v, res, isMapLoad);
   }
 
   template <typename ebpfOp> void buildStoreOp(const Value &offset, Mem mem) {

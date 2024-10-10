@@ -138,6 +138,27 @@ void Deserialize::createBinaryOp(Bin bin) {
 
 void Deserialize::createMemOp(Mem mem) {
   auto offset = buildConstantOp(mem.access.offset);
+  // TODO: clean up the special case handling, perhaps use setRegister
+  if (mem.is_load) {
+    auto baseReg = mem.access.basereg.v;
+    if (m_reg_types.at(baseReg) == REG_TYPE::CTX) {
+      auto loadOffset = mem.access.offset;
+      auto ctx = m_raw_prog.info.type.context_descriptor;
+      if (loadOffset == ctx->data || loadOffset == ctx->end) {
+        m_reg_types.at(std::get<Reg>(mem.value).v) = REG_TYPE::PKT;
+        auto res = m_builder.create<ebpf::LoadPktPtrOp>(m_unknownLoc, offset);
+        setRegister(std::get<Reg>(mem.value).v, res);
+        return;
+      }
+    }
+    if (m_reg_types.at(baseReg) == REG_TYPE::PKT) {
+        m_reg_types.at(std::get<Reg>(mem.value).v) = REG_TYPE::PKT;
+        auto res = m_builder.create<ebpf::LoadPktPtrOp>(m_unknownLoc, offset);
+        setRegister(std::get<Reg>(mem.value).v, res);
+        return;
+    }
+  }
+
   switch (mem.access.width) {
   case 1:
     if (mem.is_load) {
@@ -390,6 +411,7 @@ void Deserialize::buildFunctionBodyFromCFG(Block *body) {
 
 void Deserialize::setupRegisters(Block *body) {
   m_registers = std::vector<mlir::Value>(m_ebpfRegisters, nullptr);
+  m_reg_types = std::vector<REG_TYPE>(m_ebpfRegisters, REG_TYPE::NUM);
   Value allocaSize = buildConstantOp(8);
   for (size_t i = 0; i < m_ebpfRegisters; ++i) {
     Value reg = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, allocaSize);
@@ -402,6 +424,8 @@ void Deserialize::setupRegisters(Block *body) {
   m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc,
                                       m_registers.at(REG::R10_STACK_POINTER),
                                       zero_offset, body->getArgument(1));
+  m_reg_types.at(REG::R1_ARG) = REG_TYPE::CTX;
+  m_reg_types.at(REG::R10_STACK_POINTER) = REG_TYPE::STACK;
 }
 
 OwningOpRef<FuncOp> Deserialize::buildXDPFunction() {
@@ -430,8 +454,6 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   Value pkt = buildConstantOp(m_xdp_pkt);
   auto pktPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, pkt);
   m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, pktPtr, pkt);
-  auto endPktPtr = m_builder.create<ebpf::GetAddrOp>(
-      m_unknownLoc, pktPtr, buildConstantOp(m_xdp_pkt - 1));
   /* initialize ctx so that data begin/end point to pkt begin/end */
   auto ctx_size = m_raw_prog.info.type.context_descriptor->size;
   assert(ctx_size > 0);
@@ -441,12 +463,12 @@ void Deserialize::setupXDPEntry(ModuleOp module) {
   assert(((data_begin == -1) && (data_end == -1)) || (data_begin < data_end));
   auto ctxPtr = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, ctx);
   m_builder.create<ebpf::MemHavocOp>(m_unknownLoc, ctxPtr, ctx);
-  m_builder.create<ebpf::StoreAddrOp>(
+  m_builder.create<ebpf::Store32Op>(
       m_unknownLoc, ctxPtr, buildConstantOp(data_begin == -1 ? 0 : data_begin),
-      pktPtr);
-  m_builder.create<ebpf::StoreAddrOp>(
-      m_unknownLoc, ctxPtr, buildConstantOp(data_end == -1 ? 4 : data_begin),
-      endPktPtr);
+      buildConstantOp(0));
+  m_builder.create<ebpf::Store32Op>(
+      m_unknownLoc, ctxPtr, buildConstantOp(data_end == -1 ? 4 : data_end),
+      pkt);
   /* initialzie stack; stack ptr should point to end of stack*/
   Value stack = buildConstantOp(m_ebpf_stack);
   auto stackBlock = m_builder.create<ebpf::AllocaOp>(m_unknownLoc, stack);
