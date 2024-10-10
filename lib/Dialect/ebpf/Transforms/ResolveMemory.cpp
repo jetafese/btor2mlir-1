@@ -169,6 +169,43 @@ void adjustLoadPktPtrOps(mlir::Operation &funcOp) {
   }
 }
 
+/// @brief Find uses of GetAddrOp and replace storeOp with storeAddrOp
+/// @param op
+/// @return success if we replace a load address with loadAddr
+LogicalResult useStoreAddr(ebpf::GetAddrOp &op) {
+  if (op.getResult().use_empty()) {
+    return success();
+  }
+  assert(op.getResult().hasOneUse());
+  mlir::Operation *oneUse = op.getResult().use_begin().getUser();
+  if (isa<ebpf::StoreOp>(oneUse)) {
+    ebpf::StoreOp temp = cast<ebpf::StoreOp>(oneUse);
+    auto m_context = temp.getOperation()->getContext();
+    auto m_builder = OpBuilder(m_context);
+    m_builder.setInsertionPointAfterValue(temp.offset());
+    m_builder.create<ebpf::StoreAddrOp>(temp.getLoc(), temp.lhs(),
+                                        temp.offset(), temp.rhs());
+    oneUse->erase();
+    return success();
+  }
+  return success();
+}
+
+/// @brief Store the loaded packet pointer
+/// @param funcOp expects to receive a file with xdp_entry inlined into main
+void handleStoreAddrForLoadedPktPtr(mlir::Operation &funcOp) {
+  auto &regions = funcOp.getRegion(0);
+  for (auto &block : regions.getBlocks()) {
+    for (Operation &op : block.getOperations()) {
+      LogicalResult _ =
+          llvm::TypeSwitch<Operation *, LogicalResult>(&op)
+              // ebpf ops.
+              .Case<ebpf::GetAddrOp>([&](auto op) { return useStoreAddr(op); })
+              .Default([&](Operation *) { return failure(); });
+    }
+  }
+}
+
 struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
   void runOnOperation() override {
     assert(isa<mlir::ModuleOp>(getOperation()));
@@ -185,6 +222,7 @@ struct ResolveMemoryPass : public ResolveMemoryBase<ResolveMemoryPass> {
     auto &funcOp = topBlock.getOperations().back();
     processLoadAddrPattern(funcOp);
     adjustLoadPktPtrOps(funcOp);
+    handleStoreAddrForLoadedPktPtr(funcOp);
   }
 };
 } // namespace
