@@ -195,13 +195,20 @@ void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
   Value res, map;
   auto dst = loadMap.dst.v;
   map = buildConstantOp(loadMap.mapfd);
-  res = buildBinaryOp<ebpf::LoadMapOp>(getRegister(dst), map);
+  res = buildUnaryOp<ebpf::LoadMapOp>(map);
   setRegister(dst, res);
 }
 
 void Deserialize::createNDOp(bool isMapLoad = false) {
   Value res = m_builder.create<NDOp>(m_unknownLoc, m_builder.getI64Type());
   setRegister(0, res, isMapLoad);
+}
+
+void Deserialize::createMapLookupOp(Call lookup) {
+  auto mapFd = getRegister(lookup.singles.front().reg.v);
+  auto key = getRegister(lookup.singles.back().reg.v);
+  Value res = m_builder.create<ebpf::MapLookupOp>(m_unknownLoc, mapFd, key);
+  setRegister(0, res, true);
 }
 
 void Deserialize::createAssertOp() {
@@ -288,7 +295,7 @@ void Deserialize::createMLIR(Instruction ins, label_t cur_label) {
     std::cerr << "-- call: " << callOp.func + 0 << std::endl;
     if (callOp.is_map_lookup) {
       std::cerr << "Map Lookup" << std::endl;
-      createNDOp(true);
+      createMapLookupOp(callOp);
       return;
     }
     std::size_t found;
@@ -519,7 +526,7 @@ bool Deserialize::parseModelIsSuccessful() {
     raw_progs = read_elf(m_modelFile, std::string(), std::string(),
                          &ebpf_verifier_options, &platform);
     for (const raw_program &raw_prog : raw_progs) {
-      std::cerr << raw_prog.section << "\n";
+      std::cerr << raw_prog.section_name << "\n";
     }
     return false;
   }

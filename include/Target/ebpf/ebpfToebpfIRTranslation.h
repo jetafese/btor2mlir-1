@@ -143,6 +143,7 @@ private:
   void createMemOp(Mem mem);
   void createLoadMapOp(LoadMapFd loadMap);
   void createNDOp(bool isMapLoad);
+  void createMapLookupOp(Call lookup);
   void createAtomicOp(Atomic atomic);
   void createAssertOp();
 
@@ -154,6 +155,10 @@ private:
     // m_reg_types.at(idx) = type;
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
+    if (isMapLoad) {
+      m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, addr, zero, value);
+      return;
+    }
     m_builder.create<ebpf::StoreOp>(m_unknownLoc, addr, zero, value);
   }
 

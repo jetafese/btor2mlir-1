@@ -474,17 +474,17 @@ def Load8Op : ebpfBinaryOp<"load8"> {
   // clang-format on
 }
 
-def LoadMapOp : ebpfBinaryOp<"loadMap"> {
-  let summary = "load map operation";
+def MapLookupOp : ebpfBinaryOp<"map_lookup"> {
+  let summary = "map lookup operation";
   // clang-format off
   let description = [{
-    The `loadMap` operation loads a value from shared memory.
-    First operand is the target register, second operand is the map
+    The `map_lookup` operation loads a value from shared memory.
+    First operand is the target map, second operand is the key
 
     Example:
 
     ```mlir
-    %a = ebpf.loadMap %b, %c : i64
+    %a = ebpf.map_lookup %b, %c : i64
     ```
   }];
   // clang-format on
@@ -504,6 +504,22 @@ class ebpfUnaryOp<string mnemonic, list<Trait> traits = []>
       Results<(outs SignlessIntegerLike: $result)> {
 
   let assemblyFormat = "$operand attr-dict `:` type($result)";
+  // clang-format on
+}
+
+
+def LoadMapOp : ebpfUnaryOp<"loadMap"> {
+  let summary = "load map operation";
+  // clang-format off
+  let description = [{
+    The `loadMap` operation loads a file descriptor for a map given a value
+
+    Example:
+
+    ```mlir
+    %a = ebpf.loadMap %b : i64
+    ```
+  }];
   // clang-format on
 }
 

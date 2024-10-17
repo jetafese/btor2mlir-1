@@ -427,7 +427,7 @@ struct LoadMapOpLowering : public ConvertOpToLLVMPattern<ebpf::LoadMapOp> {
   matchAndRewrite(ebpf::LoadMapOp loadMapOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     const std::string map = "BPF_LD_MAP_FD";
-    auto mapDescriptor = adaptor.rhs();
+    auto mapDescriptor = adaptor.operand();
     auto module = loadMapOp->getParentOfType<ModuleOp>();
     auto mapFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(map);
     if (!mapFunc) {
@@ -579,6 +579,36 @@ struct MemHavocOpLowering : public ConvertOpToLLVMPattern<ebpf::MemHavocOp> {
   }
 };
 
+struct MapLookupOpLowering : public ConvertOpToLLVMPattern<ebpf::MapLookupOp> {
+  using ConvertOpToLLVMPattern<ebpf::MapLookupOp>::ConvertOpToLLVMPattern;
+  LogicalResult
+  matchAndRewrite(ebpf::MapLookupOp mapLookupOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    const std::string funcName = "bpf_map_lookup_elem";
+    auto module = mapLookupOp->getParentOfType<ModuleOp>();
+    auto mapLookupFunc = module.lookupSymbol<LLVM::LLVMFuncOp>(funcName);
+    Type i8PtrType = LLVM::LLVMPointerType::get(rewriter.getI8Type());
+    // Type numType = rewriter.getI64Type();
+    auto loc = mapLookupOp.getLoc();
+    if (!mapLookupFunc) {
+      OpBuilder::InsertionGuard guard(rewriter);
+      rewriter.setInsertionPointToStart(module.getBody());
+      auto mapLookupFuncTy =
+          LLVM::LLVMFunctionType::get(i8PtrType, {i8PtrType, i8PtrType});
+      mapLookupFunc = rewriter.create<LLVM::LLVMFuncOp>(
+          rewriter.getUnknownLoc(), funcName, mapLookupFuncTy);
+    }
+    /* we resolve with inttoptr for now*/
+    auto mapPtr =
+        rewriter.create<LLVM::IntToPtrOp>(loc, i8PtrType, adaptor.lhs());
+    auto keyPtr =
+        rewriter.create<LLVM::IntToPtrOp>(loc, i8PtrType, adaptor.rhs());
+    rewriter.replaceOpWithNewOp<LLVM::CallOp>(mapLookupOp, mapLookupFunc,
+                                              ValueRange{mapPtr, keyPtr});
+    return success();
+  }
+};
+
 } // end anonymous namespace
 
 //===----------------------------------------------------------------------===//
@@ -663,7 +693,7 @@ void mlir::ebpf::populateebpfToLLVMConversionPatterns(
       LoadMapOpLowering, NDOpLowering, AllocaOpLowering, AssertOpLowering,
       MemHavocOpLowering, LoadAddrOpLowering, StoreAddrOpLowering,
       GetAddrOpLowering, BE16OpLowering, BE32OpLowering, BE64OpLowering,
-      LoadPktPtrOpLowering>(converter);
+      LoadPktPtrOpLowering, MapLookupOpLowering>(converter);
 }
 
 /// Create a pass for lowering operations the remaining `ebpf` operations
