@@ -7,6 +7,15 @@ set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-fexceptions)
 
+include(FetchContent)
+FetchContent_Declare(GSL
+        GIT_REPOSITORY "https://github.com/microsoft/GSL"
+        GIT_TAG "v4.0.0"
+        GIT_SHALLOW ON
+)
+FetchContent_MakeAvailable(GSL)
+get_target_property(GSL_INCLUDE_DIRS Microsoft.GSL::GSL INTERFACE_INCLUDE_DIRECTORIES)
+
 find_package(MLIR REQUIRED CONFIG)
 find_package(yaml-cpp REQUIRED)
 find_package(Boost REQUIRED)
@@ -26,6 +35,7 @@ include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
 
+include_directories(${GSL_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/prevail/src)
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
