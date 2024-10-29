@@ -520,17 +520,29 @@ bool Deserialize::parseModelIsSuccessful() {
     std::cerr << "error: " << e.what() << std::endl;
     return false;
   }
-  if (m_section.empty()) {
-    std::cerr << "please specify a section with: -section <string>\n";
-    std::cerr << "available sections:\n";
+  if (m_section.empty() || m_function.empty()) {
+    std::cerr << "please specify a program with: -section <string>";
+    std::cerr << " -function <string>\n";
+    std::cerr << "available programs (section, function):\n";
     raw_progs = read_elf(m_modelFile, std::string(), std::string(),
                          &ebpf_verifier_options, &platform);
     for (const raw_program &raw_prog : raw_progs) {
-      std::cerr << raw_prog.section_name << "\n";
+      std::cerr << raw_prog.section_name << ", " << raw_prog.function_name
+                << "\n";
     }
     return false;
   }
-  m_raw_prog = raw_progs.back();
+  bool functionFound = false;
+  for (raw_program &raw_prog : raw_progs) {
+      if (raw_prog.function_name == m_function) {
+          m_raw_prog = raw_prog;
+          functionFound = true;
+      }
+  }
+  if (!functionFound) {
+    std::cerr << "function is not found in the given section\n";
+    return false;
+  }
   // Convert the raw program section to a set of instructions.
   std::variant<InstructionSeq, std::string> prog_or_error =
       unmarshal(m_raw_prog);
@@ -546,13 +558,15 @@ bool Deserialize::parseModelIsSuccessful() {
 
 static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
                                                MLIRContext *context,
-                                               std::string section) {
+                                               std::string section,
+                                               std::string function) {
   context->loadDialect<ebpf::ebpfDialect, StandardOpsDialect>();
 
   OwningOpRef<ModuleOp> owningModule(ModuleOp::create(FileLineColLoc::get(
       context, input->getBufferIdentifier(), /*line=*/0, /*column=*/0)));
 
-  Deserialize deserialize(context, input->getBufferIdentifier().str(), section);
+  Deserialize deserialize(context, input->getBufferIdentifier().str(), section,
+                          function);
   if (!deserialize.parseModelIsSuccessful()) {
     exit(1);
   }
@@ -578,6 +592,8 @@ static OwningOpRef<ModuleOp> deserializeModule(const llvm::MemoryBuffer *input,
 //===----------------------------------------------------------------------===//
 static llvm::cl::opt<std::string> sectionOpt("section", llvm::cl::init(""),
                                              llvm::cl::desc("section"));
+static llvm::cl::opt<std::string> funcionOpt("function", llvm::cl::init(""),
+                                             llvm::cl::desc("function"));
 
 namespace mlir {
 namespace ebpf {
@@ -588,7 +604,7 @@ void registerebpfMemTranslation() {
         assert(sourceMgr.getNumBuffers() == 1 && "expected one buffer");
         return deserializeModule(
             sourceMgr.getMemoryBuffer(sourceMgr.getMainFileID()), context,
-            sectionOpt.getValue());
+            sectionOpt.getValue(), funcionOpt.getValue());
       });
 }
 } // namespace ebpf

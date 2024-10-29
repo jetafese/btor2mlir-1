@@ -42,9 +42,11 @@ public:
   /// Constructors and Destructors
   ///===----------------------------------------------------------------------===//
 
-  Deserialize(MLIRContext *context, const std::string &s, std::string section)
+  Deserialize(MLIRContext *context, const std::string &s, std::string section,
+              std::string function)
       : m_context(context), m_builder(OpBuilder(m_context)),
-        m_unknownLoc(UnknownLoc::get(m_context)), m_section(section) {
+        m_unknownLoc(UnknownLoc::get(m_context)), m_section(section),
+        m_function(function) {
     m_modelFile.open(s.c_str());
     m_sourceFile = m_builder.getStringAttr(s);
   }
@@ -129,6 +131,7 @@ private:
   OpBuilder m_builder;
   Location m_unknownLoc;
   std::string m_section;
+  std::string m_function;
 
   Block *m_lastBlock = nullptr;
   std::vector<bool> m_regIsMapElement =
