@@ -7,25 +7,26 @@
 EBPF=$1
 BTOR2MLIR=$2
 SEAHORN=$3
-SECTION=$4
+FUNCTION=$5
 
 function usage () {
     echo "Usage: Give ebpf file," \
         "path to ebpf2mlir build directory," \
         "path to SeaHorn executables," \
-        "desired section"
+        "desired section" \
+        "desired function"
     exit 1
 }
 
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 5 ]; then
     usage
 fi
 
 # remove non-alphanumeric text from section name
 CLEANSECTION=${SECTION//[^a-zA-Z0-9]/}
 
-echo "$BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.$CLEANSECTION.mlir";
-if ! $BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION $EBPF > $EBPF.$CLEANSECTION.mlir; then 
+echo "$BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION --function $FUNCTION $EBPF > $EBPF.$CLEANSECTION.mlir";
+if ! $BTOR2MLIR/bin/ebpf2mlir-translate --import-ebpf-mem --section $SECTION --function $FUNCTION $EBPF > $EBPF.$CLEANSECTION.mlir; then 
     echo "error: translation failed,," >> $EBPF.$CLEANSECTION.log.txt;
     exit 1;
 fi
@@ -48,8 +49,14 @@ if ! $BTOR2MLIR/bin/ebpf2mlir-translate --mlir-to-llvmir $EBPF.$CLEANSECTION.mli
     exit 1
 fi
 
-echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll";
-if ! timeout 15s $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.ll >> $EBPF.$CLEANSECTION.sea.txt 2>&1; then
+echo "/usr/bin/llvm-link-14 $EBPF.$CLEANSECTION.mlir.opt.ll $BTOR2MLIR/helper_summaries.ll -S -o $EBPF.$CLEANSECTION.mlir.opt.sum.ll";
+if ! /usr/bin/llvm-link-14 $EBPF.$CLEANSECTION.mlir.opt.ll $BTOR2MLIR/helper_summaries.ll -S -o $EBPF.$CLEANSECTION.mlir.opt.sum.ll; then
+    echo "error: linking failed,," >> $EBPF.$CLEANSECTION.log.txt;
+    exit 1
+fi
+
+echo "$SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.sum.ll";
+if ! timeout 150s $SEAHORN/build/run/bin/sea yama -y $BTOR2MLIR/../utils/cex/witness/configs/sea-cex.yaml fpf $EBPF.$CLEANSECTION.mlir.opt.sum.ll >> $EBPF.$CLEANSECTION.sea.txt 2>&1; then
     echo "error: seahorn timeout,,"  >> $EBPF.$CLEANSECTION.log.txt;
     exit 1;
 fi

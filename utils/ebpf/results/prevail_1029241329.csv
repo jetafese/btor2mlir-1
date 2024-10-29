@@ -1,0 +1,148 @@
+File,Result,trivial,seahorn_time,total
+/home/jetafese/cilium/bpf/bpf_host.o:2/1:__send_drop_notify,1,0,BRUNCH_STAT seahorn_total 0.06,0.65user 0.19system 0:00.84elapsed 100%CPU (0avgtext+0avgdata 93072maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/5:tail_icmp6_send_time_exceeded,1,0,BRUNCH_STAT seahorn_total 0.22,1.96user 0.20system 0:02.16elapsed 100%CPU (0avgtext+0avgdata 104492maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/4:tail_icmp6_handle_ns,1,0,BRUNCH_STAT seahorn_total 0.14,1.45user 0.19system 0:01.65elapsed 100%CPU (0avgtext+0avgdata 99372maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/33:tail_srv6_encap,0,0,BRUNCH_STAT seahorn_total 0.21,1.37user 0.26system 0:01.63elapsed 100%CPU (0avgtext+0avgdata 98560maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/34:tail_srv6_decap,1,0,BRUNCH_STAT seahorn_total 0.13,1.27user 0.23system 0:01.49elapsed 100%CPU (0avgtext+0avgdata 98636maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/21:tail_nodeport_ipv6_dsr,0,0,BRUNCH_STAT seahorn_total 0.59,3.26user 0.36system 0:03.62elapsed 100%CPU (0avgtext+0avgdata 100460maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/18:tail_nodeport_rev_dnat_ingress_ipv6,1,0,BRUNCH_STAT seahorn_total 0.69,3.95user 0.25system 0:04.21elapsed 100%CPU (0avgtext+0avgdata 158520maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/37:tail_nodeport_nat_ingress_ipv6,error: to llvm dialect conversion failed,,,0.22user 0.12system 0:00.34elapsed 100%CPU (0avgtext+0avgdata 65760maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/16:tail_nodeport_nat_egress_ipv6,1,0,BRUNCH_STAT seahorn_total 2.98,12.28user 0.47system 0:12.74elapsed 100%CPU (0avgtext+0avgdata 235708maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/39:tail_handle_snat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 2.47,12.94user 0.80system 0:13.74elapsed 100%CPU (0avgtext+0avgdata 118480maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/24:tail_handle_nat_fwd_ipv6,1,0,BRUNCH_STAT seahorn_total 0.85,4.39user 0.28system 0:04.67elapsed 100%CPU (0avgtext+0avgdata 161940maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/20:tail_nodeport_ipv4_dsr,0,0,BRUNCH_STAT seahorn_total 0.19,1.81user 0.26system 0:02.06elapsed 100%CPU (0avgtext+0avgdata 98388maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/17:tail_nodeport_rev_dnat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 1.18,5.17user 0.43system 0:05.60elapsed 100%CPU (0avgtext+0avgdata 103300maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/36:tail_nodeport_nat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 3.17,11.03user 0.69system 0:11.73elapsed 100%CPU (0avgtext+0avgdata 118348maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/15:tail_nodeport_nat_egress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.25,8.76user 0.40system 0:09.16elapsed 100%CPU (0avgtext+0avgdata 185496maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/38:tail_handle_snat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 3.22,15.28user 1.00system 0:16.27elapsed 100%CPU (0avgtext+0avgdata 120900maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/19:tail_handle_nat_fwd_ipv4,1,0,BRUNCH_STAT seahorn_total 0.97,4.70user 0.29system 0:04.99elapsed 100%CPU (0avgtext+0avgdata 134468maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/45:tail_handle_ipv6_cont_from_host,error: to llvm dialect conversion failed,,,0.16user 0.09system 0:00.26elapsed 100%CPU (0avgtext+0avgdata 62164maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/46:tail_handle_ipv6_cont_from_netdev,0,0,BRUNCH_STAT seahorn_total 1.20,5.13user 0.42system 0:05.54elapsed 100%CPU (0avgtext+0avgdata 107520maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/23:tail_handle_ipv6_from_host,0,0,BRUNCH_STAT seahorn_total 0.68,4.01user 0.32system 0:04.33elapsed 100%CPU (0avgtext+0avgdata 101516maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/10:tail_handle_ipv6_from_netdev,error: to llvm dialect conversion failed,,,0.28user 0.16system 0:00.45elapsed 100%CPU (0avgtext+0avgdata 68212maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/43:tail_handle_ipv4_cont_from_host,0,0,BRUNCH_STAT seahorn_total 2.19,8.41user 0.62system 0:09.03elapsed 100%CPU (0avgtext+0avgdata 118124maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/44:tail_handle_ipv4_cont_from_netdev,0,0,BRUNCH_STAT seahorn_total 0.82,4.11user 0.38system 0:04.49elapsed 100%CPU (0avgtext+0avgdata 104116maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/22:tail_handle_ipv4_from_host,1,0,BRUNCH_STAT seahorn_total 0.74,3.83user 0.25system 0:04.07elapsed 100%CPU (0avgtext+0avgdata 167384maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/7:tail_handle_ipv4_from_netdev,0,0,BRUNCH_STAT seahorn_total 7.84,19.22user 0.96system 0:20.18elapsed 100%CPU (0avgtext+0avgdata 130480maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:tc:cil_from_netdev,error: to llvm dialect conversion failed,,,0.10user 0.10system 0:00.20elapsed 100%CPU (0avgtext+0avgdata 60992maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:tc:cil_from_host,1,0,BRUNCH_STAT seahorn_total 0.51,4.13user 0.29system 0:04.42elapsed 100%CPU (0avgtext+0avgdata 126456maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:tc:cil_to_netdev,error: to llvm dialect conversion failed,,,0.37user 0.23system 0:00.60elapsed 100%CPU (0avgtext+0avgdata 73348maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:tc:cil_to_host,error: translation failed,,,0.14user 0.03system 0:00.29elapsed 62%CPU (0avgtext+0avgdata 94804maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:tc:handle_lxc_traffic,error: to llvm dialect conversion failed,,,0.25user 0.13system 0:00.39elapsed 100%CPU (0avgtext+0avgdata 66084maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/12:tail_ipv6_host_policy_ingress,1,0,BRUNCH_STAT seahorn_total 1.25,6.51user 0.26system 0:06.77elapsed 100%CPU (0avgtext+0avgdata 111632maxresident)k
+/home/jetafese/cilium/bpf/bpf_host.o:2/11:tail_ipv4_host_policy_ingress,1,0,BRUNCH_STAT seahorn_total 1.61,6.66user 0.35system 0:07.00elapsed 100%CPU (0avgtext+0avgdata 243584maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/1:__send_drop_notify,1,0,BRUNCH_STAT seahorn_total 0.05,0.64user 0.17system 0:00.81elapsed 100%CPU (0avgtext+0avgdata 92772maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/5:tail_icmp6_send_time_exceeded,1,0,BRUNCH_STAT seahorn_total 0.22,1.92user 0.23system 0:02.15elapsed 100%CPU (0avgtext+0avgdata 104156maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/4:tail_icmp6_handle_ns,1,0,BRUNCH_STAT seahorn_total 0.14,1.44user 0.21system 0:01.65elapsed 100%CPU (0avgtext+0avgdata 99024maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/33:tail_srv6_encap,0,0,BRUNCH_STAT seahorn_total 0.22,1.40user 0.26system 0:01.66elapsed 100%CPU (0avgtext+0avgdata 98688maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/34:tail_srv6_decap,1,0,BRUNCH_STAT seahorn_total 0.12,1.31user 0.18system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 98784maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/21:tail_nodeport_ipv6_dsr,0,0,BRUNCH_STAT seahorn_total 0.57,3.16user 0.38system 0:03.54elapsed 100%CPU (0avgtext+0avgdata 100376maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/18:tail_nodeport_rev_dnat_ingress_ipv6,1,0,BRUNCH_STAT seahorn_total 0.93,4.78user 0.28system 0:05.06elapsed 100%CPU (0avgtext+0avgdata 132688maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/37:tail_nodeport_nat_ingress_ipv6,error: to llvm dialect conversion failed,,,0.21user 0.13system 0:00.34elapsed 100%CPU (0avgtext+0avgdata 64804maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/16:tail_nodeport_nat_egress_ipv6,1,0,BRUNCH_STAT seahorn_total 2.21,11.47user 0.44system 0:11.91elapsed 100%CPU (0avgtext+0avgdata 233160maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/39:tail_handle_snat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 0.16,1.24user 0.26system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 97640maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/24:tail_handle_nat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 0.64,3.61user 0.40system 0:04.01elapsed 100%CPU (0avgtext+0avgdata 101892maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/20:tail_nodeport_ipv4_dsr,0,0,BRUNCH_STAT seahorn_total 0.18,1.78user 0.29system 0:02.07elapsed 100%CPU (0avgtext+0avgdata 98544maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/17:tail_nodeport_rev_dnat_ingress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.10,5.34user 0.27system 0:05.60elapsed 100%CPU (0avgtext+0avgdata 169636maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/36:tail_nodeport_nat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 2.78,10.04user 0.68system 0:10.71elapsed 100%CPU (0avgtext+0avgdata 118432maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/15:tail_nodeport_nat_egress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.22,8.65user 0.40system 0:09.05elapsed 100%CPU (0avgtext+0avgdata 185916maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/38:tail_handle_snat_fwd_ipv4,1,0,BRUNCH_STAT seahorn_total 0.07,0.79user 0.19system 0:00.98elapsed 100%CPU (0avgtext+0avgdata 96884maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/19:tail_handle_nat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 0.79,4.05user 0.43system 0:04.48elapsed 100%CPU (0avgtext+0avgdata 101736maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/26:tail_handle_ipv6_cont,error: translation failed,,,0.12user 0.05system 0:00.29elapsed 62%CPU (0avgtext+0avgdata 94660maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/32:tail_ipv6_ct_egress,1,0,BRUNCH_STAT seahorn_total 0.67,4.59user 0.26system 0:04.85elapsed 100%CPU (0avgtext+0avgdata 128504maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/10:tail_handle_ipv6,0,0,BRUNCH_STAT seahorn_total 1.05,5.20user 0.45system 0:05.66elapsed 100%CPU (0avgtext+0avgdata 103372maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/25:tail_handle_ipv4_cont,error: translation failed,,,0.14user 0.03system 0:00.28elapsed 62%CPU (0avgtext+0avgdata 94932maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/29:tail_ipv4_ct_egress,1,0,BRUNCH_STAT seahorn_total 1.24,5.11user 0.27system 0:05.37elapsed 100%CPU (0avgtext+0avgdata 186872maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/7:tail_handle_ipv4,0,0,BRUNCH_STAT seahorn_total 1.39,5.80user 0.50system 0:06.31elapsed 100%CPU (0avgtext+0avgdata 104404maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/6:tail_handle_arp,1,0,BRUNCH_STAT seahorn_total 0.03,0.59user 0.20system 0:00.79elapsed 100%CPU (0avgtext+0avgdata 92268maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:tc:cil_from_container,1,0,BRUNCH_STAT seahorn_total 0.07,0.80user 0.18system 0:00.98elapsed 100%CPU (0avgtext+0avgdata 102128maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:tc:handle_policy,1,0,BRUNCH_STAT seahorn_total 0.07,0.72user 0.17system 0:00.89elapsed 100%CPU (0avgtext+0avgdata 101848maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:tc:handle_policy_egress,1,0,BRUNCH_STAT seahorn_total 0.05,0.70user 0.19system 0:00.89elapsed 100%CPU (0avgtext+0avgdata 101948maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:tc:cil_to_container,1,0,BRUNCH_STAT seahorn_total 0.12,1.30user 0.20system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 103092maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/12:tail_ipv6_policy,error: translation failed,,,0.13user 0.04system 0:00.28elapsed 61%CPU (0avgtext+0avgdata 94812maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/14:tail_ipv6_to_endpoint,error: to llvm dialect conversion failed,,,0.13user 0.09system 0:00.22elapsed 100%CPU (0avgtext+0avgdata 62052maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/31:tail_ipv6_ct_ingress_policy_only,1,0,BRUNCH_STAT seahorn_total 0.66,4.30user 0.35system 0:04.65elapsed 100%CPU (0avgtext+0avgdata 167268maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/30:tail_ipv6_ct_ingress,1,0,BRUNCH_STAT seahorn_total 0.70,4.38user 0.26system 0:04.64elapsed 100%CPU (0avgtext+0avgdata 167164maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/11:tail_ipv4_policy,error: translation failed,,,0.12user 0.05system 0:00.29elapsed 61%CPU (0avgtext+0avgdata 95196maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/13:tail_ipv4_to_endpoint,0,0,BRUNCH_STAT seahorn_total 1.59,7.09user 0.56system 0:07.65elapsed 100%CPU (0avgtext+0avgdata 106080maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/28:tail_ipv4_ct_ingress_policy_only,1,0,BRUNCH_STAT seahorn_total 0.92,4.64user 0.24system 0:04.87elapsed 100%CPU (0avgtext+0avgdata 167408maxresident)k
+/home/jetafese/cilium/bpf/bpf_lxc.o:2/27:tail_ipv4_ct_ingress,1,0,BRUNCH_STAT seahorn_total 0.93,4.64user 0.28system 0:04.92elapsed 100%CPU (0avgtext+0avgdata 167256maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:.text:__mcast_ep_delivery,0,0,BRUNCH_STAT seahorn_total 0.06,0.63user 0.22system 0:00.85elapsed 100%CPU (0avgtext+0avgdata 101336maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/1:__send_drop_notify,1,0,BRUNCH_STAT seahorn_total 0.06,0.61user 0.19system 0:00.81elapsed 100%CPU (0avgtext+0avgdata 93068maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/49:tail_mcast_ep_delivery,error: translation failed,,,0.14user 0.03system 0:00.28elapsed 62%CPU (0avgtext+0avgdata 94656maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/5:tail_icmp6_send_time_exceeded,1,0,BRUNCH_STAT seahorn_total 0.23,1.89user 0.25system 0:02.14elapsed 100%CPU (0avgtext+0avgdata 104540maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/21:tail_nodeport_ipv6_dsr,0,0,BRUNCH_STAT seahorn_total 0.59,3.19user 0.34system 0:03.53elapsed 100%CPU (0avgtext+0avgdata 100532maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/18:tail_nodeport_rev_dnat_ingress_ipv6,1,0,BRUNCH_STAT seahorn_total 0.69,3.88user 0.25system 0:04.12elapsed 100%CPU (0avgtext+0avgdata 158628maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/37:tail_nodeport_nat_ingress_ipv6,error: to llvm dialect conversion failed,,,0.19user 0.13system 0:00.32elapsed 100%CPU (0avgtext+0avgdata 64876maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/16:tail_nodeport_nat_egress_ipv6,1,0,BRUNCH_STAT seahorn_total 1.74,10.82user 0.49system 0:11.31elapsed 100%CPU (0avgtext+0avgdata 235128maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/39:tail_handle_snat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 1.83,11.15user 0.72system 0:11.87elapsed 100%CPU (0avgtext+0avgdata 116304maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/24:tail_handle_nat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 0.64,3.39user 0.31system 0:03.70elapsed 100%CPU (0avgtext+0avgdata 100928maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/20:tail_nodeport_ipv4_dsr,0,0,BRUNCH_STAT seahorn_total 0.19,1.81user 0.24system 0:02.05elapsed 100%CPU (0avgtext+0avgdata 98420maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/17:tail_nodeport_rev_dnat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 25.56,28.95user 0.45system 0:29.41elapsed 100%CPU (0avgtext+0avgdata 285164maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/36:tail_nodeport_nat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 2.37,8.86user 0.53system 0:09.39elapsed 100%CPU (0avgtext+0avgdata 116240maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/15:tail_nodeport_nat_egress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.46,8.67user 0.45system 0:09.12elapsed 100%CPU (0avgtext+0avgdata 177336maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/38:tail_handle_snat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 0.10,5.01user 0.42system 0:05.43elapsed 100%CPU (0avgtext+0avgdata 97840maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/19:tail_handle_nat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 0.69,3.65user 0.38system 0:04.03elapsed 100%CPU (0avgtext+0avgdata 101392maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/10:tail_handle_ipv6,0,0,BRUNCH_STAT seahorn_total 17.34,26.30user 0.79system 0:27.09elapsed 100%CPU (0avgtext+0avgdata 160712maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/7:tail_handle_ipv4,0,0,BRUNCH_STAT seahorn_total 5.68,14.90user 0.86system 0:15.76elapsed 100%CPU (0avgtext+0avgdata 122276maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:2/6:tail_handle_arp,1,0,BRUNCH_STAT seahorn_total 0.21,1.98user 0.19system 0:02.17elapsed 100%CPU (0avgtext+0avgdata 100928maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:tc:cil_from_overlay,0,0,BRUNCH_STAT seahorn_total 0.25,1.30user 0.20system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 101704maxresident)k
+/home/jetafese/cilium/bpf/bpf_overlay.o:tc:cil_to_overlay,1,0,BRUNCH_STAT seahorn_total 0.11,1.22user 0.21system 0:01.43elapsed 100%CPU (0avgtext+0avgdata 103572maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/connect4:cil_sock4_connect,1,0,BRUNCH_STAT seahorn_total 1.11,3.74user 0.26system 0:04.00elapsed 100%CPU (0avgtext+0avgdata 160660maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/post_bind4:cil_sock4_post_bind,1,0,BRUNCH_STAT seahorn_total 0.10,0.95user 0.18system 0:01.13elapsed 100%CPU (0avgtext+0avgdata 100648maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/sendmsg4:cil_sock4_sendmsg,1,0,BRUNCH_STAT seahorn_total 0.71,3.31user 0.26system 0:03.57elapsed 100%CPU (0avgtext+0avgdata 161308maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/recvmsg4:cil_sock4_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.20,1.63user 0.16system 0:01.79elapsed 100%CPU (0avgtext+0avgdata 105476maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/post_bind6:cil_sock6_post_bind,1,0,BRUNCH_STAT seahorn_total 0.19,1.58user 0.21system 0:01.80elapsed 100%CPU (0avgtext+0avgdata 104240maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/connect6:cil_sock6_connect,1,0,BRUNCH_STAT seahorn_total 3.16,8.91user 0.29system 0:09.20elapsed 100%CPU (0avgtext+0avgdata 182624maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/sendmsg6:cil_sock6_sendmsg,1,0,BRUNCH_STAT seahorn_total 1.40,7.07user 0.30system 0:07.37elapsed 100%CPU (0avgtext+0avgdata 176052maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.1.o:cgroup/recvmsg6:cil_sock6_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.53,3.60user 0.21system 0:03.81elapsed 100%CPU (0avgtext+0avgdata 155136maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/connect4:cil_sock4_connect,1,0,BRUNCH_STAT seahorn_total 1.11,3.74user 0.25system 0:03.99elapsed 100%CPU (0avgtext+0avgdata 160404maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/post_bind4:cil_sock4_post_bind,1,0,BRUNCH_STAT seahorn_total 0.10,0.93user 0.20system 0:01.13elapsed 100%CPU (0avgtext+0avgdata 100576maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/sendmsg4:cil_sock4_sendmsg,1,0,BRUNCH_STAT seahorn_total 0.71,3.30user 0.28system 0:03.58elapsed 100%CPU (0avgtext+0avgdata 161276maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/recvmsg4:cil_sock4_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.21,1.56user 0.23system 0:01.79elapsed 100%CPU (0avgtext+0avgdata 105440maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/post_bind6:cil_sock6_post_bind,1,0,BRUNCH_STAT seahorn_total 0.18,1.60user 0.19system 0:01.79elapsed 100%CPU (0avgtext+0avgdata 104016maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/connect6:cil_sock6_connect,1,0,BRUNCH_STAT seahorn_total 3.12,8.80user 0.37system 0:09.17elapsed 100%CPU (0avgtext+0avgdata 182320maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/sendmsg6:cil_sock6_sendmsg,1,0,BRUNCH_STAT seahorn_total 1.40,7.00user 0.36system 0:07.35elapsed 100%CPU (0avgtext+0avgdata 176092maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.2.o:cgroup/recvmsg6:cil_sock6_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.53,3.59user 0.22system 0:03.82elapsed 100%CPU (0avgtext+0avgdata 155412maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/connect4:cil_sock4_connect,1,0,BRUNCH_STAT seahorn_total 1.10,3.69user 0.31system 0:04.00elapsed 100%CPU (0avgtext+0avgdata 160260maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/post_bind4:cil_sock4_post_bind,1,0,BRUNCH_STAT seahorn_total 0.10,0.95user 0.19system 0:01.13elapsed 100%CPU (0avgtext+0avgdata 100308maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/sendmsg4:cil_sock4_sendmsg,1,0,BRUNCH_STAT seahorn_total 0.71,3.33user 0.25system 0:03.58elapsed 100%CPU (0avgtext+0avgdata 161020maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/recvmsg4:cil_sock4_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.19,1.58user 0.21system 0:01.79elapsed 100%CPU (0avgtext+0avgdata 105668maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/post_bind6:cil_sock6_post_bind,1,0,BRUNCH_STAT seahorn_total 0.20,1.59user 0.20system 0:01.79elapsed 100%CPU (0avgtext+0avgdata 104116maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/connect6:cil_sock6_connect,1,0,BRUNCH_STAT seahorn_total 3.12,8.83user 0.29system 0:09.12elapsed 100%CPU (0avgtext+0avgdata 182628maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/sendmsg6:cil_sock6_sendmsg,1,0,BRUNCH_STAT seahorn_total 1.38,7.05user 0.31system 0:07.37elapsed 100%CPU (0avgtext+0avgdata 176452maxresident)k
+/home/jetafese/cilium/bpf/bpf_sock.o:cgroup/recvmsg6:cil_sock6_recvmsg,1,0,BRUNCH_STAT seahorn_total 0.51,3.56user 0.25system 0:03.81elapsed 100%CPU (0avgtext+0avgdata 155304maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/1:__send_drop_notify,1,0,BRUNCH_STAT seahorn_total 0.04,0.63user 0.17system 0:00.81elapsed 100%CPU (0avgtext+0avgdata 92424maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/5:tail_icmp6_send_time_exceeded,1,0,BRUNCH_STAT seahorn_total 0.21,1.89user 0.24system 0:02.14elapsed 100%CPU (0avgtext+0avgdata 104540maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/4:tail_icmp6_handle_ns,1,0,BRUNCH_STAT seahorn_total 0.14,1.43user 0.21system 0:01.64elapsed 100%CPU (0avgtext+0avgdata 98684maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/33:tail_srv6_encap,0,0,BRUNCH_STAT seahorn_total 0.21,1.39user 0.24system 0:01.63elapsed 100%CPU (0avgtext+0avgdata 98744maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/34:tail_srv6_decap,1,0,BRUNCH_STAT seahorn_total 0.14,1.34user 0.16system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 98628maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/21:tail_nodeport_ipv6_dsr,0,0,BRUNCH_STAT seahorn_total 0.58,3.23user 0.34system 0:03.57elapsed 100%CPU (0avgtext+0avgdata 100240maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/18:tail_nodeport_rev_dnat_ingress_ipv6,1,0,BRUNCH_STAT seahorn_total 0.68,3.84user 0.26system 0:04.10elapsed 100%CPU (0avgtext+0avgdata 158928maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/37:tail_nodeport_nat_ingress_ipv6,error: to llvm dialect conversion failed,,,0.22user 0.11system 0:00.33elapsed 100%CPU (0avgtext+0avgdata 64540maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/16:tail_nodeport_nat_egress_ipv6,1,0,BRUNCH_STAT seahorn_total 1.72,10.80user 0.51system 0:11.30elapsed 100%CPU (0avgtext+0avgdata 235320maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/39:tail_handle_snat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 0.17,1.24user 0.26system 0:01.50elapsed 100%CPU (0avgtext+0avgdata 97328maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/24:tail_handle_nat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 0.63,3.36user 0.34system 0:03.70elapsed 100%CPU (0avgtext+0avgdata 101040maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/20:tail_nodeport_ipv4_dsr,0,0,BRUNCH_STAT seahorn_total 0.18,1.83user 0.23system 0:02.06elapsed 100%CPU (0avgtext+0avgdata 98492maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/17:tail_nodeport_rev_dnat_ingress_ipv4,0,0,BRUNCH_STAT seahorn_total 1.02,4.70user 0.50system 0:05.20elapsed 100%CPU (0avgtext+0avgdata 103176maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/36:tail_nodeport_nat_ingress_ipv4,error: to llvm dialect conversion failed,,,0.15user 0.12system 0:00.28elapsed 100%CPU (0avgtext+0avgdata 63036maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/15:tail_nodeport_nat_egress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.58,9.17user 0.43system 0:09.59elapsed 100%CPU (0avgtext+0avgdata 245496maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/38:tail_handle_snat_fwd_ipv4,1,0,BRUNCH_STAT seahorn_total 0.08,0.80user 0.17system 0:00.97elapsed 100%CPU (0avgtext+0avgdata 96716maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:2/19:tail_handle_nat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 0.66,3.67user 0.37system 0:04.04elapsed 100%CPU (0avgtext+0avgdata 101496maxresident)k
+/home/jetafese/cilium/bpf/bpf_wireguard.o:tc:cil_to_wireguard,1,0,BRUNCH_STAT seahorn_total 0.06,0.74user 0.22system 0:00.97elapsed 100%CPU (0avgtext+0avgdata 102336maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/1:__send_drop_notify,1,0,BRUNCH_STAT seahorn_total 0.08,0.91user 0.23system 0:01.14elapsed 100%CPU (0avgtext+0avgdata 102700maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/21:tail_nodeport_ipv6_dsr,1,0,BRUNCH_STAT seahorn_total 0.74,4.47user 0.22system 0:04.69elapsed 100%CPU (0avgtext+0avgdata 124936maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/18:tail_nodeport_rev_dnat_ingress_ipv6,0,0,BRUNCH_STAT seahorn_total 1.24,5.37user 0.46system 0:05.83elapsed 100%CPU (0avgtext+0avgdata 104036maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/37:tail_nodeport_nat_ingress_ipv6,error: to llvm dialect conversion failed,,,0.22user 0.16system 0:00.39elapsed 100%CPU (0avgtext+0avgdata 66504maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/16:tail_nodeport_nat_egress_ipv6,0,0,BRUNCH_STAT seahorn_total 2.30,11.67user 0.76system 0:12.43elapsed 100%CPU (0avgtext+0avgdata 117056maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/39:tail_handle_snat_fwd_ipv6,error: to llvm dialect conversion failed,,,0.05user 0.06system 0:00.11elapsed 99%CPU (0avgtext+0avgdata 59504maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/24:tail_handle_nat_fwd_ipv6,0,0,BRUNCH_STAT seahorn_total 1.04,4.80user 0.41system 0:05.21elapsed 100%CPU (0avgtext+0avgdata 102984maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/20:tail_nodeport_ipv4_dsr,0,0,BRUNCH_STAT seahorn_total 0.52,3.36user 0.33system 0:03.69elapsed 100%CPU (0avgtext+0avgdata 101776maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/17:tail_nodeport_rev_dnat_ingress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.61,6.64user 0.32system 0:06.96elapsed 100%CPU (0avgtext+0avgdata 180768maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/36:tail_nodeport_nat_ingress_ipv4,1,0,BRUNCH_STAT seahorn_total 3.00,12.39user 0.41system 0:12.80elapsed 100%CPU (0avgtext+0avgdata 155076maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/15:tail_nodeport_nat_egress_ipv4,1,0,BRUNCH_STAT seahorn_total 1.08,8.77user 0.46system 0:09.23elapsed 100%CPU (0avgtext+0avgdata 168036maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/38:tail_handle_snat_fwd_ipv4,1,0,BRUNCH_STAT seahorn_total 0.10,1.09user 0.21system 0:01.30elapsed 100%CPU (0avgtext+0avgdata 98016maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/19:tail_handle_nat_fwd_ipv4,0,0,BRUNCH_STAT seahorn_total 3.71,7.49user 0.46system 0:07.95elapsed 100%CPU (0avgtext+0avgdata 141724maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/7:tail_lb_ipv4,0,0,BRUNCH_STAT seahorn_total 4.78,15.53user 0.97system 0:16.51elapsed 100%CPU (0avgtext+0avgdata 125192maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:2/10:tail_lb_ipv6,error: to llvm dialect conversion failed,,,0.27user 0.19system 0:00.46elapsed 100%CPU (0avgtext+0avgdata 68600maxresident)k
+/home/jetafese/cilium/bpf/bpf_xdp.o:xdp:cil_xdp_entry,0,0,BRUNCH_STAT seahorn_total 0.33,2.17user 0.28system 0:02.45elapsed 100%CPU (0avgtext+0avgdata 99900maxresident)k
