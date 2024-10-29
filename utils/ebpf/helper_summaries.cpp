@@ -25,7 +25,9 @@ void *bpf_map_lookup_elem(struct bpf_map *map, const void *key) {
   if (flag) {
     return nullptr;
   }
-  void *mem = malloc(8);
+  size_t size = (long)map;
+  void *mem = malloc(size);
+  memhavoc(mem, size);
   return mem;
 }
 

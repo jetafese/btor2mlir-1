@@ -9,10 +9,7 @@ struct bpf_map_def SEC("maps") pkt_counter = {
     .max_entries = 1,
 };
 
-SEC("prog")
-void assert(__u64 cond) {}
-
-SEC("prog")
+SEC("xdp")
 int count_packets(struct __sk_buff *skb) {
     __u32 key = 0;
     __u64 *counter;
