@@ -7,6 +7,7 @@
 EBPF=$1
 BTOR2MLIR=$2
 SEAHORN=$3
+SECTION=$4
 FUNCTION=$5
 
 function usage () {
