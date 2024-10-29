@@ -152,10 +152,10 @@ void Deserialize::createMemOp(Mem mem) {
       }
     }
     if (m_reg_types.at(baseReg) == REG_TYPE::PKT) {
-        m_reg_types.at(std::get<Reg>(mem.value).v) = REG_TYPE::PKT;
-        auto res = m_builder.create<ebpf::LoadPktPtrOp>(m_unknownLoc, offset);
-        setRegister(std::get<Reg>(mem.value).v, res);
-        return;
+      m_reg_types.at(std::get<Reg>(mem.value).v) = REG_TYPE::PKT;
+      auto res = m_builder.create<ebpf::LoadPktPtrOp>(m_unknownLoc, offset);
+      setRegister(std::get<Reg>(mem.value).v, res);
+      return;
     }
   }
 
@@ -192,11 +192,11 @@ void Deserialize::createMemOp(Mem mem) {
 }
 
 void Deserialize::createLoadMapOp(LoadMapFd loadMap) {
-  Value res, map;
+  Value mapSize;
   auto dst = loadMap.dst.v;
-  map = buildConstantOp(loadMap.mapfd);
-  res = buildUnaryOp<ebpf::LoadMapOp>(map);
-  setRegister(dst, res);
+  assert(m_mapDescriptorFdToSize.contains(loadMap.mapfd));
+  mapSize = buildConstantOp(m_mapDescriptorFdToSize.at(loadMap.mapfd));
+  setRegister(dst, mapSize);
 }
 
 void Deserialize::createNDOp(bool isMapLoad = false) {
@@ -205,7 +205,7 @@ void Deserialize::createNDOp(bool isMapLoad = false) {
 }
 
 void Deserialize::createMapLookupOp(Call lookup) {
-  auto mapFd = getRegister(lookup.singles.front().reg.v);
+  auto mapFd = getRegister(lookup.singles.front().reg.v, true);
   auto key = getRegister(lookup.singles.back().reg.v);
   Value res = m_builder.create<ebpf::MapLookupOp>(m_unknownLoc, mapFd, key);
   setRegister(0, res, true);
@@ -542,6 +542,9 @@ bool Deserialize::parseModelIsSuccessful() {
   if (!functionFound) {
     std::cerr << "function is not found in the given section\n";
     return false;
+  }
+  for (const EbpfMapDescriptor &desc : m_raw_prog.info.map_descriptors) {
+    m_mapDescriptorFdToSize[desc.original_fd] = desc.value_size;
   }
   // Convert the raw program section to a set of instructions.
   std::variant<InstructionSeq, std::string> prog_or_error =

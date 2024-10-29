@@ -107,13 +107,7 @@ private:
     R10_STACK_POINTER = 10
   };
 
-  enum REG_TYPE : size_t {
-    NUM = 0,
-    PKT = 1,
-    CTX = 2,
-    MAP = 3,
-    STACK = 4
-  };
+  enum REG_TYPE : size_t { NUM = 0, PKT = 1, CTX = 2, MAP = 3, STACK = 4 };
 
   std::vector<mlir::Value> m_registers;
   std::vector<REG_TYPE> m_reg_types;
@@ -122,6 +116,7 @@ private:
   cfg_t m_cfg;
   std::map<int, Block *> m_bbs;
   std::map<int, int> m_nextCondBlock;
+  std::map<int, int> m_mapDescriptorFdToSize;
 
   ///===----------------------------------------------------------------------===//
   /// Create MLIR module
@@ -134,8 +129,6 @@ private:
   std::string m_function;
 
   Block *m_lastBlock = nullptr;
-  std::vector<bool> m_regIsMapElement =
-      std::vector<bool>(m_ebpfRegisters, false);
 
   void setupXDPEntry(mlir::ModuleOp module);
   void setupRegisters(Block *block);
@@ -154,8 +147,6 @@ private:
 
   void setRegister(const uint8_t idx, const mlir::Value &value,
                    bool isMapLoad = false, REG_TYPE type = REG_TYPE::NUM) {
-    m_regIsMapElement.at(idx) = isMapLoad;
-    // m_reg_types.at(idx) = type;
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
     if (isMapLoad) {
@@ -165,9 +156,13 @@ private:
     m_builder.create<ebpf::StoreOp>(m_unknownLoc, addr, zero, value);
   }
 
-  mlir::Value getRegister(const uint8_t idx) {
+  mlir::Value getRegister(const uint8_t idx, bool getAddr = false) {
     auto reg = m_registers.at(idx);
     auto zero = buildConstantOp(0);
+    if (getAddr) {
+      auto val = m_builder.create<ebpf::GetAddrOp>(m_unknownLoc, reg, zero);
+      return val;
+    }
     auto val = m_builder.create<ebpf::LoadOp>(m_unknownLoc, reg, zero);
     return val;
   }
@@ -286,13 +281,7 @@ private:
     auto src = getRegister(mem.access.basereg.v);
     bool isMapLoad = false;
     Value res;
-    if (m_regIsMapElement.at(mem.access.basereg.v)) {
-      // TODO: use width specific move operations
-      res = src;
-      isMapLoad = true;
-    } else {
-      res = m_builder.create<ebpfOp>(m_unknownLoc, src, offset);
-    }
+    res = m_builder.create<ebpfOp>(m_unknownLoc, src, offset);
     setRegister(std::get<Reg>(mem.value).v, res, isMapLoad);
   }
 
@@ -303,10 +292,6 @@ private:
       writeVal = buildConstantOp(std::get<Imm>(mem.value));
     } else {
       writeVal = getRegister(std::get<Reg>(mem.value).v);
-    }
-    if (m_regIsMapElement.at(baseReg)) {
-      setRegister(baseReg, writeVal);
-      return;
     }
     auto base = getRegister(baseReg);
     m_builder.create<ebpfOp>(m_unknownLoc, base, offset, writeVal);
