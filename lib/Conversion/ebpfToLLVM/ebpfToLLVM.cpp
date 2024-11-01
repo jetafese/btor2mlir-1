@@ -600,7 +600,9 @@ struct MapLookupOpLowering : public ConvertOpToLLVMPattern<ebpf::MapLookupOp> {
     }
     /* we resolve with inttoptr for now*/
     auto mapPtr =
-        rewriter.create<LLVM::IntToPtrOp>(loc, i8PtrType, adaptor.lhs());
+        rewriter
+            .create<UnrealizedConversionCastOp>(loc, i8PtrType, adaptor.lhs())
+            .getResult(0);
     auto keyPtr =
         rewriter.create<LLVM::IntToPtrOp>(loc, i8PtrType, adaptor.rhs());
     rewriter.replaceOpWithNewOp<LLVM::CallOp>(mapLookupOp, mapLookupFunc,

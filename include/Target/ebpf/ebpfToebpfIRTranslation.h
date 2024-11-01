@@ -173,6 +173,7 @@ private:
                    bool isMapLoad = false, REG_TYPE type = REG_TYPE::NUM) {
     auto zero = buildConstantOp(0);
     auto addr = m_registers.at(idx);
+    m_reg_types.at(idx) = type;
     if (isMapLoad) {
       m_builder.create<ebpf::StoreAddrOp>(m_unknownLoc, addr, zero, value);
       return;

@@ -68,10 +68,12 @@ void Deserialize::createUnaryOp(Un un) {
 void Deserialize::createBinaryOp(Bin bin) {
   using Op = Bin::Op;
   Value rhs, res;
+  auto type = REG_TYPE::NUM;
   if (std::holds_alternative<Imm>(bin.v)) {
     rhs = buildConstantOp(std::get<Imm>(bin.v));
   } else {
     rhs = getRegister(std::get<Reg>(bin.v).v);
+    type = m_reg_types.at(std::get<Reg>(bin.v).v);
   }
   switch (bin.op) {
   case Op::MOV:
@@ -132,7 +134,7 @@ void Deserialize::createBinaryOp(Bin bin) {
     res = buildBinaryOp<ebpf::XOrOp>(getRegister(bin.dst.v), rhs);
     break;
   }
-  setRegister(bin.dst.v, res);
+  setRegister(bin.dst.v, res, false, type);
   return;
 }
 
