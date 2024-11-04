@@ -42,7 +42,8 @@ void *bpf_map_lookup_elem(struct bpf_map *map, const void *key) {
   if (flag) {
     return nullptr;
   }
-  void *mem = malloc(8);
+  long size = (long) map; 
+  void *mem = malloc(size);
   return mem;
 }
 
@@ -145,7 +146,13 @@ u64 bpf_get_current_uid_gid() { return nd_u64(); }
 /// @param rc
 /// @return 0
 /// *has security implications*
-long bpf_override_return(struct pt_regs *regs, u64 rc) { return 0; }
+long bpf_override_return(struct pt_regs *regs, u64 rc) { 
+  
+  sassert(regs != nullptr);
+  memcpy((char*) regs, &rc, sizeof(rc));
+  return 0;
+}
+
 
 /// @brief Get a pseudo-random number.
 /// @return A random 32-bit unsigned value.
@@ -178,9 +185,15 @@ long bpf_probe_write_user(void *dst, const void *src, u32 len) {
 /// *has security implications*
 long bpf_perf_prog_read_value(struct bpf_perf_event_data *ctx,
                               struct bpf_perf_event_value *buf, u32 buf_size) {
-  sassert(buf_size > 0);
+  sassert(buf_size > sizeof(long));
+  sassert(buf != nullptr);
+  sassert(ctx != nullptr);
+
+  // assumming the event_counter exists at the start of the ctx
+  long event_coutner = (long) ctx;
+  // assuming we are writing it to the start of the buffer
+  memcpy(buf, &event_coutner, sizeof(long));
   // assert destination is ok
-  /*sassert(sea_is_deref(dst, size));*/
   return nd_long();
 }
 
@@ -206,8 +219,32 @@ long bpf_current_task_under_cgroup(struct bpf_map *map, u32 index) {
 /// @param optlen
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
+struct SocketMemory {
+    int sockfd;
+    int level;
+    int optname;
+    uint8_t *optval;  // Pointer to dynamically allocated memory for the option value
+};
 long bpf_setsockopt(void *bpf_socket, int level, int optname, void *optval,
                     int optlen) {
+  // make sure that the socket is not null
+  sassert(bpf_socket != nullptr);
+  // make sure that the optval is not null
+  sassert(optval != nullptr);
+
+  // we are doing this to make sure that we can access the memory and change it 
+  struct SocketMemory* socket = (struct SocketMemory*) bpf_socket;
+  socket->level = level;
+  socket->optname = optname;
+ 
+  // delete the socket memory 
+  if (socket->optval != nullptr) {
+    free(socket->optval);
+  }
+  socket->optval = (uint8_t*) malloc(optlen);
+  // change the socket memory and its size 
+  memcpy(socket->optval, optval, optlen);
+
   return nd_long();
 }
 
@@ -224,6 +261,20 @@ long bpf_setsockopt(void *bpf_socket, int level, int optname, void *optval,
 /// *has security implications*
 long bpf_getsockopt(void *bpf_socket, int level, int optname, void *optval,
                     int optlen) {
+
+  // make sure that the socket is not null
+  sassert(bpf_socket != nullptr);
+  // make sure that the optval is not null
+  sassert(optval != nullptr);
+  // we are doing this to make sure that we can access the memory and change it 
+  struct SocketMemory* socket = (struct SocketMemory*) bpf_socket;
+  // delete the socket memory 
+  if (optval != nullptr) {
+    free(socket->optval);
+  }
+  optval = (uint8_t*) malloc(optlen);
+  // change the socket memory and its size 
+  memcpy(optval, socket->optval, optlen);
   return nd_long();
 }
 
@@ -255,7 +306,19 @@ long bpf_perf_event_output(void *ctx, struct bpf_map *map, u64 flags,
 /// @param
 /// @return The number of bytes written to the buffer, or a negative error in
 /// case of failure. *has security implications*
-long bpf_trace_printk(const char *fmt, u32 fmt_size, ...) { return nd_long(); }
+long bpf_trace_printk(const char *fmt, u32 fmt_size, ...) { 
+
+
+  // make sure that the fmt is not null
+  sassert(fmt != nullptr);
+  sassert(fmt_size > 0);
+
+  char* mem = (char*) malloc(fmt_size);
+  memhavoc(mem, fmt_size);
+  memcpy((char*) fmt, mem, fmt_size);
+
+  return nd_long(); 
+}
 
 /// @brief Get the SMP (symmetric multiprocessing) processor id.
 /// @return The SMP id of the processor running the program.
@@ -269,6 +332,13 @@ u32 bpf_get_smp_processor_id() { return nd_u32(); }
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
 long bpf_ringbuf_output(void *ringbuf, void *data, u64 size, u64 flags) {
+
+  sassert(ringbuf != nullptr);
+  sassert(data != nullptr);
+  sassert(size > 0);
+
+  memcpy(ringbuf, data, size);
+
   return nd_long();
 }
 
@@ -309,6 +379,15 @@ long bpf_sock_map_update(struct bpf_sock_ops *skops, struct bpf_map *map,
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
 long bpf_xdp_adjust_meta(struct xdp_buff *xdp_md, int delta) {
+
+  sassert(xdp_md != nullptr);
+  // lets assume that data_meta is same as xdp_md
+  // check + delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) + delta);
+  // check - delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) - 2*delta);
+
+
   return nd_long();
 }
 
@@ -319,6 +398,14 @@ long bpf_xdp_adjust_meta(struct xdp_buff *xdp_md, int delta) {
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
 long bpf_xdp_adjust_head(struct xdp_buff *xdp_md, int delta) {
+  sassert(xdp_md != nullptr);
+  // lets assume that data is same as xdp_md
+  // check + delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) + delta);
+  // check - delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) - 2*delta);
+
+
   return nd_long();
 }
 
@@ -329,6 +416,16 @@ long bpf_xdp_adjust_head(struct xdp_buff *xdp_md, int delta) {
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
 long bpf_xdp_adjust_tail(struct xdp_buff *xdp_md, int delta) {
+
+
+  sassert(xdp_md != nullptr);
+  // lets assume that tail is same as xdp_md
+  // check + delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) + delta);
+  // check - delta
+  xdp_md = (struct xdp_buff *)((uintptr_t)(xdp_md) - 2*delta);
+
+
   return nd_long();
 }
 
@@ -348,6 +445,19 @@ u64 bpf_ktime_get_ns() { return nd_u64(); }
 
 long bpf_fib_lookup(void *ctx, struct bpf_fib_lookup *params, int plen,
                     u32 flags) {
+
+  sassert(ctx != nullptr);
+  sassert(params != nullptr);
+
+  // no memory is being changed here but we are reading params and ctx 
+  void* mem = malloc(plen);
+  memcpy(mem, params, plen);
+  free(mem); 
+  // assume ctx starts with size 
+  long size = (long) ctx;
+  void* mem2 = malloc(size);
+  memcpy(mem2, ctx, size);
+  free(mem2);
   return nd_long();
 }
 
@@ -373,6 +483,9 @@ u32 bpf_get_hash_recalc(struct sk_buff *skb) { return nd_u32(); }
 /// *has security implications*
 long bpf_l3_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to,
                          u64 size) {
+
+  sassert(skb != nullptr);
+  memcpy((char*) skb + offset, &to, sizeof(to));
   return nd_long();
 }
 
@@ -387,6 +500,10 @@ long bpf_l3_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to,
 /// *has security implications*
 long bpf_l4_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to,
                          u64 flags) {
+  sassert(skb != nullptr);
+
+  memcpy((char*) skb + offset, &to, sizeof(to));
+
   return nd_long();
 }
 
@@ -402,6 +519,20 @@ long bpf_l4_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to,
 /// *has security implications*
 s64 bpf_csum_diff(__be32 *from, u32 from_size, __be32 *to, u32 to_size,
                   __wsum seed) {
+
+  sassert(from != nullptr);
+  sassert(to != nullptr);
+  sassert(from_size % 4 == 0);
+  sassert(to_size % 4 == 0);
+
+  __be32* from_mem = (__be32*) malloc(from_size);
+  __be32* to_mem = (__be32*) malloc(to_size);
+  memcpy(from_mem, from, from_size);
+  memcpy(to_mem, to, to_size);
+
+  free(from_mem);
+  free(to_mem);
+
   return nd_int();
 }
 
