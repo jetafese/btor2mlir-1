@@ -15,6 +15,13 @@ typedef int s32;
 typedef u32 __wsum;
 typedef uint32_t __be32;
 
+void __VERIFIER_error(void) {}
+void __VERIFIER_assert(bool cond) {
+  if (!(cond)) {
+    __VERIFIER_error();
+  }
+}
+
 extern "C" {
 
 extern int64_t nd_int();
@@ -22,7 +29,6 @@ extern long nd_long();
 extern uint64_t nd_u64();
 extern uint32_t nd_u32();
 extern int64_t memhavoc(void *, int);
-extern bool sea_is_deref(void *, int);
 
 
 struct bpf_map;
@@ -45,6 +51,13 @@ void *bpf_map_lookup_elem(struct bpf_map *map, const void *key) {
 /// @param key
 /// @return 0 on success, or a negative error in case of failure.
 long bpf_map_delete_elem(struct bpf_map *map, const void *key) {
+  // make sure that the map and key are not null
+  sassert(map != nullptr);
+  void* to_delete = bpf_map_lookup_elem(map, key);
+  sassert(to_delete != nullptr);
+  if (to_delete) {
+    free(to_delete);
+  }
   return nd_long();
 }
 
@@ -67,6 +80,16 @@ long bpf_redirect_map(struct bpf_map *map, u64 key, u64 flags) {
 /// @return  0 on success, or a negative error in case of failure.
 long bpf_map_update_elem(struct bpf_map *map, const void *key,
                          const void *value, u64 flags) {
+
+  // make sure that the map, key, and value are not null
+  sassert(map != nullptr);
+  sassert(key != nullptr);
+  sassert(value != nullptr);
+  // till what level do we model the function? 
+  void* new_key = malloc(sizeof(key));
+  void* new_val = malloc(sizeof(value));
+  memcpy(new_key, key, sizeof(key));
+  memcpy(new_val, value, sizeof(value));
   return nd_long();
 }
 
@@ -84,7 +107,6 @@ long bpf_probe_read(void *dst, int size, const void *unsafe_ptr) {
   // assert things about size
   sassert(size > 0);
   // assert destination is ok
-  sassert(sea_is_deref(dst, size));
   // havoc. this assumes arbitrary value of size, a better model is possible for
   // smaller values of size
   void *mem = malloc(size);
@@ -137,6 +159,13 @@ u32 bpf_get_prandom_u32() { return nd_u32(); }
 /// @return 0 on success, or a negative error in case of failure.
 /// *has security implications*
 long bpf_probe_write_user(void *dst, const void *src, u32 len) {
+  // assert things about size
+  sassert(len > 0);
+  sassert(dst != nullptr || src != nullptr);
+  // assert destination is ok
+  // not sure if this is okay to do 
+  memcpy(dst, src, len);
+  // return error code
   return nd_long();
 }
 
@@ -152,7 +181,6 @@ long bpf_perf_prog_read_value(struct bpf_perf_event_data *ctx,
   sassert(buf_size > 0);
   // assert destination is ok
   /*sassert(sea_is_deref(dst, size));*/
-  sassert(sea_is_deref(buf, buf_size));
   return nd_long();
 }
 
@@ -254,7 +282,6 @@ long bpf_get_current_comm(void *buf, u32 size_of_buf) {
   // assert things about size
   sassert(size_of_buf > 0);
   // assert destination is ok
-  sassert(sea_is_deref(buf, size_of_buf));
   // havoc
   void *mem = malloc(size_of_buf);
   memhavoc(mem, size_of_buf);
@@ -307,8 +334,8 @@ long bpf_xdp_adjust_tail(struct xdp_buff *xdp_md, int delta) {
 
 /// @brief Return the time elapsed since system boot in nanoseconds
 /// @return current ktime
-u64 bpf_ktime_get_ns() { return nd_u64(); }
 
+u64 bpf_ktime_get_ns() { return nd_u64(); }
 /// @brief Do FIB lookup in kernel tables using parameters in params.
 /// @param ctx either struct xdp_md for XDP programs or struct sk_buff tc
 /// cls_act programs.

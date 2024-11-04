@@ -23,7 +23,11 @@ extern "C" {
     }
 
     int64_t memhavoc(void *ptr, int size) {
-        return 0; 
+        if (ptr == nullptr){
+            return -1; 
+        }
+        memset(ptr, nd_int(), size); 
+        return nd_int(); 
     }
 
     bool sea_is_deref(void *ptr, int size) {
