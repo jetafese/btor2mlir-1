@@ -3,23 +3,34 @@
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
+#include <random> 
+
+// initialize random number generator
+std::random_device rd;
+std::mt19937 gen(rd());
 
 extern "C" {
+
     long bpf_get_current_comm(void *buf, uint32_t size_of_buf);
+
     int64_t nd_int() {
-        return 0; 
+        std::uniform_int_distribution<int64_t> dis;
+        return dis(gen);
     }
 
     long nd_long() {
-        return 0; 
+        std::uniform_int_distribution<long> dis;
+        return dis(gen);
     }
 
     uint64_t nd_u64() {
-        return 0; 
+        std::uniform_int_distribution<uint64_t> dis;
+        return dis(gen);
     }
 
     uint32_t nd_u32() {
-        return 0; 
+        std::uniform_int_distribution<uint32_t> dis;
+        return dis(gen);
     }
 
     int64_t memhavoc(void *ptr, int size) {
@@ -27,12 +38,9 @@ extern "C" {
             return -1; 
         }
         memset(ptr, nd_int(), size); 
-        return nd_int(); 
+        return 0; 
     }
 
-    bool sea_is_deref(void *ptr, int size) {
-        return false;
-    }
 }
 
 // Passing test case
@@ -55,7 +63,7 @@ void test_bpf_get_current_comm_fail() {
     const uint32_t buffer_size = 64; 
     void *buf = malloc(buffer_size);
     assert(buf != nullptr); 
-    memset(buf, 0, buffer_size); 
+    memhavoc(buf, buffer_size); // fill buffer with random data (to make the test fail
     long result = bpf_get_current_comm(buf, buffer_size + 1); // should fail 
     std::cout << "bpf_get_current_comm (failing) result: " << result << std::endl;
     free(buf);
@@ -66,7 +74,7 @@ uint32_t min(uint32_t a, uint32_t b) {
 }
 
 // Fuzzer entry point
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(uint8_t *data, size_t size) {
     if (size < sizeof(uint32_t)) {
         return 0;
     }
